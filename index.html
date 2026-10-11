@@ -974,7 +974,7 @@
     color:var(--ink);
     margin-bottom:7px;
   }
-  .formfield input[type=text], .formfield input[type=email], .formfield textarea, .formfield select{
+  .formfield input[type=text], .formfield input[type=email], .formfield input[type=number], .formfield textarea, .formfield select{
     width:100%;
     border:1.5px solid var(--line);
     border-radius:10px;
@@ -986,8 +986,11 @@
     resize:vertical;
     background:#fff;
   }
-  .formfield input[type=text]:focus, .formfield input[type=email]:focus, .formfield textarea:focus, .formfield select:focus{ border-color:var(--teal); }
+  .formfield input[type=text]:focus, .formfield input[type=email]:focus, .formfield input[type=number]:focus, .formfield textarea:focus, .formfield select:focus{ border-color:var(--teal); }
   .formfield textarea{ min-height:88px; }
+  .pricecurrencyrow{ display:flex; gap:10px; }
+  .pricecurrencyrow input{ flex:1 1 auto; min-width:0; }
+  .pricecurrencyrow select{ flex:0 0 auto; width:auto; min-width:92px; }
   .uploadbox{
     border:1.5px dashed var(--line);
     border-radius:12px;
@@ -2755,7 +2758,12 @@
       </div>
       <div class="formfield">
         <label id="lblPrice">Price</label>
-        <input type="number" id="svcPrice" min="0" step="1" inputmode="decimal" placeholder="e.g. 350">
+        <div class="pricecurrencyrow">
+          <input type="number" id="svcPrice" min="0" step="1" inputmode="decimal" placeholder="e.g. 350">
+          <select id="svcCurrency">
+            <option value="" id="currencyPlaceholderOpt">Currency</option>
+          </select>
+        </div>
       </div>
       <div class="formfield">
         <label id="lblWhatYouDo">What do you do?</label>
@@ -3271,6 +3279,9 @@ const CATS = [
   {key:"consulting", icoKey:"clipboard"}
 ];
 
+/* Currencies a listing's price can be entered in. */
+const CURRENCIES = ["USD","GBP","EUR"];
+
 /* ---------------- Translations ---------------- */
 const T = {
   en:{ chooseCountry:"Choose the country you live in", changeCountry:"Change country",
@@ -3289,6 +3300,7 @@ const T = {
     continueBtn:"Continue", postFormLede:"Tell us about your service",
     businessNameLabel:"Business name", businessNamePh:"e.g. Ola's Handyman Service",
     priceLabel:"Your average price", priceDetailLabel:"Average price", pricePh:"e.g. 350", avgPriceLabel:"Avg. price",
+    currencyPlaceholder:"Currency", currencyRequiredNote:"Please choose a currency",
     minPricePh:"Min price", maxPricePh:"Max price", priceFilterLabel:"Price range",
     saveFailedWarning:"Couldn't save to the server — your listing may be lost if you close this tab. Check your connection and try again.",
     whatYouDoLabel:"What do you do?", whatYouDoPh:"Describe your service…",
@@ -3349,6 +3361,7 @@ const T = {
     continueBtn:"Neste", postFormLede:"Fortell oss om tjenesten din",
     businessNameLabel:"Firmanavn", businessNamePh:"F.eks. Olas Håndverkertjeneste",
     priceLabel:"Din gjennomsnittspris", priceDetailLabel:"Snittpris", pricePh:"F.eks. 350", avgPriceLabel:"Snittpris",
+    currencyPlaceholder:"Valuta", currencyRequiredNote:"Velg en valuta",
     minPricePh:"Min. pris", maxPricePh:"Maks. pris", priceFilterLabel:"Prisintervall",
     saveFailedWarning:"Kunne ikke lagre til serveren — annonsen kan gå tapt hvis du lukker fanen. Sjekk nettforbindelsen og prøv igjen.",
     whatYouDoLabel:"Hva gjør du?", whatYouDoPh:"Beskriv tjenesten din…",
@@ -3393,6 +3406,7 @@ const T = {
     continueBtn:"Fortsätt", postFormLede:"Berätta om din tjänst",
     businessNameLabel:"Företagsnamn", businessNamePh:"T.ex. Olas Hantverkstjänst",
     priceLabel:"Ditt genomsnittspris", priceDetailLabel:"Snittpris", pricePh:"T.ex. 350", avgPriceLabel:"Snittpris",
+    currencyPlaceholder:"Valuta", currencyRequiredNote:"Välj en valuta",
     minPricePh:"Min. pris", maxPricePh:"Max. pris", priceFilterLabel:"Prisintervall",
     saveFailedWarning:"Kunde inte spara till servern — din annons kan gå förlorad om du stänger fliken. Kontrollera din anslutning och försök igen.",
     whatYouDoLabel:"Vad gör du?", whatYouDoPh:"Beskriv din tjänst…",
@@ -3437,6 +3451,7 @@ const T = {
     continueBtn:"Fortsæt", postFormLede:"Fortæl os om din tjeneste",
     businessNameLabel:"Firmanavn", businessNamePh:"F.eks. Olas Håndværkerservice",
     priceLabel:"Din gennemsnitspris", priceDetailLabel:"Gennemsnitspris", pricePh:"F.eks. 350", avgPriceLabel:"Gennemsnitspris",
+    currencyPlaceholder:"Valuta", currencyRequiredNote:"Vælg en valuta",
     minPricePh:"Min. pris", maxPricePh:"Maks. pris", priceFilterLabel:"Prisinterval",
     saveFailedWarning:"Kunne ikke gemme til serveren — din annonce kan gå tabt, hvis du lukker fanen. Tjek din forbindelse, og prøv igen.",
     whatYouDoLabel:"Hvad laver du?", whatYouDoPh:"Beskriv din tjeneste…",
@@ -3749,12 +3764,22 @@ function renderListingCards(lang){
 
   // Average price across the listings currently shown (respects the active
   // category filter and search), so people get a sense of the going rate.
+  // Prices in different currencies can't be averaged together meaningfully,
+  // so this groups by currency and shows the average for whichever currency
+  // has the most listings right now.
   const avgPriceBadge = document.getElementById('avgPriceBadge');
-  const pricedListings = listings.filter(l => typeof l.price === 'number' && l.price > 0);
+  const pricedListings = listings.filter(l => typeof l.price === 'number' && l.price > 0 && l.currency);
   if(pricedListings.length > 0){
-    const avg = pricedListings.reduce((sum,l)=> sum + l.price, 0) / pricedListings.length;
+    const byCurrency = {};
+    pricedListings.forEach(l => {
+      (byCurrency[l.currency] = byCurrency[l.currency] || []).push(l.price);
+    });
+    const topCurrency = Object.keys(byCurrency).reduce((best, cur) =>
+      byCurrency[cur].length > (byCurrency[best] ? byCurrency[best].length : 0) ? cur : best, null);
+    const prices = byCurrency[topCurrency];
+    const avg = prices.reduce((sum,p)=> sum + p, 0) / prices.length;
     const rounded = avg >= 100 ? Math.round(avg) : Math.round(avg * 10) / 10;
-    avgPriceBadge.textContent = `${t(lang,'avgPriceLabel')}: ${rounded.toLocaleString()}`;
+    avgPriceBadge.textContent = `${t(lang,'avgPriceLabel')}: ${rounded.toLocaleString()} ${topCurrency}`;
     avgPriceBadge.classList.remove('hidden');
   } else {
     avgPriceBadge.classList.add('hidden');
@@ -3795,7 +3820,7 @@ function renderListingCards(lang){
         <h3>${escapeHtml(l.name)}</h3>
         <p class="provider">${t(lang, l.cat)} <span class="verified">${ic('check')}</span></p>
         <p class="desc">${escapeHtml(l.desc)}</p>
-        ${typeof l.price === 'number' && l.price > 0 ? `<p class="price">${t(lang,'from')} ${l.price.toLocaleString()}</p>` : ''}
+        ${typeof l.price === 'number' && l.price > 0 ? `<p class="price">${t(lang,'from')} ${l.price.toLocaleString()}${l.currency ? ' '+l.currency : ''}</p>` : ''}
         <div class="tagrow"></div>
         <button class="contactbtn">${t(lang,'contactHelper')}</button>
       </div>`;
@@ -3920,7 +3945,7 @@ function openServiceDetail(service, lang){
     ${typeof service.price === 'number' && service.price > 0 ? `
     <div class="ddetail-item">
       <div class="diico">${ic('pricetag')}</div>
-      <div><div class="dilabel">${t(lang,'priceDetailLabel')}</div><div class="divalue">${service.price.toLocaleString()}</div></div>
+      <div><div class="dilabel">${t(lang,'priceDetailLabel')}</div><div class="divalue">${service.price.toLocaleString()}${service.currency ? ' '+service.currency : ''}</div></div>
     </div>` : ''}
     <div class="ddetail-item" style="grid-column:1 / -1;">
       <div class="diico">${ic('pin')}</div>
@@ -4702,6 +4727,10 @@ function showPostForm(c){
   document.getElementById('lblPrice').textContent = t(c.lang,'priceLabel');
   document.getElementById('svcPrice').placeholder = t(c.lang,'pricePh');
   document.getElementById('svcPrice').value = "";
+  const currencySelect = document.getElementById('svcCurrency');
+  currencySelect.innerHTML = `<option value="">${t(c.lang,'currencyPlaceholder')}</option>` +
+    CURRENCIES.map(cur => `<option value="${cur}">${cur}</option>`).join('');
+  currencySelect.value = "";
   document.getElementById('lblWhatYouDo').textContent = t(c.lang,'whatYouDoLabel');
   document.getElementById('svcDesc').placeholder = t(c.lang,'whatYouDoPh');
   document.getElementById('svcDesc').value = "";
@@ -4741,6 +4770,7 @@ function applyTestFill(c){
   document.getElementById('svcName').value = "Test Company AS";
   document.getElementById('svcDesc').value = "This is placeholder test text — replace it with a real description before publishing for real.";
   document.getElementById('svcPrice').value = "350";
+  document.getElementById('svcCurrency').value = CURRENCIES[0];
   document.getElementById('formConsentCheckbox').checked = true;
 
   svcImageData = TEST_IMAGE_PLACEHOLDER;
@@ -4774,12 +4804,14 @@ function checkPublishEnabled(){
   const cat = document.getElementById('svcCategory').value;
   const priceVal = parseFloat(document.getElementById('svcPrice').value);
   const priceOk = !isNaN(priceVal) && priceVal > 0;
+  const currency = document.getElementById('svcCurrency').value;
   const consent = document.getElementById('formConsentCheckbox').checked;
-  document.getElementById('publishBtn').disabled = !(name && desc && cat && priceOk && svcImageData && consent);
+  document.getElementById('publishBtn').disabled = !(name && desc && cat && priceOk && currency && svcImageData && consent);
 }
 document.getElementById('formConsentCheckbox').addEventListener('change', checkPublishEnabled);
 document.getElementById('svcName').addEventListener('input', checkPublishEnabled);
 document.getElementById('svcPrice').addEventListener('input', checkPublishEnabled);
+document.getElementById('svcCurrency').addEventListener('change', checkPublishEnabled);
 document.getElementById('svcDesc').addEventListener('input', checkPublishEnabled);
 document.getElementById('svcCategory').addEventListener('change', checkPublishEnabled);
 
@@ -5103,7 +5135,8 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
   const desc = document.getElementById('svcDesc').value.trim();
   const cat = document.getElementById('svcCategory').value;
   const priceVal = parseFloat(document.getElementById('svcPrice').value);
-  if(!name || !desc || !cat || !svcImageData || isNaN(priceVal) || priceVal <= 0) return;
+  const currencyVal = document.getElementById('svcCurrency').value;
+  if(!name || !desc || !cat || !svcImageData || isNaN(priceVal) || priceVal <= 0 || !currencyVal) return;
 
   const locations = countries
     .map(c => ({ country: c.name, cities: Array.from(postSelectedCitiesByCountry[c.name] || []) }))
@@ -5113,6 +5146,7 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
     id: Date.now()+Math.random(),
     name, desc, cat,
     price: priceVal,
+    currency: currencyVal,
     image: svcImageData,
     video: svcVideoData,
     locations,
