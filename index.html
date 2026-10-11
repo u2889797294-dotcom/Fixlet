@@ -4079,10 +4079,28 @@ function renderMessagesInbox(lang){
   });
 }
 document.getElementById('backFromInbox').addEventListener('click', ()=> show('services'));
+/* Opening the inbox used to just render whatever was already sitting in
+   memory from page load — so a message someone sent after you opened the
+   app would never show up for you until you happened to be polling (the
+   8s interval only runs while you're already on services/myServices/
+   messagesInbox) or you manually reloaded the whole page. That's the
+   "the receiver never sees it" bug: the receiver's own browser was simply
+   never asking the server for the latest messages. Now it shows what it
+   has immediately (so it feels instant), then fetches the latest and
+   re-renders if anything changed. */
+async function openInbox(lang){
+  renderMessagesInbox(lang);
+  show('messagesInbox');
+  const before = JSON.stringify(myServices);
+  await loadServices();
+  if(JSON.stringify(myServices) !== before){
+    renderMessagesInbox(lang);
+  }
+}
+
 document.getElementById('messagesNavItem').addEventListener('click', (e)=>{
   e.stopPropagation();
-  renderMessagesInbox(currentLang);
-  show('messagesInbox');
+  openInbox(currentLang);
 });
 
 /* ---------------- Bottom tab bar (Vyrti-style) ---------------- */
@@ -4094,13 +4112,17 @@ document.getElementById('bottomtabList').addEventListener('click', ()=>{
   document.getElementById('listServiceBtn').click();
 });
 document.getElementById('bottomtabInbox').addEventListener('click', ()=>{
-  renderMessagesInbox(currentLang);
-  show('messagesInbox');
+  openInbox(currentLang);
 });
 document.getElementById('bottomtabYou').addEventListener('click', ()=>{
-  requireLogin(()=>{
+  requireLogin(async ()=>{
     renderMyServices(currentLang);
     show('myServices');
+    const before = JSON.stringify(myServices);
+    await loadServices();
+    if(JSON.stringify(myServices) !== before){
+      renderMyServices(currentLang);
+    }
   });
 });
 
