@@ -4016,15 +4016,20 @@ function renderChatMessages(){
   body.scrollTop = body.scrollHeight;
 }
 
-function sendChatMessage(){
+async function sendChatMessage(){
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
   if(!text || !activeChatService) return;
+  const serviceId = activeChatService.id;
   activeChatService.chat.push({ text, time: Date.now() });
-  saveServices();
   input.value = "";
   document.getElementById('chatSendBtn').disabled = true;
   renderChatMessages();
+  const saved = await saveChatMessage(serviceId);
+  if(!saved){
+    const detail = lastSaveErrorDetail ? (' [' + lastSaveErrorDetail + ']') : '';
+    showToast(t(activeChatLang,'saveFailedWarning') + detail, null, activeChatLang, 20000);
+  }
   pushNotification(activeChatLang, t(activeChatLang,'newMessagePrefix') + " \"" + activeChatService.name + "\"", activeChatService);
   if(!screens.myServices.classList.contains('hidden')) renderMyServices(activeChatLang);
 }
@@ -5016,6 +5021,76 @@ async function saveServices(){
   }
 
   return false;
+}
+
+/* Chat is shared data: several people can message the same listing from
+   different devices. sendChatMessage() used to call plain saveServices(),
+   which always overwrites the *entire* table with this browser's local
+   copy of myServices — so if anything else had been saved since this
+   browser last loaded (another listing, another message), that save wiped
+   it out, and the message could look like it "didn't save" on the other
+   person's side. This re-fetches the latest shared data right before
+   saving and merges in only this one listing's chat array, instead of
+   blindly overwriting everything. */
+async function saveChatMessage(serviceId){
+  if(supabaseConfigured()){
+    try {
+      const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, {
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      let latest = Array.isArray(myServices) ? myServices.slice() : [];
+      if(getRes.ok){
+        const rows = await getRes.json();
+        if(rows && rows[0] && Array.isArray(rows[0].data)) latest = rows[0].data;
+      }
+
+      const localChat = (activeChatService && Array.isArray(activeChatService.chat)) ? activeChatService.chat : [];
+      let found = false;
+      latest = latest.map(s=>{
+        if(s.id === serviceId){
+          found = true;
+          return Object.assign({}, s, { chat: localChat });
+        }
+        return s;
+      });
+      // The listing isn't in the shared data yet (e.g. it only exists in
+      // this browser so far) — keep the message by adding it rather than
+      // silently dropping it.
+      if(!found && activeChatService) latest.push(activeChatService);
+
+      const putRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "resolution=merge-duplicates"
+        },
+        body: JSON.stringify({ id: "global", data: latest })
+      });
+      if(putRes.ok){
+        myServices = latest;
+        const updated = myServices.find(s => s.id === serviceId);
+        if(updated) activeChatService = updated;
+        return true;
+      }
+      const bodyText = await putRes.text().catch(()=> '');
+      lastSaveErrorDetail = `Supabase HTTP ${putRes.status}: ${bodyText.slice(0,300)}`;
+      console.error('saveChatMessage: Supabase save failed', putRes.status, bodyText);
+    } catch(e){
+      lastSaveErrorDetail = `Supabase request failed: ${e && e.message ? e.message : e}`;
+      console.error('saveChatMessage: Supabase request threw', e);
+    }
+  } else {
+    lastSaveErrorDetail = 'Supabase is not configured.';
+  }
+  // Fall back to the same local-only behavior saveServices() already has
+  // (window.storage / localStorage), so the message isn't lost in *this*
+  // browser even if the shared save failed.
+  return await saveServices();
 }
 
 async function loadServices(){
