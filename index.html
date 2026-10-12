@@ -3296,6 +3296,7 @@ const T = {
     kmAway:"km away", verified:"Verified", video:"Video", availableToday:"Available today", topRated:"Top rated",
     noResults:"No listings match your search",
     contactHelper:"Contact helper", sentMsg:"Message sent", repliedSuffix:"replied to your message",
+    customerLabel:"Customer", viewMessagesBtn:"View messages",
     notificationsTitle:"Notifications", noNotifications:"No notifications yet",
     continueBtn:"Continue", postFormLede:"Tell us about your service",
     businessNameLabel:"Business name", businessNamePh:"e.g. Ola's Handyman Service",
@@ -3357,6 +3358,7 @@ const T = {
     kmAway:"km unna", verified:"Verifisert", video:"Video", availableToday:"Ledig i dag", topRated:"Toppvurdert",
     noResults:"Ingen annonser matcher søket ditt",
     contactHelper:"Kontakt hjelper", sentMsg:"Melding sendt", repliedSuffix:"svarte på meldingen din",
+    customerLabel:"Kunde", viewMessagesBtn:"Se meldinger",
     notificationsTitle:"Varslinger", noNotifications:"Ingen varslinger ennå",
     continueBtn:"Neste", postFormLede:"Fortell oss om tjenesten din",
     businessNameLabel:"Firmanavn", businessNamePh:"F.eks. Olas Håndverkertjeneste",
@@ -3402,6 +3404,7 @@ const T = {
     kmAway:"km bort", verified:"Verifierad", video:"Video", availableToday:"Ledig idag", topRated:"Toppbetyg",
     noResults:"Inga annonser matchar din sökning",
     contactHelper:"Kontakta hjälpare", sentMsg:"Meddelande skickat", repliedSuffix:"svarade på ditt meddelande",
+    customerLabel:"Kund", viewMessagesBtn:"Visa meddelanden",
     notificationsTitle:"Aviseringar", noNotifications:"Inga aviseringar än",
     continueBtn:"Fortsätt", postFormLede:"Berätta om din tjänst",
     businessNameLabel:"Företagsnamn", businessNamePh:"T.ex. Olas Hantverkstjänst",
@@ -3447,6 +3450,7 @@ const T = {
     kmAway:"km væk", verified:"Verificeret", video:"Video", availableToday:"Ledig i dag", topRated:"Topbedømt",
     noResults:"Ingen annoncer matcher din søgning",
     contactHelper:"Kontakt hjælper", sentMsg:"Besked sendt", repliedSuffix:"svarede på din besked",
+    customerLabel:"Kunde", viewMessagesBtn:"Se beskeder",
     notificationsTitle:"Underretninger", noNotifications:"Ingen underretninger endnu",
     continueBtn:"Fortsæt", postFormLede:"Fortæl os om din tjeneste",
     businessNameLabel:"Firmanavn", businessNamePh:"F.eks. Olas Håndværkerservice",
@@ -3840,7 +3844,7 @@ function renderListingCards(lang){
     const cbtn = div.querySelector('.contactbtn');
     cbtn.addEventListener('click', (e)=>{
       e.stopPropagation();
-      openChat(l, lang);
+      openChatAsCustomer(l, lang);
     });
   });
 }
@@ -3848,12 +3852,12 @@ function renderListingCards(lang){
 /* ---------------- Notifications (bell) ---------------- */
 let notifications = [];
 
-function pushNotification(lang, text, service){
-  notifications.unshift({ id: Date.now()+Math.random(), text, service: service || null, lang });
+function pushNotification(lang, text, service, customerCode){
+  notifications.unshift({ id: Date.now()+Math.random(), text, service: service || null, lang, customerCode });
   renderNotifications(lang);
   const badge = document.getElementById('bellBadge');
   badge.classList.remove('hidden');
-  showToast(text, service, lang);
+  showToast(text, service, lang, undefined, customerCode);
 
   const bellIcon = document.querySelector('#bellNavItem .navico');
   if(bellIcon){
@@ -3880,7 +3884,7 @@ function renderNotifications(lang){
     div.innerHTML = `<span class="dot"></span><span>${escapeHtml(n.text)}</span>`;
     div.addEventListener('click', ()=>{
       document.getElementById('notifPanel').classList.remove('open');
-      if(n.service) openChat(n.service, n.lang || lang);
+      if(n.service) openChat(n.service, n.lang || lang, n.customerCode);
     });
     list.appendChild(div);
   });
@@ -3902,14 +3906,14 @@ document.addEventListener('click', ()=>{
 
 /* ---------------- Notification toast ---------------- */
 let toastTimeout = null;
-function showToast(text, service, lang, duration){
+function showToast(text, service, lang, duration, customerCode){
   const toast = document.getElementById('notifToast');
   document.getElementById('toastBellIcon').innerHTML = ic('bell');
   document.getElementById('toastText').textContent = text;
   toast.classList.remove('hidden');
   toast.onclick = ()=>{
     toast.classList.add('hidden');
-    if(service) openChat(service, lang);
+    if(service) openChat(service, lang, customerCode);
   };
   if(toastTimeout) clearTimeout(toastTimeout);
   toastTimeout = setTimeout(()=> toast.classList.add('hidden'), duration || 5000);
@@ -3917,7 +3921,7 @@ function showToast(text, service, lang, duration){
 
 /* ---------------- Service detail page ---------------- */
 function openServiceDetail(service, lang){
-  if(!service.chat) service.chat = [];
+  if(!service.conversations) service.conversations = {};
   const catDef = CATS.find(c=>c.key === service.cat);
   const icoKey = catDef ? catDef.icoKey : 'briefcase';
   const dateStr = new Date(service.createdAt).toLocaleDateString(LOCALE_MAP[lang] || 'en-GB', {day:'numeric', month:'short', year:'numeric'});
@@ -3960,7 +3964,7 @@ function openServiceDetail(service, lang){
   document.getElementById('detailSideCat').innerHTML = `${ic(icoKey)} <span>${t(lang, service.cat)}</span>`;
   document.getElementById('detailSideStats').innerHTML = `
     <div class="dstat"><div class="dsnum">${service.cities.length}</div><div class="dslabel">${t(lang,'statCitiesLabel')}</div></div>
-    <div class="dstat"><div class="dsnum">${service.chat.length}</div><div class="dslabel">${t(lang,'statMessagesLabel')}</div></div>`;
+    <div class="dstat"><div class="dsnum">${countConversationMessages(service)}</div><div class="dslabel">${t(lang,'statMessagesLabel')}</div></div>`;
   document.getElementById('detailContactBtn').textContent = t(lang,'contactHelper');
 
   const vbtn = document.getElementById('detailVideoBtn');
@@ -3973,19 +3977,57 @@ function openServiceDetail(service, lang){
     vbtn.onclick = null;
   }
 
-  document.getElementById('detailContactBtn').onclick = ()=> openChat(service, lang);
+  document.getElementById('detailContactBtn').onclick = ()=> openChatAsCustomer(service, lang);
 
   show('serviceDetail');
 }
 document.getElementById('backFromDetail').addEventListener('click', ()=> show('services'));
 
-/* ---------------- Chat ---------------- */
+/* ---------------- Chat ----------------
+   Each listing keeps a `conversations` object keyed by the account code of
+   whoever messaged it, e.g. { "482913": [ {text,time,from}, ... ] }. That
+   gives every customer their own private thread with the owner, instead of
+   everyone who ever contacted a listing sharing one mixed-together list
+   with no way to tell who wrote what (which is what "chat" used to be:
+   a single flat array with no sender field at all).
+
+   `from` on each message is either "owner" (the account that owns this
+   listing) or "customer" (whoever opened the conversation). Comparing
+   that against which role the *current* viewer has is what lets the chat
+   bubbles actually show "me" vs "them" correctly, and lets the inbox
+   count unread/last messages per person instead of per listing. */
 let activeChatService = null;
+let activeChatCustomerCode = null;
 let activeChatLang = 'en';
 
-function openChat(service, lang){
-  if(!service.chat) service.chat = [];
+// Total message count across every conversation on a listing (used for the
+// "messages" stat, which used to just read a single flat chat array).
+function countConversationMessages(service){
+  if(!service || !service.conversations) return 0;
+  return Object.values(service.conversations).reduce((sum, msgs)=> sum + (msgs ? msgs.length : 0), 0);
+}
+
+// Whether the signed-in account is the business side of this listing, vs.
+// a customer messaging it. Messaging your own listing isn't blocked, but
+// this is what decides which side of the conversation your messages land on.
+function myRoleFor(service){
+  return (currentUser && service && service.ownerCode === currentUser.code) ? 'owner' : 'customer';
+}
+
+/* Opens the conversation between the signed-in account and `customerCode`
+   on this listing. When customerCode is omitted (e.g. a customer clicking
+   "Contact" on a listing for the first time), it defaults to the signed-in
+   account's own code — since in that case *they* are the customer. The
+   owner always needs an explicit customerCode (passed in from the inbox),
+   since they potentially have conversations with several different
+   customers on the same listing. */
+function openChat(service, lang, customerCode){
+  if(!service.conversations) service.conversations = {};
+  const code = customerCode || (currentUser ? currentUser.code : null);
+  if(!code) return; // not signed in and no explicit conversation given — nothing to open
+  if(!service.conversations[code]) service.conversations[code] = [];
   activeChatService = service;
+  activeChatCustomerCode = code;
   activeChatLang = lang;
   const avatar = document.getElementById('chatAvatar');
   avatar.innerHTML = service.image ? `<img src="${service.image}">` : service.name.charAt(0);
@@ -3999,16 +4041,34 @@ function openChat(service, lang){
   document.getElementById('chatInput').focus();
 }
 
+// Used by every "Contact helper" button a visitor (not the inbox) can
+// click. Requires sign-in, since a message needs a sender identity to mean
+// anything now, and quietly refuses to open a conversation with yourself
+// if you're looking at your own listing — you already have a dedicated
+// "View messages" button for that, which opens the real inbox instead.
+function openChatAsCustomer(service, lang){
+  requireLogin(()=>{
+    if(currentUser && service.ownerCode === currentUser.code) return;
+    openChat(service, lang);
+  });
+}
+
 function renderChatMessages(){
   const body = document.getElementById('chatBody');
   body.innerHTML = "";
-  if(!activeChatService || activeChatService.chat.length === 0){
+  const messages = (activeChatService && activeChatService.conversations && activeChatService.conversations[activeChatCustomerCode]) || [];
+  if(messages.length === 0){
     body.innerHTML = `<div class="chatempty">${t(activeChatLang,'noMessagesYet')}</div>`;
     return;
   }
-  activeChatService.chat.forEach(m=>{
+  const myRole = myRoleFor(activeChatService);
+  messages.forEach(m=>{
     const bubble = document.createElement('div');
-    bubble.className = 'chatbubble me';
+    // Messages from my own role render as "me" (right-aligned); the other
+    // side's messages render as "them" — this is the part that was
+    // completely missing before: every message rendered as "me" no matter
+    // who actually sent it.
+    bubble.className = 'chatbubble ' + (m.from === myRole ? 'me' : 'them');
     const timeStr = new Date(m.time).toLocaleTimeString(LOCALE_MAP[activeChatLang] || 'en-GB', {hour:'2-digit', minute:'2-digit'});
     bubble.innerHTML = `${escapeHtml(m.text)}<span class="ctime">${timeStr}</span>`;
     body.appendChild(bubble);
@@ -4019,18 +4079,22 @@ function renderChatMessages(){
 async function sendChatMessage(){
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
-  if(!text || !activeChatService) return;
+  if(!text || !activeChatService || !activeChatCustomerCode) return;
   const serviceId = activeChatService.id;
-  activeChatService.chat.push({ text, time: Date.now() });
+  const customerCode = activeChatCustomerCode;
+  const myRole = myRoleFor(activeChatService);
+  if(!activeChatService.conversations) activeChatService.conversations = {};
+  if(!activeChatService.conversations[customerCode]) activeChatService.conversations[customerCode] = [];
+  activeChatService.conversations[customerCode].push({ text, time: Date.now(), from: myRole });
   input.value = "";
   document.getElementById('chatSendBtn').disabled = true;
   renderChatMessages();
-  const saved = await saveChatMessage(serviceId);
+  const saved = await saveChatMessage(serviceId, customerCode);
   if(!saved){
     const detail = lastSaveErrorDetail ? (' [' + lastSaveErrorDetail + ']') : '';
     showToast(t(activeChatLang,'saveFailedWarning') + detail, null, activeChatLang, 20000);
   }
-  pushNotification(activeChatLang, t(activeChatLang,'newMessagePrefix') + " \"" + activeChatService.name + "\"", activeChatService);
+  pushNotification(activeChatLang, t(activeChatLang,'newMessagePrefix') + " \"" + activeChatService.name + "\"", activeChatService, customerCode);
   if(!screens.myServices.classList.contains('hidden')) renderMyServices(activeChatLang);
 }
 
@@ -4051,30 +4115,62 @@ document.getElementById('backFromChat').addEventListener('click', ()=>{
 });
 
 /* ---------------- Messages inbox ---------------- */
-function renderMessagesInbox(lang){
+// Every conversation the signed-in account is part of, across every
+// listing — either as the owner (one row per customer who messaged them)
+// or as a customer (one row per business they've messaged). Optionally
+// narrowed to a single listing via filterServiceId (used by the "View
+// messages" button on your own listing card).
+function getMyConversations(filterServiceId){
+  if(!currentUser) return [];
+  const results = [];
+  myServices.forEach(s=>{
+    if(filterServiceId !== undefined && s.id !== filterServiceId) return;
+    const conversations = s.conversations || {};
+    const isOwner = s.ownerCode === currentUser.code;
+    Object.keys(conversations).forEach(customerCode=>{
+      const messages = conversations[customerCode];
+      if(!messages || messages.length === 0) return;
+      // Only show this conversation if the signed-in account is actually
+      // one of its two participants (the owner, or that customer).
+      if(!isOwner && customerCode !== currentUser.code) return;
+      results.push({ service: s, customerCode, messages, lastTime: messages[messages.length-1].time, isOwner });
+    });
+  });
+  return results.sort((a,b)=> b.lastTime - a.lastTime);
+}
+
+function renderMessagesInbox(lang, filterServiceId){
   document.getElementById('inboxLede').textContent = t(lang,'messagesInboxTitle');
   document.getElementById('backFromInboxLabel').textContent = t(lang,'backHome');
   const list = document.getElementById('inboxList');
   list.innerHTML = "";
-  const withChat = getMyOwnServices().filter(s => s.chat && s.chat.length > 0)
-    .sort((a,b) => b.chat[b.chat.length-1].time - a.chat[a.chat.length-1].time);
+  const conversations = getMyConversations(filterServiceId);
 
-  if(withChat.length === 0){
+  if(conversations.length === 0){
     list.innerHTML = `<div class="emptymarket"><div class="emptyicon">${ic('chat')}</div><p>${t(lang,'noConversations')}</p></div>`;
     return;
   }
 
-  withChat.forEach((s, idx)=>{
-    const lastMsg = s.chat[s.chat.length-1];
+  conversations.forEach((c, idx)=>{
+    const s = c.service;
+    const lastMsg = c.messages[c.messages.length-1];
     const timeStr = new Date(lastMsg.time).toLocaleTimeString(LOCALE_MAP[s.lang] || 'en-GB', {hour:'2-digit', minute:'2-digit'});
+    // On the owner's side, several customers can message the same listing,
+    // so the row needs to say *which* customer this is, not just the
+    // listing name again. On the customer's side there's only ever one
+    // conversation per listing (the one with the owner), so the listing
+    // name alone is enough.
+    const title = c.isOwner
+      ? `${escapeHtml(s.name)} · ${t(lang,'customerLabel')} #${String(c.customerCode).slice(-6)}`
+      : escapeHtml(s.name);
     const row = document.createElement('div');
     row.className = 'inboxrow cardPop';
     row.style.animationDelay = (idx * 0.04) + 's';
     row.innerHTML = `
       <div class="iavatar">${s.image ? `<img src="${s.image}">` : s.name.charAt(0)}</div>
-      <div class="ibody"><h4>${escapeHtml(s.name)}</h4><p>${escapeHtml(lastMsg.text)}</p></div>
+      <div class="ibody"><h4>${title}</h4><p>${escapeHtml(lastMsg.text)}</p></div>
       <div class="itime">${timeStr}</div>`;
-    row.addEventListener('click', ()=> openChat(s, s.lang));
+    row.addEventListener('click', ()=> openChat(s, s.lang, c.customerCode));
     list.appendChild(row);
   });
 }
@@ -4230,7 +4326,7 @@ function openShorts(items, startIndex, lang){
     item.querySelector('.short-contactbtn').addEventListener('click', (e)=>{
       e.stopPropagation();
       closeShorts();
-      openChat(l, lang);
+      openChatAsCustomer(l, lang);
     });
     feed.appendChild(item);
   });
@@ -5052,9 +5148,9 @@ async function saveServices(){
    browser last loaded (another listing, another message), that save wiped
    it out, and the message could look like it "didn't save" on the other
    person's side. This re-fetches the latest shared data right before
-   saving and merges in only this one listing's chat array, instead of
+   saving and merges in only this one conversation's messages, instead of
    blindly overwriting everything. */
-async function saveChatMessage(serviceId){
+async function saveChatMessage(serviceId, customerCode){
   if(supabaseConfigured()){
     try {
       const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, {
@@ -5069,12 +5165,15 @@ async function saveChatMessage(serviceId){
         if(rows && rows[0] && Array.isArray(rows[0].data)) latest = rows[0].data;
       }
 
-      const localChat = (activeChatService && Array.isArray(activeChatService.chat)) ? activeChatService.chat : [];
+      const localMessages = (activeChatService && activeChatService.conversations && Array.isArray(activeChatService.conversations[customerCode]))
+        ? activeChatService.conversations[customerCode] : [];
       let found = false;
       latest = latest.map(s=>{
         if(s.id === serviceId){
           found = true;
-          return Object.assign({}, s, { chat: localChat });
+          const conversations = Object.assign({}, s.conversations || {});
+          conversations[customerCode] = localMessages;
+          return Object.assign({}, s, { conversations });
         }
         return s;
       });
@@ -5205,7 +5304,7 @@ function seedDemoServices(){
       country: s.country,
       lang: s.lang,
       createdAt: now - s.daysAgo*24*60*60*1000,
-      chat: []
+      conversations: {}
     });
   });
 }
@@ -5253,7 +5352,11 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
     createdAt: Date.now(),
     sponsored: false,
     ownerCode: currentUser ? currentUser.code : null,
-    chat: []
+    // Keyed by the account code of whoever messaged this listing, so each
+    // customer gets their own separate thread with the owner instead of
+    // everyone sharing one mixed-up conversation (see conversations model
+    // in the chat section further down).
+    conversations: {}
   };
   myServices.unshift(service);
   const saved = await saveServices();
@@ -5316,7 +5419,7 @@ function renderMyServices(lang){
   document.getElementById('statCitiesLabel').textContent = t(lang,'statCitiesLabel');
 
   const myOwnServices = getMyOwnServices();
-  const totalMessages = myOwnServices.reduce((sum,s)=> sum + (s.chat ? s.chat.length : 0), 0);
+  const totalMessages = myOwnServices.reduce((sum,s)=> sum + countConversationMessages(s), 0);
   const uniqueCities = new Set(myOwnServices.flatMap(s=>s.cities));
   document.getElementById('statServices').textContent = myOwnServices.length;
   document.getElementById('statMessages').textContent = totalMessages;
@@ -5347,7 +5450,7 @@ function renderMyServices(lang){
   }
 
   myOwnServices.forEach((s, idx)=>{
-    if(!s.chat) s.chat = [];
+    if(!s.conversations) s.conversations = {};
     const card = document.createElement('div');
     card.className = 'mysvc-card cardPop';
     card.style.animationDelay = Math.min(idx * 0.05, 0.4) + 's';
@@ -5355,7 +5458,13 @@ function renderMyServices(lang){
     const icoKey = catDef ? catDef.icoKey : 'briefcase';
     const dateStr = new Date(s.createdAt).toLocaleDateString(LOCALE_MAP[s.lang] || 'en-GB', {day:'numeric', month:'short', year:'numeric'});
     const cityChips = s.cities.map(city=>`<span class="mysvc-citychip">${escapeHtml(city)}</span>`).join('');
-    const lastMsg = s.chat.length > 0 ? s.chat[s.chat.length-1] : null;
+    // Several customers can now have separate conversations with this
+    // listing, so "the last message" means the most recent one across all
+    // of them, and the count below is customers, not raw messages.
+    const conversationEntries = Object.values(s.conversations).filter(msgs => msgs && msgs.length > 0);
+    const lastMsg = conversationEntries.length > 0
+      ? conversationEntries.map(msgs => msgs[msgs.length-1]).sort((a,b)=> b.time - a.time)[0]
+      : null;
     const chatPreview = lastMsg
       ? `<div class="contact-item"><span class="cavatar">${escapeHtml(s.name.charAt(0))}</span><span class="ctext">${escapeHtml(lastMsg.text)}<span>${new Date(lastMsg.time).toLocaleString(LOCALE_MAP[s.lang] || 'en-GB', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span></span></div>`
       : `<div class="nocontacts">${t(s.lang,'noContactsYet')}</div>`;
@@ -5375,9 +5484,9 @@ function renderMyServices(lang){
         <div class="mysvc-cityrow">${cityChips}</div>
         ${sponsorBlock}
         <div class="contactslist">
-          <div class="contactsheading">${t(s.lang,'notificationsTitle')} (${s.chat.length})</div>
+          <div class="contactsheading">${t(s.lang,'notificationsTitle')} (${conversationEntries.length})</div>
           ${chatPreview}
-          <button class="contactbtn" style="margin-top:10px;">${t(s.lang,'contactHelper')}</button>
+          <button class="contactbtn" style="margin-top:10px;">${t(s.lang,'viewMessagesBtn')}</button>
         </div>
       </div>`;
     if(!isServiceSponsored(s)){
@@ -5398,9 +5507,14 @@ function renderMyServices(lang){
         openShorts([s], 0, s.lang);
       });
     }
+    // This is the owner looking at their own listing, so "contact" doesn't
+    // make sense here (that would mean messaging themselves) — it opens
+    // the inbox filtered to this listing's conversations instead, so they
+    // can pick which customer to reply to.
     card.querySelector('.contactbtn').addEventListener('click', (e)=>{
       e.stopPropagation();
-      openChat(s, s.lang);
+      renderMessagesInbox(s.lang, s.id);
+      show('messagesInbox');
     });
     card.addEventListener('click', ()=> openServiceDetail(s, s.lang));
     list.appendChild(card);
