@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fixlet! Admin</title>
+<style>
+  :root{ --teal:#0d9488; --ink:#111827; --ink-soft:#6b7280; --line:#e5e7eb; --mist:#f3f4f6; --bad:#dc2626; --bad-bg:#fde8e8; --good-bg:#e6f7ed; --good:#0a6b33; }
+  *{ box-sizing:border-box; }
+  body{ font-family:system-ui,-apple-system,sans-serif; margin:0; background:#fafafa; color:var(--ink); }
+  header{ background:#fff; border-bottom:1px solid var(--line); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5; }
+  header h1{ font-size:17px; margin:0; }
+  header .who{ font-size:12.5px; color:var(--ink-soft); }
+  main{ max-width:920px; margin:0 auto; padding:20px; }
+  .tabs{ display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+  .tab{ padding:9px 16px; border-radius:999px; border:1.5px solid var(--line); background:#fff; font-size:13.5px; font-weight:600; cursor:pointer; color:var(--ink-soft); }
+  .tab.active{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+  .toolbar{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+  button{ font-family:inherit; font-size:13.5px; font-weight:600; padding:9px 15px; border-radius:9px; border:1.5px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; }
+  button:hover{ background:var(--mist); }
+  button.primary{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  button.danger{ background:var(--bad); color:#fff; border-color:var(--bad); }
+  button:disabled{ opacity:.5; cursor:not-allowed; }
+  input[type=text], input[type=password]{ font-family:inherit; font-size:13.5px; padding:9px 12px; border-radius:9px; border:1.5px solid var(--line); outline:none; }
+  input:focus{ border-color:var(--teal); }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+  .row{ display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+  .row h3{ margin:0 0 4px; font-size:14.5px; }
+  .meta{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; }
+  .pill{ display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--mist); color:var(--ink-soft); margin-right:4px; }
+  .pill.banned{ background:var(--bad-bg); color:var(--bad); }
+  .pill.ok{ background:var(--good-bg); color:var(--good); }
+  .empty{ text-align:center; color:var(--ink-soft); padding:40px 0; font-size:13.5px; }
+  .stat-row{ display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .stat{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 18px; min-width:120px; }
+  .stat .n{ font-size:22px; font-weight:800; }
+  .stat .l{ font-size:12px; color:var(--ink-soft); }
+  #gate{ position:fixed; inset:0; background:#fff; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; z-index:50; padding:20px; text-align:center; }
+  #gate input{ width:220px; text-align:center; letter-spacing:1px; }
+  #gate p{ font-size:12.5px; color:var(--ink-soft); max-width:360px; }
+  .warn{ background:#fff7e6; border:1px solid #f0d98c; color:#7a5b00; font-size:12.5px; padding:10px 14px; border-radius:10px; margin-bottom:16px; }
+  .msg{ font-size:13px; padding:10px 14px; border-radius:9px; margin-bottom:12px; display:none; }
+  .msg.ok{ background:var(--good-bg); color:var(--good); display:block; }
+  .msg.fail{ background:var(--bad-bg); color:var(--bad); display:block; }
+  .inline-form{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h2>Fixlet! Admin</h2>
+  <p>Dette er et administrasjonspanel for hele Fixlet!-databasen. Alt som gjøres her påvirker den <strong>live</strong> nettsiden umiddelbart for alle brukere. Skriv inn admin-passordet for å fortsette.</p>
+  <input type="password" id="gatePassword" placeholder="Admin-passord" autocomplete="off">
+  <button class="primary" id="gateSubmit">Logg inn</button>
+  <p id="gateError" style="color:var(--bad); display:none;">Feil passord.</p>
+</div>
+
+<div id="app" style="display:none;">
+  <header>
+    <h1>Fixlet! Admin</h1>
+    <span class="who">Koblet til samme database som nettsiden</span>
+  </header>
+  <main>
+    <div class="warn">
+      ⚠️ Dette passordet er kun en enkel sperre i nettleseren, ikke ekte sikkerhet — hvem som helst som finner denne siden og passordet har samme tilgang som deg. Del lenken og passordet kun med folk du stoler på. Vurder å endre passordet i filen jevnlig.
+    </div>
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="listings">Tjenester</div>
+      <div class="tab" data-tab="accounts">Kontoer &amp; bannlysing</div>
+    </div>
+
+    <div id="msg" class="msg"></div>
+
+    <div class="panel active" id="panel-listings">
+      <div class="toolbar">
+        <button id="reloadListings">Oppdater liste</button>
+        <button class="danger" id="deleteAllBtn">Slett ALLE tjenester</button>
+      </div>
+      <div id="listingsList"></div>
+    </div>
+
+    <div class="panel" id="panel-accounts">
+      <div class="toolbar inline-form">
+        <input type="text" id="manualCodeInput" placeholder="6-sifret kode" maxlength="6">
+        <button id="manualBanBtn">Bannlys kode</button>
+        <button id="reloadAccounts">Oppdater liste</button>
+      </div>
+      <div id="accountsList"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* Same Supabase project/table as the main Fixlet! site (index.html) —
+   three rows in one table, used as a tiny key-value store:
+     id="global" -> all listings (services)
+     id="users"  -> every registered 6-digit account code
+     id="banned" -> account codes banned from logging in
+   This page reads and writes those same three rows directly. */
+const SUPABASE_URL = "https://upqntfrjjkmlrguhwgut.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_4gbfqCFJaOqhUC-Bp_Hg3A_d0K-l4Kc";
+const SUPABASE_TABLE = "Jelp-services";
+
+// Change this to whatever you want — see the warning banner in the page
+// itself about what this password does and doesn't protect against.
+const ADMIN_PASSWORD = "fixlet-admin-2026";
+
+let services = [];
+let registeredCodes = [];
+let bannedCodes = [];
+
+function showMsg(text, ok){
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + (ok ? 'ok' : 'fail');
+  setTimeout(()=>{ el.className = 'msg'; }, 6000);
+}
+
+async function getRow(id){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${id}&select=data`, {
+    headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const rows = await res.json();
+  return (rows && rows[0] && Array.isArray(rows[0].data)) ? rows[0].data : [];
+}
+
+async function putRow(id, data){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+    method: "POST",
+    headers: {
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": "resolution=merge-duplicates"
+    },
+    body: JSON.stringify({ id, data })
+  });
+  if(!res.ok){
+    const bodyText = await res.text().catch(()=> '');
+    throw new Error(`HTTP ${res.status}: ${bodyText.slice(0,300)}`);
+  }
+}
+
+function countConversationMessages(service){
+  if(!service || !service.conversations) return 0;
+  return Object.values(service.conversations).reduce((sum, msgs)=> sum + (msgs ? msgs.length : 0), 0);
+}
+
+async function loadAll(){
+  const [svc, users, banned] = await Promise.all([
+    getRow('global').catch(()=> []),
+    getRow('users').catch(()=> []),
+    getRow('banned').catch(()=> [])
+  ]);
+  services = svc;
+  registeredCodes = users;
+  bannedCodes = banned;
+  renderStats();
+  renderListings();
+  renderAccounts();
+}
+
+function renderStats(){
+  const totalMessages = services.reduce((sum,s)=> sum + countConversationMessages(s), 0);
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat"><div class="n">${services.length}</div><div class="l">Tjenester</div></div>
+    <div class="stat"><div class="n">${totalMessages}</div><div class="l">Meldinger totalt</div></div>
+    <div class="stat"><div class="n">${registeredCodes.length}</div><div class="l">Registrerte kontoer</div></div>
+    <div class="stat"><div class="n">${bannedCodes.length}</div><div class="l">Bannlyste kontoer</div></div>`;
+}
+
+function renderListings(){
+  const list = document.getElementById('listingsList');
+  if(services.length === 0){
+    list.innerHTML = `<div class="empty">Ingen tjenester registrert.</div>`;
+    return;
+  }
+  list.innerHTML = "";
+  services.slice().sort((a,b)=> (b.createdAt||0) - (a.createdAt||0)).forEach(s=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    const dateStr = s.createdAt ? new Date(s.createdAt).toLocaleDateString('nb-NO', {day:'numeric', month:'short', year:'numeric'}) : '—';
+    const priceStr = (typeof s.price === 'number' && s.price > 0) ? `${s.price.toLocaleString()}${s.currency ? ' '+s.currency : ''}` : '—';
+    card.innerHTML = `
+      <div class="row">
+        <div>
+          <h3>${escapeHtml(s.name || '(uten navn)')}</h3>
+          <div class="meta">
+            ${escapeHtml(s.cat || '?')} · ${escapeHtml(s.country || '?')} (${(s.cities||[]).map(escapeHtml).join(', ')})<br>
+            Pris: ${priceStr} · Opprettet: ${dateStr} · Eier-kode: ${escapeHtml(String(s.ownerCode || '—'))}<br>
+            Meldinger: ${countConversationMessages(s)} · ID: ${escapeHtml(String(s.id))}
+          </div>
+        </div>
+        <button class="danger" data-id="${escapeHtml(String(s.id))}">Slett</button>
+      </div>`;
+    card.querySelector('button').addEventListener('click', ()=> deleteListing(s.id));
+    list.appendChild(card);
+  });
+}
+
+async function deleteListing(id){
+  if(!confirm('Slette denne tjenesten permanent for alle brukere?')) return;
+  try{
+    services = services.filter(s => s.id !== id);
+    await putRow('global', services);
+    showMsg('Tjenesten ble slettet.', true);
+    renderStats();
+    renderListings();
+  } catch(e){
+    showMsg('Klarte ikke å slette: ' + e.message, false);
+  }
+}
+
+document.getElementById('deleteAllBtn').addEventListener('click', async ()=>{
+  if(services.length === 0){ showMsg('Ingen tjenester å slette.', true); return; }
+  const typed = prompt(`Dette sletter alle ${services.length} tjenester permanent for alle brukere. Skriv "SLETT ALT" for å bekrefte.`);
+  if(typed !== 'SLETT ALT') return;
+  try{
+    services = [];
+    await putRow('global', []);
+    showMsg('Alle tjenester ble slettet.', true);
+    renderStats();
+    renderListings();
+  } catch(e){
+    showMsg('Klarte ikke å slette: ' + e.message, false);
+  }
+});
+
+document.getElementById('reloadListings').addEventListener('click', loadAll);
+document.getElementById('reloadAccounts').addEventListener('click', loadAll);
+
+function renderAccounts(){
+  const list = document.getElementById('accountsList');
+  if(registeredCodes.length === 0 && bannedCodes.length === 0){
+    list.innerHTML = `<div class="empty">Ingen registrerte kontoer funnet.</div>`;
+    return;
+  }
+  // Show every registered code, plus any banned code that for some reason
+  // isn't in the registered list (e.g. banned manually below).
+  const allCodes = Array.from(new Set([...registeredCodes, ...bannedCodes])).sort();
+  list.innerHTML = "";
+  allCodes.forEach(code=>{
+    const isBanned = bannedCodes.includes(code);
+    const ownedCount = services.filter(s => s.ownerCode === code).length;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="row">
+        <div>
+          <h3>#${escapeHtml(code)}</h3>
+          <div class="meta">
+            <span class="pill ${isBanned ? 'banned' : 'ok'}">${isBanned ? 'Bannlyst' : 'Aktiv'}</span>
+            ${ownedCount} tjeneste(r) publisert
+          </div>
+        </div>
+        <button class="${isBanned ? '' : 'danger'}" data-code="${escapeHtml(code)}">${isBanned ? 'Opphev bannlysing' : 'Bannlys'}</button>
+      </div>`;
+    card.querySelector('button').addEventListener('click', ()=> toggleBan(code, !isBanned));
+    list.appendChild(card);
+  });
+}
+
+async function toggleBan(code, shouldBan){
+  const action = shouldBan ? 'bannlyse' : 'oppheve bannlysingen for';
+  if(!confirm(`Er du sikker på at du vil ${action} konto #${code}?`)) return;
+  try{
+    if(shouldBan){
+      if(!bannedCodes.includes(code)) bannedCodes.push(code);
+    } else {
+      bannedCodes = bannedCodes.filter(c => c !== code);
+    }
+    await putRow('banned', bannedCodes);
+    showMsg(shouldBan ? `Konto #${code} er bannlyst.` : `Bannlysingen for #${code} er opphevet.`, true);
+    renderStats();
+    renderAccounts();
+  } catch(e){
+    showMsg('Klarte ikke å oppdatere: ' + e.message, false);
+  }
+}
+
+document.getElementById('manualBanBtn').addEventListener('click', ()=>{
+  const code = document.getElementById('manualCodeInput').value.trim();
+  if(!/^\d{6}$/.test(code)){ showMsg('Skriv inn en gyldig 6-sifret kode.', false); return; }
+  document.getElementById('manualCodeInput').value = "";
+  toggleBan(code, true);
+});
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+/* ---------------- Tabs ---------------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=> t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=> p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------------- Password gate ---------------- */
+function unlock(){
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadAll().catch(e=> showMsg('Klarte ikke å laste data: ' + e.message, false));
+}
+document.getElementById('gateSubmit').addEventListener('click', ()=>{
+  const val = document.getElementById('gatePassword').value;
+  if(val === ADMIN_PASSWORD){
+    try{ sessionStorage.setItem('fixletAdminUnlocked', '1'); } catch(e){}
+    unlock();
+  } else {
+    document.getElementById('gateError').style.display = 'block';
+  }
+});
+document.getElementById('gatePassword').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') document.getElementById('gateSubmit').click();
+});
+try{
+  if(sessionStorage.getItem('fixletAdminUnlocked') === '1') unlock();
+} catch(e){}
+</script>
+</body>
+</html>
