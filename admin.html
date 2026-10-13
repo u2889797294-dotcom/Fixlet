@@ -22,6 +22,9 @@
   button:hover{ background:var(--mist); }
   button.primary{ background:var(--teal); color:#fff; border-color:var(--teal); }
   button.danger{ background:var(--bad); color:#fff; border-color:var(--bad); }
+  button.logout{ background:#fff7e6; color:#8a5a00; border-color:#f0d08a; }
+  button.logout:hover{ background:#fdeeca; }
+  .btnrow{ display:flex; gap:8px; flex-wrap:wrap; }
   button:disabled{ opacity:.5; cursor:not-allowed; }
   input[type=text], input[type=password]{ font-family:inherit; font-size:13.5px; padding:9px 12px; border-radius:9px; border:1.5px solid var(--line); outline:none; }
   input:focus{ border-color:var(--teal); }
@@ -113,6 +116,18 @@ const ADMIN_PASSWORD = "fixlet-admin-2026";
 let services = [];
 let registeredCodes = [];
 let bannedCodes = [];
+let forceLogoutMap = {};
+
+const FORCE_LOGOUT_ROW_ID = 'forceLogout';
+
+async function getObjectRow(id){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${id}&select=data`, {
+    headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const rows = await res.json();
+  return (rows && rows[0] && rows[0].data && typeof rows[0].data === 'object' && !Array.isArray(rows[0].data)) ? rows[0].data : {};
+}
 
 function showMsg(text, ok){
   const el = document.getElementById('msg');
@@ -153,14 +168,16 @@ function countConversationMessages(service){
 }
 
 async function loadAll(){
-  const [svc, users, banned] = await Promise.all([
+  const [svc, users, banned, kicked] = await Promise.all([
     getRow('global').catch(()=> []),
     getRow('users').catch(()=> []),
-    getRow('banned').catch(()=> [])
+    getRow('banned').catch(()=> []),
+    getObjectRow(FORCE_LOGOUT_ROW_ID).catch(()=> ({}))
   ]);
   services = svc;
   registeredCodes = users;
   bannedCodes = banned;
+  forceLogoutMap = kicked;
   renderStats();
   renderListings();
   renderAccounts();
@@ -259,11 +276,27 @@ function renderAccounts(){
             ${ownedCount} tjeneste(r) publisert
           </div>
         </div>
-        <button class="${isBanned ? '' : 'danger'}" data-code="${escapeHtml(code)}">${isBanned ? 'Opphev bannlysing' : 'Bannlys'}</button>
+        <div class="btnrow">
+          <button class="logout" data-code="${escapeHtml(code)}">Logg ut</button>
+          <button class="${isBanned ? '' : 'danger'}" data-code="${escapeHtml(code)}">${isBanned ? 'Opphev bannlysing' : 'Bannlys'}</button>
+        </div>
       </div>`;
-    card.querySelector('button').addEventListener('click', ()=> toggleBan(code, !isBanned));
+    const buttons = card.querySelectorAll('button');
+    buttons[0].addEventListener('click', ()=> forceLogout(code));
+    buttons[1].addEventListener('click', ()=> toggleBan(code, !isBanned));
     list.appendChild(card);
   });
+}
+
+async function forceLogout(code){
+  if(!confirm(`Logge ut konto #${code} fra alle enheter nå?`)) return;
+  try{
+    forceLogoutMap[code] = Date.now();
+    await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
+    showMsg(`Konto #${code} blir logget ut (kan ta inntil 10 sekunder).`, true);
+  } catch(e){
+    showMsg('Klarte ikke å logge ut kontoen: ' + e.message, false);
+  }
 }
 
 async function toggleBan(code, shouldBan){

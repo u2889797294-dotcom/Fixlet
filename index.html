@@ -2666,7 +2666,7 @@
         <p><strong>3. Cancelling.</strong> You may cancel at any time, including during the free trial, from your profile page. Cancelling during the trial means you will not be charged. Cancelling after the trial stops future monthly charges but does not refund amounts already charged.</p>
         <p><strong>4. Refund policy.</strong> Because the free trial gives you 7 full days to try Fixlet! and cancel before any charge occurs, monthly subscription charges are non-refundable once billed. If you believe you were charged in error (for example, a charge occurred despite cancelling before your trial ended), contact us through the messaging feature or our helpline within 14 days and we will review it.</p>
         <p><strong>5. Your account and content.</strong> You are responsible for the accuracy of the information, images, and video you upload. You must not publish content that is illegal, misleading, or that you do not have the rights to use. Fixlet! may remove any Listing at its discretion. By submitting a Listing you confirm the content is your own or that you have permission to use it, and that the information provided is accurate to the best of your knowledge.</p>
-        <p><strong>6. Conduct.</strong> Users must communicate respectfully through the messaging feature. Harassment, fraud, or attempts to circumvent these Terms may result in removal of your Listings or account. If you use Fixlet! to offer, advertise, or facilitate anything illegal under the laws that apply to you, or otherwise misuse the platform, Fixlet! may remove the relevant Listings, suspend your access, and permanently ban your account (identified by your account code) from the platform, without prior notice and without refund of any amounts already paid.</p>
+        <p><strong>6. Conduct.</strong> Users must communicate respectfully through the messaging feature. Harassment, fraud, or attempts to circumvent these Terms may result in removal of your Listings or account. If you use Fixlet! to offer, advertise, or facilitate anything illegal under the laws that apply to you, or otherwise misuse the platform, Fixlet! may remove the relevant Listings, suspend your access, and permanently ban your account (identified by your account code) from the platform, without prior notice and without refund of any amounts already paid. Fixlet! administrators may also, at their discretion and for the same reasons, immediately and remotely sign your account out of every device where it is currently logged in (a "forced logout"), without prior notice. This does not by itself delete your account or your Listings, and you can normally sign back in unless your account has also been banned.</p>
         <p><strong>7. No guarantee of service.</strong> Fixlet! is provided "as is". We do not guarantee uninterrupted availability, that any Listing will result in business, or that any user you contact will respond or perform as described. Any figures, examples, or testimonials shown in the app are illustrative only and are not a promise of results.</p>
         <p><strong>8. Liability.</strong> To the maximum extent permitted by law, Fixlet! is not liable for any damages, losses, or disputes arising from interactions between users, or from services purchased or rendered as a result of a Listing.</p>
         <p><strong>9. Local laws.</strong> You are responsible for complying with the laws and regulations that apply to you and your Listing in your own country and city, including any licensing, tax, or consumer-protection requirements for the services you offer.</p>
@@ -2688,8 +2688,9 @@
         <p><strong>4. Third-party services.</strong> Fixlet! uses Stripe to process payments and Supabase to store data. These providers may process data on our behalf under their own privacy policies. Fixlet! does not currently use analytics or advertising trackers.</p>
         <p><strong>5. Your rights.</strong> You can delete your own Listings at any time from your profile, which removes their content from the marketplace. To request a full copy or deletion of your data, contact us using the details below.</p>
         <p><strong>6. Data retention.</strong> We keep your Listing and message data for as long as your account is active, or until you delete it.</p>
-        <p><strong>7. Changes.</strong> We may update this Privacy Policy from time to time; continued use of Fixlet! after changes are posted means you accept the updated policy.</p>
-        <p><strong>8. Contact.</strong> Questions about your data can be directed through the app's messaging feature, or by calling our helpline at +47 413 74 773.</p>
+        <p><strong>7. Administrative account actions.</strong> To keep the platform safe and enforce these Terms, Fixlet! administrators can see basic account and session information (such as your account code and whether you are currently signed in) and can remotely sign an account out of all of its active sessions ("forced logout"), in addition to banning or unbanning an account. This is an administrative security measure, not a form of tracking, and is used for moderation and enforcement purposes only.</p>
+        <p><strong>8. Changes.</strong> We may update this Privacy Policy from time to time; continued use of Fixlet! after changes are posted means you accept the updated policy.</p>
+        <p><strong>9. Contact.</strong> Questions about your data can be directed through the app's messaging feature, or by calling our helpline at +47 413 74 773.</p>
         <p class="bizdetails"><strong>Data controller:</strong> Transform4Future Anna Madeleine Nordlund · Harriet Backers vei 14E, 1415 Oppegård, Norway · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a></p>
       </div>
     </div>
@@ -2704,7 +2705,7 @@
         <p><strong>1. We don't use tracking cookies.</strong> Fixlet! does not use advertising or analytics cookies, and does not track you across other websites.</p>
         <p><strong>2. What we do store on your device.</strong> Fixlet! uses your browser's local storage (not a traditional cookie) to remember essential things like your language preference and your subscription status, so the app works correctly when you return.</p>
         <p><strong>3. Third-party storage.</strong> If you complete a payment, Stripe's own checkout page may set its own cookies, governed by Stripe's privacy and cookie policy, not ours.</p>
-        <p><strong>4. Managing storage.</strong> You can clear this local storage at any time through your browser's settings; doing so will sign you out of any active session in this app.</p>
+        <p><strong>4. Managing storage.</strong> You can clear this local storage at any time through your browser's settings; doing so will sign you out of any active session in this app. Separately, a Fixlet! administrator can also remotely end your active session(s) at any time (a "forced logout") for safety or Terms-enforcement reasons, as described in our Terms of Service and Privacy Policy — in that case the app will automatically sign you out the next time it checks your session, without you clearing anything yourself.</p>
         <p><strong>5. Contact.</strong> Questions about this policy can be directed through the app's messaging feature, or by calling our helpline at +47 413 74 773.</p>
       </div>
     </div>
@@ -3307,6 +3308,7 @@ const T = {
     currencyPlaceholder:"Currency", currencyRequiredNote:"Please choose a currency",
     minPricePh:"Min price", maxPricePh:"Max price", priceFilterLabel:"Price range",
     saveFailedWarning:"Couldn't save to the server — your listing may be lost if you close this tab. Check your connection and try again.",
+    forcedLogoutMsg:"You've been signed out by a Fixlet! administrator.",
     whatYouDoLabel:"What do you do?", whatYouDoPh:"Describe your service…",
     imageLabel:"Add a photo of your business", uploadPhotoText:"Click to upload a photo",
     videoLabel:"Add a video (optional)", uploadVideoText:"Click to upload a video", changeChip:"Change",
@@ -3369,6 +3371,7 @@ const T = {
     currencyPlaceholder:"Valuta", currencyRequiredNote:"Velg en valuta",
     minPricePh:"Min. pris", maxPricePh:"Maks. pris", priceFilterLabel:"Prisintervall",
     saveFailedWarning:"Kunne ikke lagre til serveren — annonsen kan gå tapt hvis du lukker fanen. Sjekk nettforbindelsen og prøv igjen.",
+    forcedLogoutMsg:"Du har blitt logget ut av en administrator hos Fixlet!.",
     whatYouDoLabel:"Hva gjør du?", whatYouDoPh:"Beskriv tjenesten din…",
     imageLabel:"Legg til et bilde av bedriften", uploadPhotoText:"Klikk for å laste opp et bilde",
     videoLabel:"Legg til en video (valgfritt)", uploadVideoText:"Klikk for å laste opp en video", changeChip:"Endre",
@@ -3415,6 +3418,7 @@ const T = {
     currencyPlaceholder:"Valuta", currencyRequiredNote:"Välj en valuta",
     minPricePh:"Min. pris", maxPricePh:"Max. pris", priceFilterLabel:"Prisintervall",
     saveFailedWarning:"Kunde inte spara till servern — din annons kan gå förlorad om du stänger fliken. Kontrollera din anslutning och försök igen.",
+    forcedLogoutMsg:"Du har loggats ut av en administratör hos Fixlet!.",
     whatYouDoLabel:"Vad gör du?", whatYouDoPh:"Beskriv din tjänst…",
     imageLabel:"Lägg till en bild av företaget", uploadPhotoText:"Klicka för att ladda upp en bild",
     videoLabel:"Lägg till en video (valfritt)", uploadVideoText:"Klicka för att ladda upp en video", changeChip:"Ändra",
@@ -3461,6 +3465,7 @@ const T = {
     currencyPlaceholder:"Valuta", currencyRequiredNote:"Vælg en valuta",
     minPricePh:"Min. pris", maxPricePh:"Maks. pris", priceFilterLabel:"Prisinterval",
     saveFailedWarning:"Kunne ikke gemme til serveren — din annonce kan gå tabt, hvis du lukker fanen. Tjek din forbindelse, og prøv igen.",
+    forcedLogoutMsg:"Du er blevet logget ud af en administrator hos Fixlet!.",
     whatYouDoLabel:"Hvad laver du?", whatYouDoPh:"Beskriv din tjeneste…",
     imageLabel:"Tilføj et billede af virksomheden", uploadPhotoText:"Klik for at uploade et billede",
     videoLabel:"Tilføj en video (valgfrit)", uploadVideoText:"Klik for at uploade en video", changeChip:"Skift",
@@ -4467,6 +4472,45 @@ async function loadBannedCodes(){
   }
 }
 
+const FORCE_LOGOUT_ROW_ID = 'forceLogout'; // a fourth row in the same Supabase table; only the admin page writes to it
+let forceLogoutMap = {}; // { "482913": <timestamp> } — set by the admin page to kick that account's active sessions
+async function loadForceLogoutMap(){
+  if(supabaseConfigured()){
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${FORCE_LOGOUT_ROW_ID}&select=data`, {
+        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      if(res.ok){
+        const rows = await res.json();
+        if(rows && rows[0] && rows[0].data && typeof rows[0].data === 'object'){ forceLogoutMap = rows[0].data; return; }
+      }
+    } catch(e){ /* network/config issue — stays empty, this check just won't run offline */ }
+  }
+}
+
+/* Checked on a short timer (see startForceLogoutWatcher below) while
+   someone is signed in. The admin page can't reach into another person's
+   browser directly, so forcing a logout works by timestamp instead: the
+   admin page writes { code: Date.now() } to the shared forceLogout row,
+   and any signed-in device with that code compares it against its own
+   loginTime. A newer kick timestamp than this session's loginTime means
+   "log out now" -- and logging back in sets a fresh loginTime, so the
+   kick doesn't re-trigger and sign them straight back out. */
+async function checkForceLogout(){
+  if(!currentUser || !currentUser.code) return;
+  await loadForceLogoutMap();
+  const kickedAt = forceLogoutMap[currentUser.code];
+  if(kickedAt && (!currentUser.loginTime || kickedAt > currentUser.loginTime)){
+    await clearUser();
+    show('home');
+    showToast(t(currentLang,'forcedLogoutMsg'), null, currentLang, 8000);
+  }
+}
+function startForceLogoutWatcher(){
+  if(!supabaseConfigured()) return;
+  setInterval(()=>{ if(currentUser) checkForceLogout(); }, 10000);
+}
+
 async function loadUser(){
   try {
     if(window.storage){
@@ -4550,7 +4594,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
     }
     registeredCodes.push(code);
     await saveRegisteredCodes();
-    currentUser = { code };
+    currentUser = { code, loginTime: Date.now() };
     await saveUser();
   } else {
     if(!registeredCodes.includes(code)){
@@ -4558,7 +4602,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
       errEl.classList.remove('hidden');
       return;
     }
-    currentUser = { code };
+    currentUser = { code, loginTime: Date.now() };
     await saveUser();
   }
   document.getElementById('loginCodeInput').value = "";
@@ -5307,6 +5351,7 @@ function seedDemoServices(){
   // only shows up when something account-specific is clicked — see
   // requireLogin() — and the account code isn't remembered between
   // visits, so you type it in again each time you're asked for it.
+  startForceLogoutWatcher();
 })();
 
 document.getElementById('publishBtn').addEventListener('click', async ()=>{
