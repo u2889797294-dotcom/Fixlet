@@ -1433,6 +1433,7 @@
   .loginheading{ font-size:14.5px; font-weight:800; margin:0 0 4px; color:#fff; }
   .loginsub{ font-size:11px; color:#9a9a9a; line-height:1.4; margin:0 0 12px; }
   .loginnote{ font-size:10px; color:#8a8a8a; margin-top:8px; }
+  .loggedinas{ text-align:center; font-size:12px; color:#9a9a9a; margin:6px 0 0; }
 
   .logintabs{
     display:flex;
@@ -1475,6 +1476,22 @@
     margin-bottom:8px;
   }
   .logincodeinput:focus{ outline:none; border-color:#fff; }
+  .loginusernameinput{
+    width:100%;
+    background:#000;
+    color:#fff;
+    border:1.5px solid #2a2a2a;
+    border-radius:0;
+    padding:8px 10px;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:normal;
+    text-align:left;
+    margin-bottom:8px;
+    box-sizing:border-box;
+  }
+  .loginusernameinput:focus{ outline:none; border-color:#fff; }
   .logincard .continuebtn{
     padding:8px 20px;
     font-size:12px;
@@ -2488,13 +2505,14 @@
       <div class="logincard">
         <div class="loginbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg></div>
         <h2 class="loginheading">Log in to Fixlet!</h2>
-        <p class="loginsub">Use your own 6-digit number. Create one the first time, then use the same one every time you come back.</p>
+        <p class="loginsub" id="loginSubText">Use your own username and 6-digit number. Create them the first time, then use the same username and number every time you come back.</p>
 
         <div class="logintabs">
           <button type="button" class="logintab active" id="loginTabLogin">Log in</button>
           <button type="button" class="logintab" id="loginTabRegister">Create new account</button>
         </div>
 
+        <input type="text" maxlength="20" class="loginusernameinput" id="loginUsernameInput" placeholder="Username" autocomplete="off" autocapitalize="none" spellcheck="false">
         <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="logincodeinput" id="loginCodeInput" placeholder="• • • • • •" autocomplete="off">
         <p class="loginerror hidden" id="loginErrorMsg"></p>
         <button class="continuebtn" id="loginSubmitBtn" style="width:100%;" disabled>Log in</button>
@@ -2823,6 +2841,7 @@
     <div class="backhome-row">
       <button class="backhomebtn" id="backHomeBtn">&larr; <span id="backHomeLabel">Back to Fixlet!</span></button>
     </div>
+    <p class="loggedinas" id="loggedInAsLabel"></p>
     <div class="backhome-row">
       <button class="backhomebtn" id="logoutBtn">Logg ut</button>
     </div>
@@ -4417,8 +4436,23 @@ function isServiceSponsored(s){
    Supabase constants further down in the file have been declared. */
 const USER_STORAGE_KEY = 'jelp_user_v2';
 const USERS_ROW_ID = 'users'; // a second row in the same Supabase table used for services
-let currentUser = null; // { code } once signed in
-let registeredCodes = []; // every 6-digit code ever registered, kept in sync with the shared store
+let currentUser = null; // { code, username } once signed in
+let registeredCodes = []; // every registered account, kept in sync with the shared store.
+// Each entry is normally { code, username }. Older accounts created before
+// usernames existed may still be plain code strings in the stored data —
+// normalizedAccounts() below treats those the same as { code, username: null }.
+
+function normalizedAccounts(){
+  return registeredCodes.map(a => typeof a === 'string' ? { code: a, username: null } : a);
+}
+function findAccountByCode(code){
+  return normalizedAccounts().find(a => a.code === code) || null;
+}
+function findAccountByUsername(username){
+  const uname = (username || '').trim().toLowerCase();
+  if(!uname) return null;
+  return normalizedAccounts().find(a => (a.username || '').trim().toLowerCase() === uname) || null;
+}
 
 async function loadRegisteredCodes(){
   if(supabaseConfigured()){
@@ -4557,25 +4591,31 @@ function setLoginMode(mode){
   document.getElementById('loginSubmitBtn').textContent = mode === 'login' ? 'Log in' : 'Create account';
   document.getElementById('loginHintText').textContent = mode === 'login'
     ? 'Don\'t have an account? Tap "Create new account" above.'
-    : 'Pick a 6-digit number nobody else has used.';
+    : 'Pick a username nobody else has used, and a 6-digit number to go with it.';
   document.getElementById('loginErrorMsg').classList.add('hidden');
   updateLoginSubmitState();
 }
+function isValidUsername(username){
+  return /^[A-Za-z0-9_\.\-]{3,20}$/.test(username || '');
+}
 function updateLoginSubmitState(){
+  const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
-  document.getElementById('loginSubmitBtn').disabled = !/^\d{6}$/.test(code);
+  document.getElementById('loginSubmitBtn').disabled = !(isValidUsername(username) && /^\d{6}$/.test(code));
 }
 document.getElementById('loginTabLogin').addEventListener('click', ()=> setLoginMode('login'));
 document.getElementById('loginTabRegister').addEventListener('click', ()=> setLoginMode('register'));
+document.getElementById('loginUsernameInput').addEventListener('input', updateLoginSubmitState);
 document.getElementById('loginCodeInput').addEventListener('input', (e)=>{
   e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
   updateLoginSubmitState();
 });
 document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
+  const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
   const errEl = document.getElementById('loginErrorMsg');
   errEl.classList.add('hidden');
-  if(!/^\d{6}$/.test(code)) return;
+  if(!isValidUsername(username) || !/^\d{6}$/.test(code)) return;
 
   // Re-check the ban list right before letting someone in, so a ban made
   // from the admin page takes effect immediately, not just at page load.
@@ -4587,24 +4627,48 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   }
 
   if(loginMode === 'register'){
-    if(registeredCodes.includes(code)){
+    if(findAccountByUsername(username)){
+      errEl.textContent = 'This username is already taken — pick a different one.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if(findAccountByCode(code)){
       errEl.textContent = 'This number is already in use — pick a different one.';
       errEl.classList.remove('hidden');
       return;
     }
-    registeredCodes.push(code);
+    registeredCodes.push({ code, username });
     await saveRegisteredCodes();
-    currentUser = { code, loginTime: Date.now() };
+    currentUser = { code, username, loginTime: Date.now() };
     await saveUser();
   } else {
-    if(!registeredCodes.includes(code)){
+    const account = findAccountByCode(code);
+    if(!account){
       errEl.textContent = 'No account found with this number. Tap "Create new account" to make one.';
       errEl.classList.remove('hidden');
       return;
     }
-    currentUser = { code, loginTime: Date.now() };
+    if(!account.username){
+      // Older account created before usernames existed — claim this
+      // username for it now, as long as nobody else already has it.
+      if(findAccountByUsername(username)){
+        errEl.textContent = 'This username is already taken — pick a different one.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      const idx = registeredCodes.findIndex(a => (typeof a === 'string' ? a : a.code) === code);
+      if(idx !== -1) registeredCodes[idx] = { code, username };
+      await saveRegisteredCodes();
+      account.username = username;
+    } else if(account.username.trim().toLowerCase() !== username.toLowerCase()){
+      errEl.textContent = 'That username doesn\'t match this number.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    currentUser = { code, username: account.username, loginTime: Date.now() };
     await saveUser();
   }
+  document.getElementById('loginUsernameInput').value = "";
   document.getElementById('loginCodeInput').value = "";
   await loadPremium();
   if(pendingLoginAction){
@@ -5448,6 +5512,8 @@ function renderMyServices(lang){
   document.getElementById('statServicesLabel').textContent = t(lang,'statServicesLabel');
   document.getElementById('statMessagesLabel').textContent = t(lang,'statMessagesLabel');
   document.getElementById('statCitiesLabel').textContent = t(lang,'statCitiesLabel');
+  const loggedInAsEl = document.getElementById('loggedInAsLabel');
+  if(loggedInAsEl) loggedInAsEl.textContent = (currentUser && currentUser.username) ? ('Logged in as @' + currentUser.username) : '';
 
   const myOwnServices = getMyOwnServices();
   const totalMessages = myOwnServices.reduce((sum,s)=> sum + countConversationMessages(s), 0);

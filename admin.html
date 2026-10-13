@@ -252,17 +252,27 @@ document.getElementById('deleteAllBtn').addEventListener('click', async ()=>{
 document.getElementById('reloadListings').addEventListener('click', loadAll);
 document.getElementById('reloadAccounts').addEventListener('click', loadAll);
 
+function normalizedAccounts(){
+  // Each registered entry is normally { code, username }. Older accounts
+  // created before usernames existed may still be plain code strings.
+  return registeredCodes.map(a => typeof a === 'string' ? { code: a, username: null } : a);
+}
+
 function renderAccounts(){
   const list = document.getElementById('accountsList');
-  if(registeredCodes.length === 0 && bannedCodes.length === 0){
+  const accounts = normalizedAccounts();
+  if(accounts.length === 0 && bannedCodes.length === 0){
     list.innerHTML = `<div class="empty">Ingen registrerte kontoer funnet.</div>`;
     return;
   }
-  // Show every registered code, plus any banned code that for some reason
-  // isn't in the registered list (e.g. banned manually below).
-  const allCodes = Array.from(new Set([...registeredCodes, ...bannedCodes])).sort();
+  // Show every registered account, plus any banned code that for some
+  // reason isn't in the registered list (e.g. banned manually below).
+  const byCode = new Map(accounts.map(a => [a.code, a]));
+  bannedCodes.forEach(code=>{ if(!byCode.has(code)) byCode.set(code, { code, username: null }); });
+  const allAccounts = Array.from(byCode.values()).sort((a,b)=> a.code.localeCompare(b.code));
   list.innerHTML = "";
-  allCodes.forEach(code=>{
+  allAccounts.forEach(acct=>{
+    const code = acct.code;
     const isBanned = bannedCodes.includes(code);
     const ownedCount = services.filter(s => s.ownerCode === code).length;
     const card = document.createElement('div');
@@ -270,7 +280,7 @@ function renderAccounts(){
     card.innerHTML = `
       <div class="row">
         <div>
-          <h3>#${escapeHtml(code)}</h3>
+          <h3>${acct.username ? '@' + escapeHtml(acct.username) : '(intet brukernavn)'} <span class="meta">#${escapeHtml(code)}</span></h3>
           <div class="meta">
             <span class="pill ${isBanned ? 'banned' : 'ok'}">${isBanned ? 'Bannlyst' : 'Aktiv'}</span>
             ${ownedCount} tjeneste(r) publisert
