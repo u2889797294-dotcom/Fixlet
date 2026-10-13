@@ -92,6 +92,7 @@
         <input type="text" id="manualCodeInput" placeholder="6-sifret kode" maxlength="6">
         <button id="manualBanBtn">Bannlys kode</button>
         <button id="reloadAccounts">Oppdater liste</button>
+        <button class="logout" id="logoutAllBtn">Logg ut ALLE kontoer</button>
       </div>
       <div id="accountsList"></div>
     </div>
@@ -326,6 +327,20 @@ async function toggleBan(code, shouldBan){
     showMsg('Klarte ikke å oppdatere: ' + e.message, false);
   }
 }
+
+document.getElementById('logoutAllBtn').addEventListener('click', async ()=>{
+  const accounts = normalizedAccounts();
+  if(accounts.length === 0){ showMsg('Ingen registrerte kontoer å logge ut.', true); return; }
+  if(!confirm(`Logge ut ALLE ${accounts.length} registrerte kontoer fra alle enheter nå?`)) return;
+  try{
+    const now = Date.now();
+    accounts.forEach(a => { forceLogoutMap[a.code] = now; });
+    await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
+    showMsg(`Alle ${accounts.length} kontoer blir logget ut (kan ta inntil 10 sekunder).`, true);
+  } catch(e){
+    showMsg('Klarte ikke å logge ut alle kontoene: ' + e.message, false);
+  }
+});
 
 document.getElementById('manualBanBtn').addEventListener('click', ()=>{
   const code = document.getElementById('manualCodeInput').value.trim();
