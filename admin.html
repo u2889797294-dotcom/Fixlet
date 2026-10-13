@@ -89,8 +89,8 @@
 
     <div class="panel" id="panel-accounts">
       <div class="toolbar inline-form">
-        <input type="text" id="manualCodeInput" placeholder="6-sifret kode" maxlength="6">
-        <button id="manualBanBtn">Bannlys kode</button>
+        <input type="text" id="manualCodeInput" placeholder="Brukernavn" maxlength="20">
+        <button id="manualBanBtn">Bannlys brukernavn</button>
         <button id="reloadAccounts">Oppdater liste</button>
         <button class="logout" id="logoutAllBtn">Logg ut ALLE kontoer</button>
       </div>
@@ -101,11 +101,15 @@
 
 <script>
 /* Same Supabase project/table as the main Fixlet! site (index.html) —
-   three rows in one table, used as a tiny key-value store:
-     id="global" -> all listings (services)
-     id="users"  -> every registered 6-digit account code
-     id="banned" -> account codes banned from logging in
-   This page reads and writes those same three rows directly. */
+   four rows in one table, used as a tiny key-value store:
+     id="global"      -> all listings (services)
+     id="users"       -> every registered account, as { code, username }
+                          (several accounts can share the same 6-digit
+                          number; only the username has to be unique)
+     id="banned"      -> usernames (lowercased) banned from logging in
+     id="forceLogout" -> { username: timestamp } map used to remotely
+                          sign an account out of all its devices
+   This page reads and writes those same four rows directly. */
 const SUPABASE_URL = "https://upqntfrjjkmlrguhwgut.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_4gbfqCFJaOqhUC-Bp_Hg3A_d0K-l4Kc";
 const SUPABASE_TABLE = "Jelp-services";
@@ -211,7 +215,7 @@ function renderListings(){
           <h3>${escapeHtml(s.name || '(uten navn)')}</h3>
           <div class="meta">
             ${escapeHtml(s.cat || '?')} · ${escapeHtml(s.country || '?')} (${(s.cities||[]).map(escapeHtml).join(', ')})<br>
-            Pris: ${priceStr} · Opprettet: ${dateStr} · Eier-kode: ${escapeHtml(String(s.ownerCode || '—'))}<br>
+            Pris: ${priceStr} · Opprettet: ${dateStr} · Eier: ${s.ownerCode ? '@'+escapeHtml(String(s.ownerCode)) : '—'}<br>
             Meldinger: ${countConversationMessages(s)} · ID: ${escapeHtml(String(s.id))}
           </div>
         </div>
@@ -253,6 +257,15 @@ document.getElementById('deleteAllBtn').addEventListener('click', async ()=>{
 document.getElementById('reloadListings').addEventListener('click', loadAll);
 document.getElementById('reloadAccounts').addEventListener('click', loadAll);
 
+/* Several accounts can now share the same 6-digit number — only the
+   username has to be unique — so the username (lowercased) is the real
+   identity key for banning, force-logout and ownership, exactly like in
+   the main app. Older accounts created before usernames existed have no
+   username yet; for those we fall back to the number as the key, same as
+   the main app does when migrating them on next login. */
+function identityKey(acct){
+  return acct.username ? acct.username.trim().toLowerCase() : acct.code;
+}
 function normalizedAccounts(){
   // Each registered entry is normally { code, username }. Older accounts
   // created before usernames existed may still be plain code strings.
@@ -266,61 +279,60 @@ function renderAccounts(){
     list.innerHTML = `<div class="empty">Ingen registrerte kontoer funnet.</div>`;
     return;
   }
-  // Show every registered account, plus any banned code that for some
+  // Show every registered account, plus any banned key that for some
   // reason isn't in the registered list (e.g. banned manually below).
-  const byCode = new Map(accounts.map(a => [a.code, a]));
-  bannedCodes.forEach(code=>{ if(!byCode.has(code)) byCode.set(code, { code, username: null }); });
-  const allAccounts = Array.from(byCode.values()).sort((a,b)=> a.code.localeCompare(b.code));
+  const byKey = new Map(accounts.map(a => [identityKey(a), a]));
+  bannedCodes.forEach(key=>{ if(!byKey.has(key)) byKey.set(key, { code: null, username: key }); });
+  const allAccounts = Array.from(byKey.entries()).sort((a,b)=> a[0].localeCompare(b[0]));
   list.innerHTML = "";
-  allAccounts.forEach(acct=>{
-    const code = acct.code;
-    const isBanned = bannedCodes.includes(code);
-    const ownedCount = services.filter(s => s.ownerCode === code).length;
+  allAccounts.forEach(([key, acct])=>{
+    const isBanned = bannedCodes.includes(key);
+    const ownedCount = services.filter(s => s.ownerCode === key).length;
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
       <div class="row">
         <div>
-          <h3>${acct.username ? '@' + escapeHtml(acct.username) : '(intet brukernavn)'} <span class="meta">#${escapeHtml(code)}</span></h3>
+          <h3>${acct.username ? '@' + escapeHtml(acct.username) : '(intet brukernavn)'} <span class="meta">${acct.code ? '#'+escapeHtml(acct.code) : ''}</span></h3>
           <div class="meta">
             <span class="pill ${isBanned ? 'banned' : 'ok'}">${isBanned ? 'Bannlyst' : 'Aktiv'}</span>
             ${ownedCount} tjeneste(r) publisert
           </div>
         </div>
         <div class="btnrow">
-          <button class="logout" data-code="${escapeHtml(code)}">Logg ut</button>
-          <button class="${isBanned ? '' : 'danger'}" data-code="${escapeHtml(code)}">${isBanned ? 'Opphev bannlysing' : 'Bannlys'}</button>
+          <button class="logout" data-key="${escapeHtml(key)}">Logg ut</button>
+          <button class="${isBanned ? '' : 'danger'}" data-key="${escapeHtml(key)}">${isBanned ? 'Opphev bannlysing' : 'Bannlys'}</button>
         </div>
       </div>`;
     const buttons = card.querySelectorAll('button');
-    buttons[0].addEventListener('click', ()=> forceLogout(code));
-    buttons[1].addEventListener('click', ()=> toggleBan(code, !isBanned));
+    buttons[0].addEventListener('click', ()=> forceLogout(key));
+    buttons[1].addEventListener('click', ()=> toggleBan(key, !isBanned));
     list.appendChild(card);
   });
 }
 
-async function forceLogout(code){
-  if(!confirm(`Logge ut konto #${code} fra alle enheter nå?`)) return;
+async function forceLogout(key){
+  if(!confirm(`Logge ut konto "${key}" fra alle enheter nå?`)) return;
   try{
-    forceLogoutMap[code] = Date.now();
+    forceLogoutMap[key] = Date.now();
     await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
-    showMsg(`Konto #${code} blir logget ut (kan ta inntil 10 sekunder).`, true);
+    showMsg(`Kontoen blir logget ut (kan ta inntil 10 sekunder).`, true);
   } catch(e){
     showMsg('Klarte ikke å logge ut kontoen: ' + e.message, false);
   }
 }
 
-async function toggleBan(code, shouldBan){
+async function toggleBan(key, shouldBan){
   const action = shouldBan ? 'bannlyse' : 'oppheve bannlysingen for';
-  if(!confirm(`Er du sikker på at du vil ${action} konto #${code}?`)) return;
+  if(!confirm(`Er du sikker på at du vil ${action} konto "${key}"?`)) return;
   try{
     if(shouldBan){
-      if(!bannedCodes.includes(code)) bannedCodes.push(code);
+      if(!bannedCodes.includes(key)) bannedCodes.push(key);
     } else {
-      bannedCodes = bannedCodes.filter(c => c !== code);
+      bannedCodes = bannedCodes.filter(c => c !== key);
     }
     await putRow('banned', bannedCodes);
-    showMsg(shouldBan ? `Konto #${code} er bannlyst.` : `Bannlysingen for #${code} er opphevet.`, true);
+    showMsg(shouldBan ? `Kontoen er bannlyst.` : `Bannlysingen er opphevet.`, true);
     renderStats();
     renderAccounts();
   } catch(e){
@@ -334,7 +346,7 @@ document.getElementById('logoutAllBtn').addEventListener('click', async ()=>{
   if(!confirm(`Logge ut ALLE ${accounts.length} registrerte kontoer fra alle enheter nå?`)) return;
   try{
     const now = Date.now();
-    accounts.forEach(a => { forceLogoutMap[a.code] = now; });
+    accounts.forEach(a => { forceLogoutMap[identityKey(a)] = now; });
     await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
     showMsg(`Alle ${accounts.length} kontoer blir logget ut (kan ta inntil 10 sekunder).`, true);
   } catch(e){
@@ -343,10 +355,10 @@ document.getElementById('logoutAllBtn').addEventListener('click', async ()=>{
 });
 
 document.getElementById('manualBanBtn').addEventListener('click', ()=>{
-  const code = document.getElementById('manualCodeInput').value.trim();
-  if(!/^\d{6}$/.test(code)){ showMsg('Skriv inn en gyldig 6-sifret kode.', false); return; }
+  const username = document.getElementById('manualCodeInput').value.trim();
+  if(!/^[A-Za-z0-9_.-]{3,20}$/.test(username)){ showMsg('Skriv inn et gyldig brukernavn (3–20 tegn).', false); return; }
   document.getElementById('manualCodeInput').value = "";
-  toggleBan(code, true);
+  toggleBan(username.toLowerCase(), true);
 });
 
 function escapeHtml(str){

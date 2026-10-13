@@ -2684,7 +2684,7 @@
         <p><strong>3. Cancelling.</strong> You may cancel at any time, including during the free trial, from your profile page. Cancelling during the trial means you will not be charged. Cancelling after the trial stops future monthly charges but does not refund amounts already charged.</p>
         <p><strong>4. Refund policy.</strong> Because the free trial gives you 7 full days to try Fixlet! and cancel before any charge occurs, monthly subscription charges are non-refundable once billed. If you believe you were charged in error (for example, a charge occurred despite cancelling before your trial ended), contact us through the messaging feature or our helpline within 14 days and we will review it.</p>
         <p><strong>5. Your account and content.</strong> You are responsible for the accuracy of the information, images, and video you upload. You must not publish content that is illegal, misleading, or that you do not have the rights to use. Fixlet! may remove any Listing at its discretion. By submitting a Listing you confirm the content is your own or that you have permission to use it, and that the information provided is accurate to the best of your knowledge.</p>
-        <p><strong>6. Conduct.</strong> Users must communicate respectfully through the messaging feature. Harassment, fraud, or attempts to circumvent these Terms may result in removal of your Listings or account. If you use Fixlet! to offer, advertise, or facilitate anything illegal under the laws that apply to you, or otherwise misuse the platform, Fixlet! may remove the relevant Listings, suspend your access, and permanently ban your account (identified by your account code) from the platform, without prior notice and without refund of any amounts already paid. Fixlet! administrators may also, at their discretion and for the same reasons, immediately and remotely sign your account out of every device where it is currently logged in (a "forced logout"), without prior notice. This does not by itself delete your account or your Listings, and you can normally sign back in unless your account has also been banned.</p>
+        <p><strong>6. Conduct.</strong> Users must communicate respectfully through the messaging feature. Harassment, fraud, or attempts to circumvent these Terms may result in removal of your Listings or account. If you use Fixlet! to offer, advertise, or facilitate anything illegal under the laws that apply to you, or otherwise misuse the platform, Fixlet! may remove the relevant Listings, suspend your access, and permanently ban your account (identified by your unique username) from the platform, without prior notice and without refund of any amounts already paid. Fixlet! administrators may also, at their discretion and for the same reasons, immediately and remotely sign your account out of every device where it is currently logged in (a "forced logout"), without prior notice. This does not by itself delete your account or your Listings, and you can normally sign back in unless your account has also been banned.</p>
         <p><strong>7. No guarantee of service.</strong> Fixlet! is provided "as is". We do not guarantee uninterrupted availability, that any Listing will result in business, or that any user you contact will respond or perform as described. Any figures, examples, or testimonials shown in the app are illustrative only and are not a promise of results.</p>
         <p><strong>8. Liability.</strong> To the maximum extent permitted by law, Fixlet! is not liable for any damages, losses, or disputes arising from interactions between users, or from services purchased or rendered as a result of a Listing.</p>
         <p><strong>9. Local laws.</strong> You are responsible for complying with the laws and regulations that apply to you and your Listing in your own country and city, including any licensing, tax, or consumer-protection requirements for the services you offer.</p>
@@ -2706,7 +2706,7 @@
         <p><strong>4. Third-party services.</strong> Fixlet! uses Stripe to process payments and Supabase to store data. These providers may process data on our behalf under their own privacy policies. Fixlet! does not currently use analytics or advertising trackers.</p>
         <p><strong>5. Your rights.</strong> You can delete your own Listings at any time from your profile, which removes their content from the marketplace. To request a full copy or deletion of your data, contact us using the details below.</p>
         <p><strong>6. Data retention.</strong> We keep your Listing and message data for as long as your account is active, or until you delete it.</p>
-        <p><strong>7. Administrative account actions.</strong> To keep the platform safe and enforce these Terms, Fixlet! administrators can see basic account and session information (such as your account code and whether you are currently signed in) and can remotely sign an account out of all of its active sessions ("forced logout"), in addition to banning or unbanning an account. This is an administrative security measure, not a form of tracking, and is used for moderation and enforcement purposes only.</p>
+        <p><strong>7. Administrative account actions.</strong> To keep the platform safe and enforce these Terms, Fixlet! administrators can see basic account and session information (such as your username and whether you are currently signed in) and can remotely sign an account out of all of its active sessions ("forced logout"), in addition to banning or unbanning an account. This is an administrative security measure, not a form of tracking, and is used for moderation and enforcement purposes only.</p>
         <p><strong>8. Changes.</strong> We may update this Privacy Policy from time to time; continued use of Fixlet! after changes are posted means you accept the updated policy.</p>
         <p><strong>9. Contact.</strong> Questions about your data can be directed through the app's messaging feature, or by calling our helpline at +47 413 74 773.</p>
         <p class="bizdetails"><strong>Data controller:</strong> Transform4Future Anna Madeleine Nordlund · Harriet Backers vei 14E, 1415 Oppegård, Norway · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a></p>
@@ -4021,19 +4021,20 @@ function countConversationMessages(service){
 // a customer messaging it. Messaging your own listing isn't blocked, but
 // this is what decides which side of the conversation your messages land on.
 function myRoleFor(service){
-  return (currentUser && service && service.ownerCode === currentUser.code) ? 'owner' : 'customer';
+  return (currentUser && service && service.ownerCode === currentUser.username) ? 'owner' : 'customer';
 }
 
 /* Opens the conversation between the signed-in account and `customerCode`
    on this listing. When customerCode is omitted (e.g. a customer clicking
    "Contact" on a listing for the first time), it defaults to the signed-in
-   account's own code — since in that case *they* are the customer. The
+   account's own username — since in that case *they* are the customer. The
    owner always needs an explicit customerCode (passed in from the inbox),
    since they potentially have conversations with several different
-   customers on the same listing. */
+   customers on the same listing. (Despite the name, customerCode now holds
+   a username, which is the only thing guaranteed unique per account.) */
 function openChat(service, lang, customerCode){
   if(!service.conversations) service.conversations = {};
-  const code = customerCode || (currentUser ? currentUser.code : null);
+  const code = customerCode || (currentUser ? currentUser.username : null);
   if(!code) return; // not signed in and no explicit conversation given — nothing to open
   if(!service.conversations[code]) service.conversations[code] = [];
   activeChatService = service;
@@ -4058,7 +4059,7 @@ function openChat(service, lang, customerCode){
 // "View messages" button for that, which opens the real inbox instead.
 function openChatAsCustomer(service, lang){
   requireLogin(()=>{
-    if(currentUser && service.ownerCode === currentUser.code) return;
+    if(currentUser && service.ownerCode === currentUser.username) return;
     openChat(service, lang);
   });
 }
@@ -4136,13 +4137,13 @@ function getMyConversations(filterServiceId){
   myServices.forEach(s=>{
     if(filterServiceId !== undefined && s.id !== filterServiceId) return;
     const conversations = s.conversations || {};
-    const isOwner = s.ownerCode === currentUser.code;
+    const isOwner = s.ownerCode === currentUser.username;
     Object.keys(conversations).forEach(customerCode=>{
       const messages = conversations[customerCode];
       if(!messages || messages.length === 0) return;
       // Only show this conversation if the signed-in account is actually
       // one of its two participants (the owner, or that customer).
-      if(!isOwner && customerCode !== currentUser.code) return;
+      if(!isOwner && customerCode !== currentUser.username) return;
       results.push({ service: s, customerCode, messages, lastTime: messages[messages.length-1].time, isOwner });
     });
   });
@@ -4394,8 +4395,8 @@ let premiumActive = false;
 // Premium is scoped per signed-in account once one exists, so one person's
 // subscription doesn't light up another visitor's listings.
 function premiumStorageKey(){
-  return (typeof currentUser !== 'undefined' && currentUser && currentUser.code)
-    ? PREMIUM_STORAGE_KEY_BASE + '_' + currentUser.code
+  return (typeof currentUser !== 'undefined' && currentUser && currentUser.username)
+    ? PREMIUM_STORAGE_KEY_BASE + '_' + currentUser.username
     : PREMIUM_STORAGE_KEY_BASE;
 }
 
@@ -4422,15 +4423,18 @@ async function savePremium(){
 function isServiceSponsored(s){
   return premiumActive || !!(s && s.sponsored);
 }
-/* ---------------- Login (6-digit account code) + account-scoped storage ----------------
-   There's no password/email behind this — you pick (or type back) a
-   6-digit number. The first time a number is used it gets registered to
-   whoever typed it (and nobody else can register that same number); after
-   that, typing the same number again logs you back into that account.
-   That's exactly what was asked for, but worth being upfront about: since
-   there's no password check beyond the number itself, anyone who knows (or
-   guesses) someone else's 6-digit code could sign in as them. Fine for a
-   demo marketplace like this; not meant as real account security.
+/* ---------------- Login (username + 6-digit number) + account-scoped storage ----------------
+   There's no traditional password/email behind this. Each account has a
+   username, which must be unique, and a 6-digit number, which does NOT
+   have to be unique — several accounts can share the same number. Signing
+   in requires typing back the exact username + number pair you registered
+   with. The username is what actually identifies the account everywhere
+   else in the app (ownership of listings, chat identity, bans, force
+   logout) — the number is just a second thing you have to know.
+   Worth being upfront about: there's still no real password check, so
+   anyone who knows (or guesses) someone else's username *and* number could
+   sign in as them. Fine for a demo marketplace like this; not meant as
+   real account security.
    registeredCodes / loadRegisteredCodes / saveRegisteredCodes are defined
    here but only actually CALLED later (see initUser below), after the
    Supabase constants further down in the file have been declared. */
@@ -4491,7 +4495,7 @@ async function saveRegisteredCodes(){
 }
 
 const BANNED_ROW_ID = 'banned'; // a third row in the same Supabase table; only the separate admin page writes to it
-let bannedCodes = []; // account codes banned from the admin page — checked at login, never written from here
+let bannedCodes = []; // usernames banned from the admin page (despite the name) — checked at login, never written from here
 async function loadBannedCodes(){
   if(supabaseConfigured()){
     try {
@@ -4525,15 +4529,17 @@ async function loadForceLogoutMap(){
 /* Checked on a short timer (see startForceLogoutWatcher below) while
    someone is signed in. The admin page can't reach into another person's
    browser directly, so forcing a logout works by timestamp instead: the
-   admin page writes { code: Date.now() } to the shared forceLogout row,
-   and any signed-in device with that code compares it against its own
+   admin page writes { username: Date.now() } to the shared forceLogout row,
+   and any signed-in device with that username compares it against its own
    loginTime. A newer kick timestamp than this session's loginTime means
    "log out now" -- and logging back in sets a fresh loginTime, so the
-   kick doesn't re-trigger and sign them straight back out. */
+   kick doesn't re-trigger and sign them straight back out. Keyed by
+   username rather than the 6-digit number, since the number is no longer
+   unique to one account. */
 async function checkForceLogout(){
-  if(!currentUser || !currentUser.code) return;
+  if(!currentUser || !currentUser.username) return;
   await loadForceLogoutMap();
-  const kickedAt = forceLogoutMap[currentUser.code];
+  const kickedAt = forceLogoutMap[currentUser.username];
   if(kickedAt && (!currentUser.loginTime || kickedAt > currentUser.loginTime)){
     await clearUser();
     show('home');
@@ -4591,7 +4597,7 @@ function setLoginMode(mode){
   document.getElementById('loginSubmitBtn').textContent = mode === 'login' ? 'Log in' : 'Create account';
   document.getElementById('loginHintText').textContent = mode === 'login'
     ? 'Don\'t have an account? Tap "Create new account" above.'
-    : 'Pick a username nobody else has used, and a 6-digit number to go with it.';
+    : 'Pick a username nobody else has used. Your 6-digit number can be shared with other accounts — it\'s your username that has to be unique.';
   document.getElementById('loginErrorMsg').classList.add('hidden');
   updateLoginSubmitState();
 }
@@ -4619,21 +4625,20 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
 
   // Re-check the ban list right before letting someone in, so a ban made
   // from the admin page takes effect immediately, not just at page load.
+  // Bans and force-logout are keyed by username now, since the 6-digit
+  // number is no longer unique to one account.
   await loadBannedCodes();
-  if(bannedCodes.includes(code)){
+  if(bannedCodes.includes(username)){
     errEl.textContent = 'This account is banned from Fixlet! for violating our terms.';
     errEl.classList.remove('hidden');
     return;
   }
 
   if(loginMode === 'register'){
+    // The username is the only thing that has to be unique — several
+    // accounts can share the same 6-digit number.
     if(findAccountByUsername(username)){
       errEl.textContent = 'This username is already taken — pick a different one.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-    if(findAccountByCode(code)){
-      errEl.textContent = 'This number is already in use — pick a different one.';
       errEl.classList.remove('hidden');
       return;
     }
@@ -4642,26 +4647,29 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
     currentUser = { code, username, loginTime: Date.now() };
     await saveUser();
   } else {
-    const account = findAccountByCode(code);
+    let account = findAccountByUsername(username);
     if(!account){
-      errEl.textContent = 'No account found with this number. Tap "Create new account" to make one.';
+      // Might be an older account created before usernames existed —
+      // those are stored with no username yet. If one of those has a
+      // matching number and nobody else has claimed this username,
+      // claim it now so the account keeps working.
+      const legacyIdx = registeredCodes.findIndex(a => {
+        const rec = typeof a === 'string' ? { code: a, username: null } : a;
+        return !rec.username && rec.code === code;
+      });
+      if(legacyIdx !== -1){
+        registeredCodes[legacyIdx] = { code, username };
+        await saveRegisteredCodes();
+        account = { code, username };
+      }
+    }
+    if(!account){
+      errEl.textContent = 'No account found with this username. Tap "Create new account" to make one.';
       errEl.classList.remove('hidden');
       return;
     }
-    if(!account.username){
-      // Older account created before usernames existed — claim this
-      // username for it now, as long as nobody else already has it.
-      if(findAccountByUsername(username)){
-        errEl.textContent = 'This username is already taken — pick a different one.';
-        errEl.classList.remove('hidden');
-        return;
-      }
-      const idx = registeredCodes.findIndex(a => (typeof a === 'string' ? a : a.code) === code);
-      if(idx !== -1) registeredCodes[idx] = { code, username };
-      await saveRegisteredCodes();
-      account.username = username;
-    } else if(account.username.trim().toLowerCase() !== username.toLowerCase()){
-      errEl.textContent = 'That username doesn\'t match this number.';
+    if(account.code !== code){
+      errEl.textContent = 'That number doesn\'t match this username.';
       errEl.classList.remove('hidden');
       return;
     }
@@ -5446,7 +5454,7 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
     lang: countries[0].lang,
     createdAt: Date.now(),
     sponsored: false,
-    ownerCode: currentUser ? currentUser.code : null,
+    ownerCode: currentUser ? currentUser.username : null, // despite the name, this is the owner's unique username, not their (now shareable) number
     // Keyed by the account code of whoever messaged this listing, so each
     // customer gets their own separate thread with the owner instead of
     // everyone sharing one mixed-up conversation (see conversations model
@@ -5503,7 +5511,7 @@ const LOCALE_MAP = { en:'en-GB', no:'nb-NO', sv:'sv-SE', da:'da-DK' };
 // (getMarketListings) is untouched and still shows everyone's listings.
 function getMyOwnServices(){
   if(!currentUser) return [];
-  return myServices.filter(s => s.ownerCode === currentUser.code);
+  return myServices.filter(s => s.ownerCode === currentUser.username);
 }
 
 function renderMyServices(lang){
