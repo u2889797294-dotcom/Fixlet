@@ -2514,6 +2514,10 @@
 
         <input type="text" maxlength="20" class="loginusernameinput" id="loginUsernameInput" placeholder="Username" autocomplete="off" autocapitalize="none" spellcheck="false">
         <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="logincodeinput" id="loginCodeInput" placeholder="• • • • • •" autocomplete="off">
+        <div id="loginExtraFieldsWrap" class="hidden">
+          <input type="tel" maxlength="20" class="loginusernameinput" id="loginPhoneInput" placeholder="Mobile number" autocomplete="off">
+          <input type="email" maxlength="60" class="loginusernameinput" id="loginEmailInput" placeholder="Gmail / email (optional)" autocomplete="off">
+        </div>
         <p class="loginerror hidden" id="loginErrorMsg"></p>
         <button class="continuebtn" id="loginSubmitBtn" style="width:100%;" disabled>Log in</button>
         <p class="loginnote" id="loginHintText">Don't have an account? Tap "Create new account" above.</p>
@@ -2700,7 +2704,7 @@
     <div class="termswrap">
       <h2>Privacy Policy</h2>
       <div class="termsbody">
-        <p><strong>1. What we collect.</strong> When you publish a Listing, we store the business name, description, category, cities/countries, and any photo or video you upload. When you message another user, we store the text of that message. When you subscribe, payment is handled directly by Stripe — Fixlet! does not see or store your full card number.</p>
+        <p><strong>1. What we collect.</strong> When you create an account, we store your chosen username, your 6-digit account number, your mobile number, and — if you choose to provide it — an email address. When you publish a Listing, we store the business name, description, category, cities/countries, and any photo or video you upload. When you message another user, we store the text of that message. When you subscribe, payment is handled directly by Stripe — Fixlet! does not see or store your full card number.</p>
         <p><strong>2. Why we collect it.</strong> We only collect what is needed to run the marketplace: to display your Listing, let other users contact you, and manage your subscription. We do not collect more personal data than necessary for these purposes, and we do not sell your data to third parties.</p>
         <p><strong>3. Where it's stored.</strong> Listing and message data is stored in our database (Supabase) so it can be shared across devices. Some settings may also be kept in your browser's local storage on your own device.</p>
         <p><strong>4. Third-party services.</strong> Fixlet! uses Stripe to process payments and Supabase to store data. These providers may process data on our behalf under their own privacy policies. Fixlet! does not currently use analytics or advertising trackers.</p>
@@ -3655,6 +3659,7 @@ function renderCityGrid(c){
       browseCity = city;
       renderSiteScreen(c, city);
       show('services');
+      saveLastLocation();
     });
     makeKeyboardClickable(div, city);
     grid.appendChild(div);
@@ -4576,6 +4581,31 @@ async function clearUser(){
   try { localStorage.removeItem(USER_STORAGE_KEY); } catch(e){}
 }
 
+/* Remembers the last country + city someone browsed, so that a returning,
+   already-signed-in visitor can be dropped straight onto that listings
+   page instead of the home screen. Only meaningful once sign-in itself is
+   also remembered (see loadUser() being called from initUser below). */
+const LAST_LOCATION_STORAGE_KEY = 'jelp_lastLocation_v1';
+async function saveLastLocation(){
+  if(!browseCountry || !browseCity) return;
+  const raw = JSON.stringify({ countryName: browseCountry.name, city: browseCity });
+  try { if(window.storage){ await window.storage.set(LAST_LOCATION_STORAGE_KEY, raw, true); } } catch(e){}
+  try { localStorage.setItem(LAST_LOCATION_STORAGE_KEY, raw); } catch(e){}
+}
+async function loadLastLocation(){
+  try {
+    if(window.storage){
+      const result = await window.storage.get(LAST_LOCATION_STORAGE_KEY, true);
+      if(result && result.value) return JSON.parse(result.value);
+    }
+  } catch(e){ /* fall through to localStorage */ }
+  try {
+    const raw = localStorage.getItem(LAST_LOCATION_STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  } catch(e){}
+  return null;
+}
+
 /* Browsing the marketplace (home/city screens) is free — login is only
    required for things tied to an account: picking a country to browse,
    listing a service, or viewing "your services". requireLogin() runs the
@@ -4594,24 +4624,34 @@ function setLoginMode(mode){
   loginMode = mode;
   document.getElementById('loginTabLogin').classList.toggle('active', mode === 'login');
   document.getElementById('loginTabRegister').classList.toggle('active', mode === 'register');
+  document.getElementById('loginExtraFieldsWrap').classList.toggle('hidden', mode !== 'register');
   document.getElementById('loginSubmitBtn').textContent = mode === 'login' ? 'Log in' : 'Create account';
   document.getElementById('loginHintText').textContent = mode === 'login'
     ? 'Don\'t have an account? Tap "Create new account" above.'
-    : 'Pick a username nobody else has used. Your 6-digit number can be shared with other accounts — it\'s your username that has to be unique.';
+    : 'Pick a username nobody else has used, and add your mobile number (Gmail/email is optional). You\'ll only need to do this once — after that you\'ll be signed in automatically.';
   document.getElementById('loginErrorMsg').classList.add('hidden');
   updateLoginSubmitState();
 }
 function isValidUsername(username){
   return /^[A-Za-z0-9_\.\-]{3,20}$/.test(username || '');
 }
+function isValidPhone(phone){
+  return /^[\d\s\+\-\(\)]{6,20}$/.test(phone || '') && /\d{5,}/.test((phone || '').replace(/\D/g,''));
+}
 function updateLoginSubmitState(){
   const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
-  document.getElementById('loginSubmitBtn').disabled = !(isValidUsername(username) && /^\d{6}$/.test(code));
+  let ok = isValidUsername(username) && /^\d{6}$/.test(code);
+  if(loginMode === 'register'){
+    const phone = document.getElementById('loginPhoneInput').value.trim();
+    ok = ok && isValidPhone(phone);
+  }
+  document.getElementById('loginSubmitBtn').disabled = !ok;
 }
 document.getElementById('loginTabLogin').addEventListener('click', ()=> setLoginMode('login'));
 document.getElementById('loginTabRegister').addEventListener('click', ()=> setLoginMode('register'));
 document.getElementById('loginUsernameInput').addEventListener('input', updateLoginSubmitState);
+document.getElementById('loginPhoneInput').addEventListener('input', updateLoginSubmitState);
 document.getElementById('loginCodeInput').addEventListener('input', (e)=>{
   e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
   updateLoginSubmitState();
@@ -4619,9 +4659,12 @@ document.getElementById('loginCodeInput').addEventListener('input', (e)=>{
 document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
+  const phone = document.getElementById('loginPhoneInput').value.trim();
+  const email = document.getElementById('loginEmailInput').value.trim();
   const errEl = document.getElementById('loginErrorMsg');
   errEl.classList.add('hidden');
   if(!isValidUsername(username) || !/^\d{6}$/.test(code)) return;
+  if(loginMode === 'register' && !isValidPhone(phone)) return;
 
   // Re-check the ban list right before letting someone in, so a ban made
   // from the admin page takes effect immediately, not just at page load.
@@ -4642,9 +4685,9 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
       errEl.classList.remove('hidden');
       return;
     }
-    registeredCodes.push({ code, username });
+    registeredCodes.push({ code, username, phone, email: email || null });
     await saveRegisteredCodes();
-    currentUser = { code, username, loginTime: Date.now() };
+    currentUser = { code, username, phone, email: email || null, loginTime: Date.now() };
     await saveUser();
   } else {
     let account = findAccountByUsername(username);
@@ -4678,7 +4721,10 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   }
   document.getElementById('loginUsernameInput').value = "";
   document.getElementById('loginCodeInput').value = "";
+  document.getElementById('loginPhoneInput').value = "";
+  document.getElementById('loginEmailInput').value = "";
   await loadPremium();
+  await saveLastLocation(); // in case a browsed country/city was set before login was required
   if(pendingLoginAction){
     const action = pendingLoginAction;
     pendingLoginAction = null;
@@ -5421,8 +5467,32 @@ function seedDemoServices(){
   await loadBannedCodes();
   // Browsing (home/country/city) is open to everyone. The login screen
   // only shows up when something account-specific is clicked — see
-  // requireLogin() — and the account code isn't remembered between
-  // visits, so you type it in again each time you're asked for it.
+  // requireLogin(). Being signed in is now remembered across visits (see
+  // loadUser()/saveUser()), so a returning, already-signed-in visitor who
+  // had a country/city open last time is taken straight back to that
+  // listings page instead of the home screen.
+  await loadUser();
+  if(currentUser && currentUser.username){
+    if(bannedCodes.includes(currentUser.username.trim().toLowerCase())){
+      // Banned since their last visit — don't silently sign them back in.
+      await clearUser();
+    } else {
+      await loadPremium();
+      const last = await loadLastLocation();
+      if(last){
+        const countryDef = COUNTRIES.find(c => c.name === last.countryName);
+        const hasCity = countryDef && CITIES[countryDef.name] && CITIES[countryDef.name].includes(last.city);
+        if(countryDef && ENABLED_COUNTRIES.includes(countryDef.name) && hasCity){
+          const cc = withEffLang(countryDef);
+          browseCountry = cc;
+          browseCity = last.city;
+          document.getElementById('htmlRoot').setAttribute('lang', cc.lang);
+          renderSiteScreen(cc, last.city);
+          show('services');
+        }
+      }
+    }
+  }
   startForceLogoutWatcher();
 })();
 

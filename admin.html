@@ -173,19 +173,29 @@ function countConversationMessages(service){
 }
 
 async function loadAll(){
-  const [svc, users, banned, kicked] = await Promise.all([
-    getRow('global').catch(()=> []),
-    getRow('users').catch(()=> []),
-    getRow('banned').catch(()=> []),
-    getObjectRow(FORCE_LOGOUT_ROW_ID).catch(()=> ({}))
+  // Each row is fetched independently (Promise.allSettled, not .catch(()=>[])):
+  // a transient network hiccup on just ONE of these used to silently reset
+  // that list to empty, which made accounts/listings appear to vanish from
+  // the page even though nothing was actually deleted server-side. Now a
+  // failed fetch keeps whatever was already loaded and reports the problem
+  // instead of wiping the list.
+  const [svcResult, usersResult, bannedResult, kickedResult] = await Promise.allSettled([
+    getRow('global'),
+    getRow('users'),
+    getRow('banned'),
+    getObjectRow(FORCE_LOGOUT_ROW_ID)
   ]);
-  services = svc;
-  registeredCodes = users;
-  bannedCodes = banned;
-  forceLogoutMap = kicked;
+  const failed = [];
+  if(svcResult.status === 'fulfilled') services = svcResult.value; else failed.push('tjenester');
+  if(usersResult.status === 'fulfilled') registeredCodes = usersResult.value; else failed.push('kontoer');
+  if(bannedResult.status === 'fulfilled') bannedCodes = bannedResult.value; else failed.push('bannlysing');
+  if(kickedResult.status === 'fulfilled') forceLogoutMap = kickedResult.value; else failed.push('utlogging');
   renderStats();
   renderListings();
   renderAccounts();
+  if(failed.length > 0){
+    showMsg('Klarte ikke å oppdatere: ' + failed.join(', ') + '. Viser forrige kjente data — trykk "Oppdater liste" for å prøve igjen.', false);
+  }
 }
 
 function renderStats(){
