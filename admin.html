@@ -103,7 +103,8 @@
 /* Same Supabase project/table as the main Fixlet! site (index.html) —
    four rows in one table, used as a tiny key-value store:
      id="global"      -> all listings (services)
-     id="users"       -> every registered account, as { code, username }
+     id="users"       -> every registered account, as
+                          { code, username, phone, email, bio, avatar }
                           (several accounts can share the same 6-digit
                           number; only the username has to be unique)
      id="banned"      -> usernames (lowercased) banned from logging in
@@ -307,7 +308,10 @@ function renderAccounts(){
           <div class="meta">
             <span class="pill ${isBanned ? 'banned' : 'ok'}">${isBanned ? 'Bannlyst' : 'Aktiv'}</span>
             ${ownedCount} tjeneste(r) publisert
+            ${acct.phone ? ' · 📱 '+escapeHtml(acct.phone) : ''}
+            ${acct.email ? ' · ✉️ '+escapeHtml(acct.email) : ''}
           </div>
+          ${acct.bio ? `<div class="meta" style="margin-top:4px; font-style:italic;">"${escapeHtml(acct.bio)}"</div>` : ''}
         </div>
         <div class="btnrow">
           <button class="logout" data-key="${escapeHtml(key)}">Logg ut</button>

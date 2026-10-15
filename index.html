@@ -1039,6 +1039,7 @@
     display:none;
   }
   .uploadbox.has-preview .changechip{ display:block; }
+  .avatarbox img.preview{ border-radius:50%; width:96px; height:96px; object-fit:cover; max-height:none; }
   .publishbtn{
     width:100%;
     border:none;
@@ -2847,9 +2848,52 @@
     </div>
     <p class="loggedinas" id="loggedInAsLabel"></p>
     <div class="backhome-row">
+      <button class="backhomebtn" id="openProfileBtn" title="Edit profile">⚙️ <span id="openProfileLabel">Profile</span></button>
+    </div>
+    <div class="backhome-row">
       <button class="backhomebtn" id="logoutBtn">Logg ut</button>
     </div>
     <p class="helpline">Need help? Call <a href="tel:+4741374773">+47 413 74 773</a></p>
+  </div>
+
+  <!-- ===================== PROFILE / ACCOUNT SETTINGS ===================== -->
+  <div class="screen hidden" id="profileScreen">
+    <div class="backrow"><button class="backbtn" id="backFromProfile">&larr; <span id="backFromProfileLabel">Back</span></button></div>
+    <p class="lede" id="profileLede">Edit profile</p>
+    <div class="formwrap">
+      <div class="formfield">
+        <label id="lblProfileAvatar">Profile photo (optional)</label>
+        <div class="uploadbox avatarbox" id="profileAvatarBox">
+          <div class="uicon" id="profileAvatarIcon"></div>
+          <div class="utext" id="profileAvatarText">Click to upload a photo</div>
+          <div class="changechip" id="profileAvatarChangeChip">Change</div>
+          <input type="file" id="profileAvatarInput" accept="image/*">
+        </div>
+      </div>
+      <div class="formfield">
+        <label id="lblProfileUsername">Username</label>
+        <input type="text" maxlength="20" id="profileUsernameInput" autocomplete="off" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="formfield">
+        <label id="lblProfileCode">6-digit number</label>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="profileCodeInput" autocomplete="off">
+      </div>
+      <div class="formfield">
+        <label id="lblProfilePhone">Mobile number</label>
+        <input type="tel" maxlength="20" id="profilePhoneInput" autocomplete="off">
+      </div>
+      <div class="formfield">
+        <label id="lblProfileEmail">Gmail / email (optional)</label>
+        <input type="email" maxlength="60" id="profileEmailInput" autocomplete="off">
+      </div>
+      <div class="formfield">
+        <label id="lblProfileBio">About you (optional)</label>
+        <textarea id="profileBioInput" maxlength="300" placeholder="A short line about you or your business…"></textarea>
+      </div>
+      <p class="loginerror hidden" id="profileErrorMsg"></p>
+      <p class="loggedinas hidden" id="profileSuccessMsg"></p>
+      <button class="publishbtn" id="profileSaveBtn" disabled>Save changes</button>
+    </div>
   </div>
 
   <!-- ===================== SERVICE DETAIL PAGE ===================== -->
@@ -3584,6 +3628,7 @@ const screens = {
   postCities: document.getElementById('postCitiesScreen'),
   postForm: document.getElementById('postFormScreen'),
   myServices: document.getElementById('myServicesScreen'),
+  profile: document.getElementById('profileScreen'),
   serviceDetail: document.getElementById('serviceDetailScreen'),
   messagesInbox: document.getElementById('messagesInboxScreen'),
   chat: document.getElementById('chatScreen')
@@ -4736,6 +4781,226 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
 document.getElementById('logoutBtn').addEventListener('click', async ()=>{
   await clearUser();
   show('home');
+});
+
+/* ---------------- Profile / account settings ----------------
+   Lets a signed-in account change everything about itself: avatar, bio,
+   phone, email, the 6-digit number, and even its username. The username
+   is the one tricky part — it's the real identity key used for listing
+   ownership and chat (see myRoleFor/ownerCode elsewhere), so renaming it
+   means migrating every place that key is used across the *shared* data,
+   not just this browser's own copy. migrateUsernameKey() below does that
+   the same safe way saveChatMessage() does: re-fetch the latest shared
+   services right before writing, so a rename doesn't clobber someone
+   else's concurrent save. */
+let profileAvatarData = null;
+
+function openProfileBox(box, dataUrl){
+  box.classList.toggle('has-preview', !!dataUrl);
+  const icon = box.querySelector('.uicon');
+  const text = box.querySelector('.utext');
+  if(icon) icon.style.display = dataUrl ? 'none' : '';
+  if(text) text.style.display = dataUrl ? 'none' : '';
+  let img = box.querySelector('img.preview');
+  if(dataUrl){
+    if(!img){ img = document.createElement('img'); img.className = 'preview'; box.insertBefore(img, box.firstChild); }
+    img.src = dataUrl;
+  } else if(img){
+    img.remove();
+  }
+}
+
+document.getElementById('profileAvatarInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const rawDataUrl = reader.result;
+    const probe = new Image();
+    probe.onload = ()=>{
+      const MAX_DIM = 400; // avatars are shown small — no need for full-size photos
+      let w = probe.naturalWidth, h = probe.naturalHeight;
+      if(w > MAX_DIM || h > MAX_DIM){
+        if(w >= h){ h = Math.round(h * (MAX_DIM / w)); w = MAX_DIM; }
+        else { w = Math.round(w * (MAX_DIM / h)); h = MAX_DIM; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(probe, 0, 0, w, h);
+      let dataUrl;
+      try { dataUrl = canvas.toDataURL('image/jpeg', 0.85); } catch(err){ dataUrl = rawDataUrl; }
+      profileAvatarData = (dataUrl && dataUrl.length > 100) ? dataUrl : rawDataUrl;
+      openProfileBox(document.getElementById('profileAvatarBox'), profileAvatarData);
+      updateProfileSaveState();
+    };
+    probe.onerror = ()=> console.error('Avatar decode failed');
+    probe.src = rawDataUrl;
+  };
+  reader.readAsDataURL(file);
+});
+
+function renderProfileScreen(){
+  if(!currentUser) return;
+  document.getElementById('profileAvatarIcon').innerHTML = ic('camera');
+  const account = findAccountByUsername(currentUser.username) || currentUser;
+  profileAvatarData = account.avatar || null;
+  document.getElementById('profileUsernameInput').value = currentUser.username || '';
+  document.getElementById('profileCodeInput').value = account.code || currentUser.code || '';
+  document.getElementById('profilePhoneInput').value = account.phone || '';
+  document.getElementById('profileEmailInput').value = account.email || '';
+  document.getElementById('profileBioInput').value = account.bio || '';
+  openProfileBox(document.getElementById('profileAvatarBox'), profileAvatarData);
+  document.getElementById('profileErrorMsg').classList.add('hidden');
+  document.getElementById('profileSuccessMsg').classList.add('hidden');
+  updateProfileSaveState();
+}
+
+function updateProfileSaveState(){
+  const username = document.getElementById('profileUsernameInput').value.trim();
+  const code = document.getElementById('profileCodeInput').value.trim();
+  const phone = document.getElementById('profilePhoneInput').value.trim();
+  document.getElementById('profileSaveBtn').disabled = !(isValidUsername(username) && /^\d{6}$/.test(code) && isValidPhone(phone));
+}
+['profileUsernameInput','profileCodeInput','profilePhoneInput'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateProfileSaveState);
+});
+document.getElementById('profileCodeInput').addEventListener('input', (e)=>{
+  e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
+});
+
+document.getElementById('openProfileBtn').addEventListener('click', ()=>{
+  renderProfileScreen();
+  show('profile');
+});
+document.getElementById('backFromProfile').addEventListener('click', ()=>{
+  renderMyServices(currentLang);
+  show('myServices');
+});
+
+/* Renames every occurrence of a username key (listing ownership +
+   per-customer conversation threads) across the SHARED services list, not
+   just this browser's local copy — mirrors saveChatMessage()'s
+   fetch-latest-then-merge pattern so a rename can't wipe out someone
+   else's concurrent save. */
+async function migrateUsernameKey(oldKey, newKey){
+  if(oldKey === newKey) return true;
+  if(!supabaseConfigured()) return true; // nothing shared to migrate — local-only fallback is fine
+  try{
+    const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    let latest = Array.isArray(myServices) ? myServices.slice() : [];
+    if(getRes.ok){
+      const rows = await getRes.json();
+      if(rows && rows[0] && Array.isArray(rows[0].data)) latest = rows[0].data;
+    }
+    latest = latest.map(s=>{
+      let changed = false;
+      let ownerCode = s.ownerCode;
+      if(ownerCode === oldKey){ ownerCode = newKey; changed = true; }
+      let conversations = s.conversations;
+      if(conversations && Object.prototype.hasOwnProperty.call(conversations, oldKey)){
+        conversations = Object.assign({}, conversations);
+        const oldMsgs = conversations[oldKey] || [];
+        const existing = conversations[newKey] || [];
+        conversations[newKey] = existing.concat(oldMsgs).sort((a,b)=> (a.time||0) - (b.time||0));
+        delete conversations[oldKey];
+        changed = true;
+      }
+      return changed ? Object.assign({}, s, { ownerCode, conversations }) : s;
+    });
+    const putRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates"
+      },
+      body: JSON.stringify({ id: "global", data: latest })
+    });
+    if(putRes.ok){ myServices = latest; return true; }
+    console.error('migrateUsernameKey: save failed', putRes.status);
+  } catch(e){ console.error('migrateUsernameKey threw', e); }
+  return false;
+}
+
+document.getElementById('profileSaveBtn').addEventListener('click', async ()=>{
+  if(!currentUser) return;
+  const errEl = document.getElementById('profileErrorMsg');
+  const okEl = document.getElementById('profileSuccessMsg');
+  errEl.classList.add('hidden');
+  okEl.classList.add('hidden');
+
+  const newUsername = document.getElementById('profileUsernameInput').value.trim();
+  const newCode = document.getElementById('profileCodeInput').value.trim();
+  const phone = document.getElementById('profilePhoneInput').value.trim();
+  const email = document.getElementById('profileEmailInput').value.trim();
+  const bio = document.getElementById('profileBioInput').value.trim();
+  if(!isValidUsername(newUsername) || !/^\d{6}$/.test(newCode) || !isValidPhone(phone)) return;
+
+  const oldKey = currentUser.username.trim().toLowerCase();
+  const newKey = newUsername.trim().toLowerCase();
+
+  if(newKey !== oldKey){
+    const clash = findAccountByUsername(newUsername);
+    if(clash){
+      errEl.textContent = 'This username is already taken — pick a different one.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+  }
+
+  document.getElementById('profileSaveBtn').disabled = true;
+  document.getElementById('profileSaveBtn').textContent = 'Saving…';
+
+  // Re-check the ban list, same as at login — a username someone renamed
+  // their way into shouldn't accidentally dodge an existing ban.
+  await loadBannedCodes();
+  if(newKey !== oldKey && bannedCodes.includes(newKey)){
+    errEl.textContent = 'That username is banned from Fixlet!.';
+    errEl.classList.remove('hidden');
+    document.getElementById('profileSaveBtn').disabled = false;
+    document.getElementById('profileSaveBtn').textContent = t(currentLang,'continueBtn') || 'Save changes';
+    return;
+  }
+
+  const idx = registeredCodes.findIndex(a=>{
+    const rec = typeof a === 'string' ? { code: a, username: null } : a;
+    const key = rec.username ? rec.username.trim().toLowerCase() : rec.code;
+    return key === oldKey;
+  });
+  const updatedAccount = {
+    code: newCode,
+    username: newUsername,
+    phone,
+    email: email || null,
+    bio: bio || null,
+    avatar: profileAvatarData || null
+  };
+  if(idx !== -1) registeredCodes[idx] = updatedAccount;
+  else registeredCodes.push(updatedAccount);
+  await saveRegisteredCodes();
+
+  let migrationOk = true;
+  if(newKey !== oldKey){
+    migrationOk = await migrateUsernameKey(oldKey, newKey);
+  }
+
+  currentUser = Object.assign({}, currentUser, updatedAccount, { loginTime: currentUser.loginTime });
+  await saveUser();
+
+  document.getElementById('profileSaveBtn').disabled = false;
+  document.getElementById('profileSaveBtn').textContent = 'Save changes';
+  updateProfileSaveState();
+
+  okEl.textContent = migrationOk
+    ? 'Profile saved.'
+    : 'Profile saved, but some of your existing listings/messages may take a moment to show the new username — please try again if they look off.';
+  okEl.classList.remove('hidden');
+
+  const loggedInAsEl = document.getElementById('loggedInAsLabel');
+  if(loggedInAsEl) loggedInAsEl.textContent = 'Logged in as @' + currentUser.username;
 });
 
 function renderSponsorScreenContent(){
