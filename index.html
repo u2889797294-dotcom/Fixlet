@@ -4909,7 +4909,7 @@ async function migrateUsernameKey(oldKey, newKey){
       }
       return changed ? Object.assign({}, s, { ownerCode, conversations }) : s;
     });
-    const putRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+    const putRes = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
       method: "POST",
       headers: {
         "apikey": SUPABASE_ANON_KEY,
@@ -5500,6 +5500,30 @@ function supabaseConfigured(){
    way to open devtools, so the console alone isn't enough. */
 let lastSaveErrorDetail = '';
 
+/* A plain fetch() that throws (rather than returning a non-ok response) is
+   almost always a network-level hiccup — a dropped wifi/cellular handoff,
+   a backgrounded tab, a content blocker — not something retrying will
+   always fix, but often it IS transient (this is what Safari's generic
+   "Load failed" error usually means). Retrying a couple of times with a
+   short, increasing delay before giving up turns a lot of those one-off
+   blips into a save that just quietly succeeds on attempt 2 or 3, instead
+   of immediately showing the "couldn't save" warning. A real HTTP error
+   response (e.g. 4xx/5xx) is NOT retried here — the caller still sees that
+   immediately, since retrying the exact same bad request rarely helps. */
+async function fetchWithRetry(url, options, retries){
+  const attempts = (typeof retries === 'number' ? retries : 2) + 1;
+  let lastErr;
+  for(let i = 0; i < attempts; i++){
+    try {
+      return await fetch(url, options);
+    } catch(e){
+      lastErr = e;
+      if(i < attempts - 1) await new Promise(r => setTimeout(r, 600 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
 /* Returns true only if the data actually made it to *some* persistent
    store. Every failure is logged to the console (status + response body
    for Supabase) and recorded in lastSaveErrorDetail, instead of being
@@ -5510,7 +5534,7 @@ async function saveServices(){
 
   if(supabaseConfigured()){
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+      const res = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
         method: "POST",
         headers: {
           "apikey": SUPABASE_ANON_KEY,
@@ -5595,7 +5619,7 @@ async function saveChatMessage(serviceId, customerCode){
       // silently dropping it.
       if(!found && activeChatService) latest.push(activeChatService);
 
-      const putRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+      const putRes = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
         method: "POST",
         headers: {
           "apikey": SUPABASE_ANON_KEY,
