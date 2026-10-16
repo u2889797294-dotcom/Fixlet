@@ -316,11 +316,13 @@ function renderAccounts(){
         <div class="btnrow">
           <button class="logout" data-key="${escapeHtml(key)}">Logg ut</button>
           <button class="${isBanned ? '' : 'danger'}" data-key="${escapeHtml(key)}">${isBanned ? 'Opphev bannlysing' : 'Bannlys'}</button>
+          <button class="danger" data-key="${escapeHtml(key)}">Slett bruker</button>
         </div>
       </div>`;
     const buttons = card.querySelectorAll('button');
     buttons[0].addEventListener('click', ()=> forceLogout(key));
     buttons[1].addEventListener('click', ()=> toggleBan(key, !isBanned));
+    buttons[2].addEventListener('click', ()=> deleteAccount(key));
     list.appendChild(card);
   });
 }
@@ -333,6 +335,51 @@ async function forceLogout(key){
     showMsg(`Kontoen blir logget ut (kan ta inntil 10 sekunder).`, true);
   } catch(e){
     showMsg('Klarte ikke å logge ut kontoen: ' + e.message, false);
+  }
+}
+
+/* Permanently deletes an account. Works on the LATEST shared data (re-fetched
+   right before writing) so it can't wipe a registration or listing someone
+   else saved a moment ago. A ban on the username is deliberately kept, so a
+   banned person can't just delete-and-recreate. The account is also force-
+   logged-out so any device that is still signed in is kicked. */
+async function deleteAccount(key){
+  if(!confirm(`Slette brukeren "${key}" PERMANENT? Kontoen fjernes og brukeren logges ut. Dette kan ikke angres.`)) return;
+  const alsoListings = confirm(`Slette også alle tjenester og samtaler som tilhører "${key}"?\n\nOK = ja, slett dem også\nAvbryt = behold tjenestene (de blir uten eier)`);
+  try{
+    const latestUsers = await getRow('users');
+    const remaining = latestUsers.filter(a => {
+      const rec = typeof a === 'string' ? { code: a, username: null } : a;
+      return identityKey(rec) !== key;
+    });
+    await putRow('users', remaining);
+    registeredCodes = remaining;
+
+    if(alsoListings){
+      const latestServices = await getRow('global');
+      const cleaned = latestServices
+        .filter(s => s.ownerCode !== key)
+        .map(s => {
+          if(s.conversations && Object.prototype.hasOwnProperty.call(s.conversations, key)){
+            const conv = Object.assign({}, s.conversations);
+            delete conv[key];
+            return Object.assign({}, s, { conversations: conv });
+          }
+          return s;
+        });
+      await putRow('global', cleaned);
+      services = cleaned;
+    }
+
+    forceLogoutMap[key] = Date.now();
+    await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
+
+    showMsg(`Brukeren "${key}" er slettet${alsoListings ? ' sammen med tjenestene' : ''}.`, true);
+    renderStats();
+    renderListings();
+    renderAccounts();
+  } catch(e){
+    showMsg('Klarte ikke å slette brukeren: ' + e.message, false);
   }
 }
 
