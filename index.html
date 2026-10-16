@@ -249,6 +249,30 @@
     box-shadow:0 2px 6px rgba(15,38,32,.10);
   }
 
+
+  /* ---------- redesigned start page: big country cards ---------- */
+  .herotext{ text-align:center; max-width:640px; padding:0 24px; margin:0 auto 18px; }
+  .herotext h1{ font-size:34px; line-height:1.15; font-weight:800; margin:0 0 10px; color:var(--ink); letter-spacing:-.02em; }
+  .herotext p{ font-size:15.5px; line-height:1.5; color:var(--ink-soft); margin:0; font-weight:500; }
+  .countrygrid.bigcountries{ max-width:820px; grid-template-columns:repeat(2,1fr); gap:20px; padding:0 24px 60px; }
+  .bigcountries .countrycard{
+    flex-direction:column; justify-content:center; align-items:center; text-align:center;
+    gap:6px; min-height:210px; padding:30px 18px; border-radius:24px; border-width:2px;
+    background:linear-gradient(165deg,#ffffff 0%,#effaf5 100%);
+    box-shadow:0 12px 32px rgba(15,38,32,.09);
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .bigcountries .countrycard:hover{ transform:translateY(-4px); box-shadow:0 18px 40px rgba(13,148,136,.18); }
+  .bigcountries .countrycard .flag{ font-size:76px; line-height:1.05; margin-bottom:6px; }
+  .bigcountries .countrycard .cname{ font-size:24px; font-weight:800; color:var(--ink); }
+  .bigcountries .countrycard .csub{ font-size:12.5px; font-weight:700; color:var(--teal); background:#fff; border:1px solid var(--line); padding:3px 11px; border-radius:999px; }
+  @media (max-width:520px){
+    .herotext h1{ font-size:26px; }
+    .countrygrid.bigcountries{ gap:12px; padding:0 14px 50px; }
+    .bigcountries .countrycard{ min-height:160px; padding:20px 10px; border-radius:18px; }
+    .bigcountries .countrycard .flag{ font-size:54px; }
+    .bigcountries .countrycard .cname{ font-size:18px; }
+  }
   /* ---------- headings ---------- */
   .lede{
     color:var(--ink-soft);
@@ -2550,9 +2574,12 @@
         <button class="langopt" id="langOptEnglish" data-mode="en">English</button>
       </div>
     </div>
+    <div class="herotext">
+      <h1 id="heroTitle">Find trusted local help</h1>
+      <p id="heroSub">Pick your country to browse services near you — or list your own.</p>
+    </div>
     <p class="lede" id="countryLede">Choose the country you live in</p>
-    <input type="text" class="plain-search" id="countrySearch" placeholder="Search country…">
-    <div class="countrygrid" id="countryGrid"></div>
+    <div class="countrygrid bigcountries" id="countryGrid"></div>
   </div>
 
   <!-- ===================== CITY SELECT (browsing, single choice) ===================== -->
@@ -2560,6 +2587,7 @@
     <p class="cityhint cityhint-top" id="cityHint">Can't find your city? Pick the one nearest to you — city names are shown in English.</p>
     <div class="backrow"><button class="backbtn" id="backFromCity">&larr; <span id="backFromCityLabel">Change country</span></button></div>
     <p class="lede" id="cityLede">Choose your city</p>
+    <input type="text" class="plain-search" id="citySearch" placeholder="Search city…" autocomplete="off">
     <div class="citygrid" id="cityGrid"></div>
   </div>
 
@@ -3108,239 +3136,19 @@ document.getElementById('langOptEnglish').addEventListener('click', ()=>{
 });
 
 const COUNTRIES = [
-  {name:"Albania", flag:"🇦🇱", lang:"sq"},
-  {name:"Andorra", flag:"🇦🇩", lang:"ca"},
-  {name:"Austria", flag:"🇦🇹", lang:"de"},
-  {name:"Belarus", flag:"🇧🇾", lang:"be"},
-  {name:"Belgium", flag:"🇧🇪", lang:"nl"},
-  {name:"Bosnia and Herzegovina", flag:"🇧🇦", lang:"bs"},
-  {name:"Bulgaria", flag:"🇧🇬", lang:"bg"},
-  {name:"Croatia", flag:"🇭🇷", lang:"hr"},
-  {name:"Cyprus", flag:"🇨🇾", lang:"el"},
-  {name:"Czech Republic", flag:"🇨🇿", lang:"cs"},
   {name:"Denmark", flag:"🇩🇰", lang:"da"},
-  {name:"Estonia", flag:"🇪🇪", lang:"et"},
   {name:"Finland", flag:"🇫🇮", lang:"fi"},
-  {name:"France", flag:"🇫🇷", lang:"fr"},
-  {name:"Germany", flag:"🇩🇪", lang:"de"},
-  {name:"Greece", flag:"🇬🇷", lang:"el"},
-  {name:"Hungary", flag:"🇭🇺", lang:"hu"},
-  {name:"Iceland", flag:"🇮🇸", lang:"is"},
-  {name:"Ireland", flag:"🇮🇪", lang:"en"},
-  {name:"Italy", flag:"🇮🇹", lang:"it"},
-  {name:"Kosovo", flag:"🇽🇰", lang:"sq"},
-  {name:"Latvia", flag:"🇱🇻", lang:"lv"},
-  {name:"Liechtenstein", flag:"🇱🇮", lang:"de"},
-  {name:"Lithuania", flag:"🇱🇹", lang:"lt"},
-  {name:"Luxembourg", flag:"🇱🇺", lang:"fr"},
-  {name:"Malta", flag:"🇲🇹", lang:"en"},
-  {name:"Moldova", flag:"🇲🇩", lang:"ro"},
-  {name:"Monaco", flag:"🇲🇨", lang:"fr"},
-  {name:"Montenegro", flag:"🇲🇪", lang:"sr"},
-  {name:"Netherlands", flag:"🇳🇱", lang:"nl"},
-  {name:"North Macedonia", flag:"🇲🇰", lang:"mk"},
   {name:"Norway", flag:"🇳🇴", lang:"no"},
-  {name:"Poland", flag:"🇵🇱", lang:"pl"},
-  {name:"Portugal", flag:"🇵🇹", lang:"pt"},
-  {name:"Romania", flag:"🇷🇴", lang:"ro"},
-  {name:"Russia", flag:"🇷🇺", lang:"ru"},
-  {name:"San Marino", flag:"🇸🇲", lang:"it"},
-  {name:"Serbia", flag:"🇷🇸", lang:"sr"},
-  {name:"Slovakia", flag:"🇸🇰", lang:"sk"},
-  {name:"Slovenia", flag:"🇸🇮", lang:"sl"},
-  {name:"Spain", flag:"🇪🇸", lang:"es"},
   {name:"Sweden", flag:"🇸🇪", lang:"sv"},
-  {name:"Switzerland", flag:"🇨🇭", lang:"de"},
-  {name:"Ukraine", flag:"🇺🇦", lang:"uk"},
-  {name:"United Kingdom", flag:"🇬🇧", lang:"en"},
-  {name:"Vatican City", flag:"🇻🇦", lang:"it"},
-
-  /* North America */
-  {name:"Antigua and Barbuda", flag:"🇦🇬", lang:"en"},
-  {name:"Bahamas", flag:"🇧🇸", lang:"en"},
-  {name:"Barbados", flag:"🇧🇧", lang:"en"},
-  {name:"Belize", flag:"🇧🇿", lang:"en"},
-  {name:"Canada", flag:"🇨🇦", lang:"en"},
-  {name:"Costa Rica", flag:"🇨🇷", lang:"es"},
-  {name:"Cuba", flag:"🇨🇺", lang:"es"},
-  {name:"Dominica", flag:"🇩🇲", lang:"en"},
-  {name:"Dominican Republic", flag:"🇩🇴", lang:"es"},
-  {name:"El Salvador", flag:"🇸🇻", lang:"es"},
-  {name:"Grenada", flag:"🇬🇩", lang:"en"},
-  {name:"Guatemala", flag:"🇬🇹", lang:"es"},
-  {name:"Haiti", flag:"🇭🇹", lang:"fr"},
-  {name:"Honduras", flag:"🇭🇳", lang:"es"},
-  {name:"Jamaica", flag:"🇯🇲", lang:"en"},
-  {name:"Mexico", flag:"🇲🇽", lang:"es"},
-  {name:"Nicaragua", flag:"🇳🇮", lang:"es"},
-  {name:"Panama", flag:"🇵🇦", lang:"es"},
-  {name:"Saint Kitts and Nevis", flag:"🇰🇳", lang:"en"},
-  {name:"Saint Lucia", flag:"🇱🇨", lang:"en"},
-  {name:"Saint Vincent and the Grenadines", flag:"🇻🇨", lang:"en"},
-  {name:"Trinidad and Tobago", flag:"🇹🇹", lang:"en"},
-  {name:"United States", flag:"🇺🇸", lang:"en"},
-  {name:"Argentina", flag:"🇦🇷", lang:"es"},
-  {name:"Bolivia", flag:"🇧🇴", lang:"es"},
-  {name:"Brazil", flag:"🇧🇷", lang:"pt"},
-  {name:"Chile", flag:"🇨🇱", lang:"es"},
-  {name:"Colombia", flag:"🇨🇴", lang:"es"},
-  {name:"Ecuador", flag:"🇪🇨", lang:"es"},
-  {name:"Guyana", flag:"🇬🇾", lang:"en"},
-  {name:"Paraguay", flag:"🇵🇾", lang:"es"},
-  {name:"Peru", flag:"🇵🇪", lang:"es"},
-  {name:"Suriname", flag:"🇸🇷", lang:"nl"},
-  {name:"Uruguay", flag:"🇺🇾", lang:"es"},
-  {name:"Venezuela", flag:"🇻🇪", lang:"es"},
-  {name:"Afghanistan", flag:"🇦🇫", lang:"fa"},
-  {name:"Armenia", flag:"🇦🇲", lang:"hy"},
-  {name:"Azerbaijan", flag:"🇦🇿", lang:"az"},
-  {name:"Bangladesh", flag:"🇧🇩", lang:"bn"},
-  {name:"Cambodia", flag:"🇰🇭", lang:"km"},
-  {name:"China", flag:"🇨🇳", lang:"zh"},
-  {name:"Georgia", flag:"🇬🇪", lang:"ka"},
-  {name:"India", flag:"🇮🇳", lang:"en"},
-  {name:"Indonesia", flag:"🇮🇩", lang:"id"},
-  {name:"Iran", flag:"🇮🇷", lang:"fa"},
-  {name:"Israel", flag:"🇮🇱", lang:"he"},
-  {name:"Japan", flag:"🇯🇵", lang:"ja"},
-  {name:"Kazakhstan", flag:"🇰🇿", lang:"ru"},
-  {name:"Kyrgyzstan", flag:"🇰🇬", lang:"ru"},
-  {name:"Laos", flag:"🇱🇦", lang:"lo"},
-  {name:"Malaysia", flag:"🇲🇾", lang:"ms"},
-  {name:"Mongolia", flag:"🇲🇳", lang:"mn"},
-  {name:"Myanmar", flag:"🇲🇲", lang:"my"},
-  {name:"Nepal", flag:"🇳🇵", lang:"ne"},
-  {name:"Pakistan", flag:"🇵🇰", lang:"ur"},
-  {name:"Philippines", flag:"🇵🇭", lang:"en"},
-  {name:"South Korea", flag:"🇰🇷", lang:"ko"},
-  {name:"Sri Lanka", flag:"🇱🇰", lang:"en"},
-  {name:"Tajikistan", flag:"🇹🇯", lang:"ru"},
-  {name:"Thailand", flag:"🇹🇭", lang:"th"},
-  {name:"Turkey", flag:"🇹🇷", lang:"tr"},
-  {name:"Turkmenistan", flag:"🇹🇲", lang:"ru"},
-  {name:"Uzbekistan", flag:"🇺🇿", lang:"ru"},
-  {name:"Vietnam", flag:"🇻🇳", lang:"vi"},
-  {name:"Australia", flag:"🇦🇺", lang:"en"},
-  {name:"New Zealand", flag:"🇳🇿", lang:"en"},
-  {name:"Papua New Guinea", flag:"🇵🇬", lang:"en"},
 ].sort((a,b)=>a.name.localeCompare(b.name));
 
 const ENABLED_COUNTRIES = COUNTRIES.map(c => c.name);
 
 const CITIES = {
-  "Norway": ["Oslo","Bergen","Trondheim","Stavanger","Kristiansand","Tromsø","Drammen","Fredrikstad","Sandnes","Ålesund","Bodø","Sarpsborg","Skien","Haugesund","Tønsberg","Moss","Arendal","Hamar","Larvik","Halden"],
-  "Sweden": ["Stockholm","Göteborg","Malmö","Uppsala","Västerås","Örebro","Linköping","Helsingborg","Jönköping","Umeå","Lund","Norrköping","Gävle","Sundsvall","Södertälje","Karlstad","Halmstad","Växjö","Kalmar","Östersund"],
-  "Denmark": ["København","Aarhus","Odense","Aalborg","Esbjerg","Randers","Kolding","Horsens","Vejle","Roskilde","Herning","Silkeborg","Næstved","Fredericia","Viborg","Køge","Holstebro","Slagelse","Hillerød","Sønderborg"],
-  "Albania": ["Tirana","Durrës","Vlorë","Shkodër","Elbasan","Fier","Korçë","Berat","Lushnjë","Kavajë","Pogradec","Gjirokastër","Laç","Kukës","Sarandë"],
-  "Andorra": ["Andorra la Vella","Escaldes-Engordany","Encamp","Sant Julià de Lòria","La Massana","Canillo","Ordino"],
-  "Austria": ["Vienna","Graz","Linz","Salzburg","Innsbruck","Klagenfurt","Villach","Wels","Sankt Pölten","Dornbirn","Wiener Neustadt","Steyr","Feldkirch","Bregenz","Leonding"],
-  "Belarus": ["Minsk","Gomel","Mogilev","Vitebsk","Grodno","Brest","Babruysk","Baranovichi","Borisov","Pinsk","Orsha","Mazyr","Salihorsk","Molodechno","Lida"],
-  "Belgium": ["Brussels","Antwerp","Ghent","Charleroi","Liège","Bruges","Namur","Leuven","Mons","Aalst","Mechelen","Kortrijk","Hasselt","Ostend","Sint-Niklaas"],
-  "Bosnia and Herzegovina": ["Sarajevo","Banja Luka","Tuzla","Zenica","Mostar","Bihać","Bijeljina","Brčko","Prijedor","Trebinje","Doboj","Cazin","Zvornik","Gradačac","Visoko"],
-  "Bulgaria": ["Sofia","Plovdiv","Varna","Burgas","Ruse","Stara Zagora","Pleven","Sliven","Dobrich","Shumen","Pernik","Haskovo","Yambol","Pazardzhik","Blagoevgrad"],
-  "Croatia": ["Zagreb","Split","Rijeka","Osijek","Zadar","Pula","Slavonski Brod","Karlovac","Varaždin","Šibenik","Sisak","Velika Gorica","Vinkovci","Dubrovnik","Bjelovar"],
-  "Cyprus": ["Nicosia","Limassol","Larnaca","Paphos","Famagusta","Kyrenia","Paralimni","Aradippou","Lakatamia","Strovolos"],
-  "Czech Republic": ["Prague","Brno","Ostrava","Plzeň","Liberec","Olomouc","České Budějovice","Hradec Králové","Ústí nad Labem","Pardubice","Zlín","Havířov","Kladno","Most","Karviná"],
-  "Estonia": ["Tallinn","Tartu","Narva","Pärnu","Kohtla-Järve","Viljandi","Rakvere","Maardu","Sillamäe","Võru","Valga","Haapsalu"],
-  "Finland": ["Helsinki","Espoo","Tampere","Vantaa","Oulu","Turku","Jyväskylä","Lahti","Kuopio","Pori","Kouvola","Joensuu","Lappeenranta","Hämeenlinna","Vaasa"],
-  "France": ["Paris","Marseille","Lyon","Toulouse","Nice","Nantes","Strasbourg","Montpellier","Bordeaux","Lille","Rennes","Reims","Le Havre","Saint-Étienne","Toulon","Grenoble","Dijon","Angers","Nîmes","Villeurbanne"],
-  "Germany": ["Berlin","Hamburg","Munich","Cologne","Frankfurt","Stuttgart","Düsseldorf","Leipzig","Dortmund","Essen","Bremen","Dresden","Hanover","Nuremberg","Duisburg","Bochum","Wuppertal","Bielefeld","Bonn","Mannheim"],
-  "Greece": ["Athens","Thessaloniki","Patras","Heraklion","Larissa","Volos","Rhodes","Ioannina","Chania","Chalcis","Kavala","Serres","Alexandroupoli","Kalamata","Katerini"],
-  "Hungary": ["Budapest","Debrecen","Szeged","Miskolc","Pécs","Győr","Nyíregyháza","Kecskemét","Székesfehérvár","Szombathely","Szolnok","Tatabánya","Kaposvár","Érd","Veszprém"],
-  "Iceland": ["Reykjavik","Kópavogur","Hafnarfjörður","Akureyri","Reykjanesbær","Selfoss","Garðabær","Mosfellsbær","Akranes","Egilsstaðir","Vestmannaeyjar","Ísafjörður","Höfn"],
-  "Ireland": ["Dublin","Cork","Limerick","Galway","Waterford","Drogheda","Dundalk","Swords","Bray","Navan","Kilkenny","Ennis","Carlow","Tralee","Athlone"],
-  "Italy": ["Rome","Milan","Naples","Turin","Palermo","Florence","Genoa","Bologna","Bari","Catania","Venice","Verona","Messina","Padua","Trieste","Brescia","Parma","Taranto","Prato","Modena"],
-  "Kosovo": ["Pristina","Prizren","Ferizaj","Peja","Gjakova","Mitrovica","Gjilan","Podujevo","Vushtrri","Suva Reka","Rahovec"],
-  "Latvia": ["Riga","Daugavpils","Liepāja","Jelgava","Jūrmala","Ventspils","Rēzekne","Valmiera","Jēkabpils","Ogre"],
-  "Liechtenstein": ["Vaduz","Schaan","Triesen","Balzers","Eschen","Mauren","Triesenberg","Ruggell","Gamprin","Planken","Schellenberg"],
-  "Lithuania": ["Vilnius","Kaunas","Klaipėda","Šiauliai","Panevėžys","Alytus","Marijampolė","Mažeikiai","Jonava","Utena"],
-  "Luxembourg": ["Luxembourg City","Esch-sur-Alzette","Differdange","Dudelange","Ettelbruck","Diekirch","Wiltz","Echternach","Rumelange","Grevenmacher"],
-  "Malta": ["Valletta","Birkirkara","Mosta","Qormi","Żabbar","Sliema","San Ġwann","Żejtun","Fgura","Rabat"],
-  "Moldova": ["Chișinău","Tiraspol","Bălți","Bender","Cahul","Ungheni","Soroca","Orhei","Comrat","Dubăsari"],
-  "Monaco": ["Monaco-Ville","Monte Carlo","La Condamine","Fontvieille","Moneghetti","Larvotto","Saint Roman","Les Révoires"],
-  "Montenegro": ["Podgorica","Nikšić","Herceg Novi","Budva","Bar","Cetinje","Bijelo Polje","Pljevlja","Tivat","Kotor"],
-  "Netherlands": ["Amsterdam","Rotterdam","The Hague","Utrecht","Eindhoven","Groningen","Tilburg","Almere","Breda","Nijmegen","Enschede","Haarlem","Arnhem","Zaanstad","Amersfoort"],
-  "North Macedonia": ["Skopje","Bitola","Kumanovo","Prilep","Tetovo","Ohrid","Veles","Štip","Gostivar","Strumica"],
-  "Poland": ["Warsaw","Kraków","Łódź","Wrocław","Poznań","Gdańsk","Szczecin","Bydgoszcz","Lublin","Katowice","Białystok","Gdynia","Częstochowa","Radom","Toruń"],
-  "Portugal": ["Lisbon","Porto","Vila Nova de Gaia","Amadora","Braga","Coimbra","Funchal","Setúbal","Almada","Agualva-Cacém","Queluz","Aveiro","Faro","Évora","Viseu"],
-  "Romania": ["Bucharest","Cluj-Napoca","Timișoara","Iași","Constanța","Craiova","Brașov","Galați","Ploiești","Oradea","Brăila","Arad","Pitești","Sibiu","Bacău"],
-  "Russia": ["Moscow","Saint Petersburg","Novosibirsk","Yekaterinburg","Kazan","Nizhny Novgorod","Chelyabinsk","Samara","Omsk","Rostov-on-Don","Ufa","Krasnoyarsk","Voronezh","Perm","Volgograd"],
-  "San Marino": ["San Marino","Serravalle","Borgo Maggiore","Domagnano","Fiorentino","Acquaviva","Faetano","Chiesanuova","Montegiardino"],
-  "Serbia": ["Belgrade","Novi Sad","Niš","Kragujevac","Subotica","Zrenjanin","Pančevo","Čačak","Kruševac","Kraljevo","Novi Pazar","Smederevo","Leskovac","Valjevo","Vranje"],
-  "Slovakia": ["Bratislava","Košice","Prešov","Žilina","Nitra","Banská Bystrica","Trnava","Martin","Trenčín","Poprad","Prievidza","Zvolen","Považská Bystrica"],
-  "Slovenia": ["Ljubljana","Maribor","Celje","Kranj","Koper","Novo Mesto","Velenje","Ptuj","Trbovlje","Kamnik"],
-  "Spain": ["Madrid","Barcelona","Valencia","Seville","Zaragoza","Málaga","Murcia","Palma","Las Palmas","Bilbao","Alicante","Córdoba","Valladolid","Vigo","Gijón"],
-  "Switzerland": ["Zurich","Geneva","Basel","Bern","Lausanne","Lucerne","St. Gallen","Winterthur","Lugano","Biel/Bienne","Thun","Köniz","Fribourg","Schaffhausen","Chur"],
-  "Ukraine": ["Kyiv","Kharkiv","Odesa","Dnipro","Lviv","Zaporizhzhia","Kryvyi Rih","Mykolaiv","Mariupol","Vinnytsia","Kherson","Poltava","Chernihiv","Cherkasy","Sumy"],
-  "United Kingdom": ["London","Birmingham","Manchester","Glasgow","Liverpool","Edinburgh","Leeds","Sheffield","Bristol","Cardiff","Belfast","Leicester","Coventry","Nottingham","Newcastle upon Tyne"],
-  "Vatican City": ["Vatican City"],
-  "Antigua and Barbuda": ["St. John's","All Saints","Liberta","Potters Village","Bolans","Codrington","Swetes","Parham","Freetown","Willikies","Seaview Farm"],
-  "Bahamas": ["Nassau","Freeport","West End","Coopers Town","Marsh Harbour","George Town","High Rock","Andros Town","Spanish Wells","Dunmore Town"],
-  "Barbados": ["Bridgetown","Speightstown","Oistins","Bathsheba","Holetown","Crane","Bagatelle","Six Roads","Blackmans","Checker Hall"],
-  "Belize": ["Belize City","San Ignacio","Orange Walk","Belmopan","Dangriga","Corozal","Punta Gorda","San Pedro","Benque Viejo del Carmen"],
-  "Canada": ["Toronto","Montreal","Vancouver","Calgary","Ottawa","Edmonton","Winnipeg","Quebec City","Hamilton","Kitchener","London","Halifax","Victoria","Saskatoon","Regina"],
-  "Costa Rica": ["San José","Alajuela","Cartago","Heredia","Liberia","Puntarenas","San Isidro","Desamparados","Limón","Paraíso"],
-  "Cuba": ["Havana","Santiago de Cuba","Camagüey","Holguín","Santa Clara","Guantánamo","Bayamo","Cienfuegos","Pinar del Río","Matanzas"],
-  "Dominica": ["Roseau","Portsmouth","Marigot","Berekua","Mahaut","Wesley","Salisbury","Grand Bay","Pointe Michel","La Plaine","Castle Bruce","Soufriere"],
-  "Dominican Republic": ["Santo Domingo","Santiago","La Romana","San Pedro de Macorís","Puerto Plata","Punta Cana","San Cristóbal","La Vega","Higüey","Moca"],
-  "El Salvador": ["San Salvador","Santa Ana","San Miguel","Soyapango","Mejicanos","Santa Tecla","Apopa","Delgado","Sonsonate","San Marcos"],
-  "Grenada": ["St. George's","Gouyave","Grenville","Victoria","Sauteurs","Hillsborough","Grand Roy","Grand Anse","Woburn","Concord","Marquis"],
-  "Guatemala": ["Guatemala City","Mixco","Villa Nueva","Quetzaltenango","Antigua Guatemala","Escuintla","Chimaltenango","Chiquimula","Cobán","Huehuetenango"],
-  "Haiti": ["Port-au-Prince","Cap-Haïtien","Gonaïves","Les Cayes","Jacmel","Pétion-Ville","Delmas","Carrefour","Saint-Marc","Léogâne"],
-  "Honduras": ["Tegucigalpa","San Pedro Sula","Choloma","La Ceiba","El Progreso","Choluteca","Comayagua","Puerto Cortés","Danlí","Siguatepeque"],
-  "Jamaica": ["Kingston","Montego Bay","Spanish Town","Portmore","Mandeville","May Pen","Ocho Rios","Port Antonio","Savanna-la-Mar","Negril"],
-  "Mexico": ["Mexico City","Guadalajara","Monterrey","Puebla","Tijuana","Cancún","León","Juárez","Zapopan","Mérida","San Luis Potosí","Querétaro","Toluca","Chihuahua","Acapulco"],
-  "Nicaragua": ["Managua","León","Granada","Masaya","Chinandega","Estelí","Matagalpa","Tipitapa","Jinotega","Rivas"],
-  "Panama": ["Panama City","San Miguelito","Colón","David","La Chorrera","Santiago","Chitré","Penonomé","Las Tablas","Arraiján","Tocumen","Aguadulce"],
-  "Saint Kitts and Nevis": ["Basseterre","Charlestown","Sandy Point Town","Cayon","Dieppe Bay Town","Old Road Town","Newcastle","Nicola Town","Saint Paul's","Middle Island","Cayon Village"],
-  "Saint Lucia": ["Castries","Vieux Fort","Micoud","Soufrière","Gros Islet","Dennery","Laborie","Choiseul","Anse La Raye","Canaries","Praslin"],
-  "Saint Vincent and the Grenadines": ["Kingstown","Georgetown","Byera","Chateaubelair","Barrouallie","Layou","Calliaqua","Union Island","Bequia","Mesopotamia","Chateaubelair Village"],
-  "Trinidad and Tobago": ["Port of Spain","San Fernando","Chaguanas","Arima","Point Fortin","Scarborough","Sangre Grande","Couva","Princes Town","Diego Martin","Siparia","Rio Claro"],
-  "United States": ["New York","Los Angeles","Chicago","Houston","Miami","San Francisco","Phoenix","Philadelphia","San Antonio","San Diego","Dallas","Austin","Seattle","Denver","Boston","Las Vegas","Atlanta","Portland","Nashville","Washington D.C."],
-  "Argentina": ["Buenos Aires","Córdoba","Rosario","Mendoza","La Plata","San Miguel de Tucumán","Mar del Plata","Salta","Santa Fe","San Juan","Neuquén","Bahía Blanca"],
-  "Bolivia": ["La Paz","Santa Cruz de la Sierra","Cochabamba","Sucre","Oruro","Potosí","Tarija","El Alto","Trinidad","Riberalta","Montero","Yacuiba"],
-  "Brazil": ["São Paulo","Rio de Janeiro","Brasília","Salvador","Fortaleza","Belo Horizonte","Manaus","Curitiba","Recife","Porto Alegre","Belém","Goiânia","Guarulhos","Campinas","São Luís","Maceió","Natal"],
-  "Chile": ["Santiago","Valparaíso","Concepción","La Serena","Antofagasta","Temuco","Rancagua","Talca","Iquique","Puerto Montt","Viña del Mar","Chillán","Los Ángeles","Copiapó"],
-  "Colombia": ["Bogotá","Medellín","Cali","Barranquilla","Cartagena","Cúcuta","Bucaramanga","Pereira","Santa Marta","Ibagué"],
-  "Ecuador": ["Quito","Guayaquil","Cuenca","Santo Domingo","Machala","Manta","Portoviejo","Ambato","Riobamba","Loja","Ibarra","Esmeraldas","Babahoyo"],
-  "Guyana": ["Georgetown","Linden","New Amsterdam","Anna Regina","Bartica","Rosignol","Skeldon","Corriverton","Mabaruma","Lethem","Mahdia"],
-  "Paraguay": ["Asunción","Ciudad del Este","San Lorenzo","Luque","Capiatá","Encarnación","Lambaré","Fernando de la Mora"],
-  "Peru": ["Lima","Arequipa","Trujillo","Chiclayo","Piura","Cusco","Iquitos","Huancayo","Chimbote","Tacna","Ica","Juliaca","Sullana","Cajamarca"],
-  "Suriname": ["Paramaribo","Lelydorp","Nieuw Nickerie","Moengo","Albina","Groningen","Wageningen","Brownsweg","Onverwacht","Meerzorg","Totness"],
-  "Uruguay": ["Montevideo","Salto","Ciudad de la Costa","Paysandú","Las Piedras","Rivera","Maldonado","Tacuarembó","Melo","Mercedes","Artigas"],
-  "Venezuela": ["Caracas","Maracaibo","Valencia","Barquisimeto","Maracay","Ciudad Guayana","San Cristóbal","Barcelona","Barinas","Cumaná","Mérida","San Fernando de Apure"],
-  "Afghanistan": ["Kabul","Kandahar","Herat","Mazar-i-Sharif","Kunduz","Jalalabad","Lashkar Gah","Ghazni","Baghlan","Charikar","Sheberghan","Khost","Gardez"],
-  "Armenia": ["Yerevan","Gyumri","Vanadzor","Vagharshapat","Abovyan","Kapan","Hrazdan","Ijevan"],
-  "Azerbaijan": ["Baku","Ganja","Sumqayit","Mingachevir","Lankaran","Shirvan","Nakhchivan"],
-  "Bangladesh": ["Dhaka","Chittagong","Khulna","Rajshahi","Sylhet","Barisal","Comilla","Mymensingh","Rangpur","Narayanganj","Gazipur","Jessore","Bogra"],
-  "Cambodia": ["Phnom Penh","Siem Reap","Battambang","Sihanoukville","Kampong Cham","Kampot","Kep","Poipet","Pursat","Kampong Thom","Svay Rieng","Takeo"],
-  "China": ["Beijing","Shanghai","Guangzhou","Shenzhen","Chengdu","Chongqing","Wuhan","Xi'an","Hangzhou","Nanjing","Tianjin","Qingdao","Shenyang","Dongguan"],
-  "Georgia": ["Tbilisi","Batumi","Kutaisi","Rustavi","Zugdidi","Gori","Poti","Telavi"],
-  "India": ["Mumbai","Delhi","Bangalore","Hyderabad","Chennai","Kolkata","Pune","Ahmedabad","Jaipur","Surat","Lucknow","Kanpur","Nagpur","Indore","Thane","Bhopal","Visakhapatnam"],
-  "Indonesia": ["Jakarta","Surabaya","Bandung","Medan","Semarang","Makassar","Palembang","Bali (Denpasar)","Yogyakarta","Batam","Bekasi","Depok","Tangerang","Padang","Malang"],
-  "Iran": ["Tehran","Mashhad","Isfahan","Karaj","Shiraz","Tabriz","Qom","Ahvaz","Kermanshah","Urmia","Rasht","Zahedan","Hamadan","Arak"],
-  "Israel": ["Jerusalem","Tel Aviv","Haifa","Rishon LeZion","Petah Tikva","Ashdod","Be'er Sheva","Netanya","Herzliya","Eilat","Nazareth","Ramat Gan","Bat Yam"],
-  "Japan": ["Tokyo","Yokohama","Osaka","Nagoya","Sapporo","Fukuoka","Kobe","Kyoto","Kawasaki","Saitama","Hiroshima","Sendai","Chiba"],
-  "Kazakhstan": ["Almaty","Astana","Shymkent","Karaganda","Aktobe","Taraz","Pavlodar","Semey","Oskemen"],
-  "Kyrgyzstan": ["Bishkek","Osh","Jalal-Abad","Karakol","Tokmok","Uzgen","Naryn"],
-  "Laos": ["Vientiane","Pakse","Savannakhet","Luang Prabang","Thakhek","Xam Neua","Muang Xay"],
-  "Malaysia": ["Kuala Lumpur","George Town","Johor Bahru","Ipoh","Shah Alam","Kota Kinabalu","Kuching","Malacca City","Alor Setar","Miri","Petaling Jaya","Seremban","Klang"],
-  "Mongolia": ["Ulaanbaatar","Erdenet","Darkhan","Choibalsan","Bayankhongor","Arvaikheer","Ulaangom","Möst","Sükhbaatar","Zuunmod"],
-  "Myanmar": ["Yangon","Mandalay","Naypyidaw","Mawlamyine","Bago","Pathein","Monywa","Taunggyi"],
-  "Nepal": ["Kathmandu","Pokhara","Lalitpur","Bharatpur","Biratnagar","Birgunj","Dharan","Butwal"],
-  "Pakistan": ["Karachi","Lahore","Faisalabad","Rawalpindi","Multan","Islamabad","Peshawar","Quetta","Hyderabad","Gujranwala","Sialkot","Bahawalpur","Sargodha"],
-  "Philippines": ["Manila","Quezon City","Davao City","Cebu City","Zamboanga City","Taguig","Cagayan de Oro","Baguio","Iloilo City","Bacolod","General Santos","Antipolo","Pasig"],
-  "South Korea": ["Seoul","Busan","Incheon","Daegu","Daejeon","Gwangju","Suwon","Ulsan","Changwon","Seongnam","Goyang","Yongin","Bucheon"],
-  "Sri Lanka": ["Colombo","Kandy","Galle","Jaffna","Negombo","Trincomalee","Batticaloa","Anuradhapura"],
-  "Tajikistan": ["Dushanbe","Khujand","Kulob","Bokhtar","Istaravshan","Qurghonteppa","Konibodom","Panjakent","Vahdat","Norak"],
-  "Thailand": ["Bangkok","Chiang Mai","Phuket","Pattaya","Nonthaburi","Nakhon Ratchasima","Hat Yai","Songkhla","Udon Thani","Surat Thani","Khon Kaen","Rayong","Ubon Ratchathani","Nakhon Si Thammarat"],
-  "Turkey": ["Istanbul","Ankara","Izmir","Bursa","Antalya","Adana","Gaziantep","Konya","Mersin","Diyarbakır","Kayseri","Eskişehir","Samsun"],
-  "Turkmenistan": ["Ashgabat","Türkmenabat","Daşoguz","Mary","Balkanabat","Bayramaly","Tejen","Gumdag","Serdar","Abadan"],
-  "Uzbekistan": ["Tashkent","Samarkand","Namangan","Andijan","Bukhara","Nukus","Qarshi","Fergana"],
-  "Vietnam": ["Ho Chi Minh City","Hanoi","Da Nang","Hai Phong","Can Tho","Bien Hoa","Hue","Nha Trang","Vung Tau"],
-  "Australia": ["Sydney","Melbourne","Brisbane","Perth","Adelaide","Gold Coast","Canberra","Newcastle","Hobart","Darwin","Wollongong","Geelong"],
-  "New Zealand": ["Auckland","Wellington","Christchurch","Hamilton","Tauranga","Dunedin","Palmerston North","Nelson","Rotorua","New Plymouth","Whangarei","Invercargill"],
-  "Papua New Guinea": ["Port Moresby","Lae","Mount Hagen","Madang","Wewak","Goroka","Kokopo","Popondetta"],
+  "Denmark": ["København","Aarhus","Odense","Aalborg","Esbjerg","Randers","Kolding","Horsens","Vejle","Roskilde","Aabenraa","Aars","Albertslund","Allerød","Allinge","Assens","Augustenborg","Ballerup","Billund","Birkerød","Bjerringbro","Bogense","Brabrand","Brande","Broager","Brædstrup","Brøndby","Brønderslev","Charlottenlund","Christiansfeld","Dragør","Ebeltoft","Faaborg","Farum","Faxe","Fjerritslev","Fredensborg","Fredericia","Frederiksberg","Frederikshavn","Frederiksværk","Fårup","Gentofte","Glostrup","Gram","Grenaa","Greve","Grindsted","Gråsten","Haderslev","Hadsten","Hadsund","Hammel","Hanstholm","Haslev","Hedehusene","Hedensted","Hellerup","Helsingør","Herlev","Herning","Hillerød","Hjørring","Hobro","Holbæk","Holstebro","Hornslet","Humlebæk","Hvidovre","Hørsholm","Ikast","Ishøj","Juelsminde","Jyllinge","Kalundborg","Kastrup","Kerteminde","Korsør","Køge","Langå","Lemvig","Lunderskov","Lyngby","Lystrup","Løgstør","Mariager","Maribo","Marstal","Middelfart","Nakskov","Nexø","Nibe","Nordborg","Nyborg","Nykøbing Falster","Nykøbing Mors","Næstved","Nørresundby","Odder","Otterup","Padborg","Pandrup","Præstø","Rebild","Ribe","Ringkøbing","Ringsted","Risskov","Rudkøbing","Ry","Rødding","Rødekro","Rødovre","Rønne","Silkeborg","Skagen","Skanderborg","Skive","Skjern","Skælskør","Skørping","Slagelse","Solrød Strand","Stege","Struer","Støvring","Sunds","Svendborg","Sæby","Sønderborg","Taastrup","Tarm","Thisted","Thorsø","Tjele","Toftlund","Tårs","Tønder","Tørring","Vallensbæk","Vamdrup","Varde","Vejen","Viborg","Viby","Videbæk","Vinderup","Vordingborg","Værløse","Ærøskøbing","Ølstykke"],
+  "Finland": ["Helsinki","Espoo","Tampere","Vantaa","Oulu","Turku","Jyväskylä","Lahti","Kuopio","Pori","Alavus","Asikkala","Enontekiö","Eura","Forssa","Haapajärvi","Hamina","Hanko","Hattula","Heinola","Heinävesi","Hollola","Huittinen","Humppila","Hyvinkää","Hämeenlinna","Iisalmi","Ikaalinen","Ilmajoki","Imatra","Inari","Ivalo","Jalasjärvi","Janakkala","Joensuu","Jokioinen","Juva","Jämsä","Järvenpää","Kaarina","Kajaani","Kalajoki","Kangasala","Kangasniemi","Kankaanpää","Kaskinen","Kauhajoki","Kauhava","Kauniainen","Kemi","Kemijärvi","Kemiönsaari","Kerava","Kerimäki","Kirkkonummi","Kitee","Kittilä","Kokkola","Kolari","Kotka","Kouvola","Kristiinankaupunki","Kuhmo","Kurikka","Kuusamo","Laihia","Lammi","Lapinlahti","Lappeenranta","Lapua","Lemi","Lempäälä","Leppävirta","Lieksa","Lieto","Lohja","Lohtaja","Loimaa","Loviisa","Luumäki","Mariehamn","Masku","Miehikkälä","Mikkeli","Muonio","Mustasaari","Mäntsälä","Mänttä-Vilppula","Mäntyharju","Naantali","Nastola","Nivala","Nokia","Nurmes","Nurmijärvi","Närpiö","Orimattila","Outokumpu","Padasjoki","Paimio","Parainen","Parkano","Pedersöre","Pello","Pieksämäki","Pietarsaari","Pirkkala","Pornainen","Porvoo","Posio","Pyhtää","Pyhäjärvi","Raahe","Raasepori","Raisio","Rantasalmi","Ranua","Rauma","Rautjärvi","Riihimäki","Rovaniemi","Ruokolahti","Salla","Salo","Sastamala","Sauvo","Savonlinna","Seinäjoki","Siilinjärvi","Sipoo","Sodankylä","Somero","Suomussalmi","Suonenjoki","Taipalsaari","Tammela","Tornio","Tuusula","Utsjoki","Uusikaarlepyy","Uusikaupunki","Vaasa","Valkeakoski","Varkaus","Vihti","Virolahti","Virrat","Ylitornio","Ylivieska","Ylöjärvi","Ypäjä","Ähtäri","Äänekoski"],
+  "Norway": ["Oslo","Bergen","Trondheim","Stavanger","Drammen","Fredrikstad","Kristiansand","Sandnes","Tromsø","Ålesund","Alta","Arendal","Asker","Askim","Askøy","Bodø","Brevik","Bryne","Brønnøysund","Dombås","Drøbak","Egersund","Eidsvoll","Elverum","Evje","Fagernes","Farsund","Fauske","Flekkefjord","Florø","Fosnavåg","Førde","Geilo","Gjøvik","Gol","Grimstad","Halden","Hamar","Hammerfest","Harstad","Haugesund","Hokksund","Holmestrand","Honningsvåg","Horten","Hønefoss","Jessheim","Jørpeland","Kirkenes","Kløfta","Knarvik","Kongsberg","Kongsvinger","Kopervik","Kragerø","Kristiansund","Larvik","Leirvik","Leknes","Levanger","Lillehammer","Lillesand","Lillestrøm","Lyngdal","Lørenskog","Mandal","Mo i Rana","Molde","Mosjøen","Moss","Mysen","Namsos","Narvik","Nesoddtangen","Notodden","Nøtterøy","Odda","Oppdal","Orkanger","Os","Otta","Porsgrunn","Raufoss","Rena","Risør","Rjukan","Røros","Sande","Sandefjord","Sandvika","Sarpsborg","Sauda","Ski","Skien","Sogndal","Sortland","Stathelle","Steinkjer","Stjørdal","Stord","Sunndalsøra","Svelvik","Svolvær","Tvedestrand","Tynset","Tønsberg","Ulsteinvik","Vadsø","Verdal","Volda","Voss","Åkrehamn","Åmot","Åndalsnes","Ås"],
+  "Sweden": ["Stockholm","Göteborg","Malmö","Uppsala","Västerås","Örebro","Linköping","Helsingborg","Jönköping","Norrköping","Alingsås","Arboga","Arjeplog","Arvika","Avesta","Boden","Bollnäs","Borlänge","Borås","Botkyrka","Bromölla","Båstad","Danderyd","Eksjö","Emmaboda","Enköping","Eskilstuna","Eslöv","Falkenberg","Falköping","Falun","Gislaved","Gällivare","Gävle","Halmstad","Haninge","Haparanda","Hedemora","Huddinge","Hudiksvall","Hultsfred","Härnösand","Hässleholm","Höganäs","Hörby","Jokkmokk","Järfälla","Kalix","Kalmar","Karlshamn","Karlskoga","Karlskrona","Karlstad","Katrineholm","Kiruna","Kista","Klippan","Kramfors","Kristianstad","Kristinehamn","Kungsbacka","Kungsör","Kungälv","Kävlinge","Köping","Laholm","Landskrona","Lerum","Lidingö","Lidköping","Lindesberg","Ljungby","Ludvika","Luleå","Lund","Lycksele","Lysekil","Mariefred","Mariestad","Mora","Motala","Märsta","Mölndal","Mönsterås","Nacka","Nol","Nora","Norrtälje","Nybro","Nyköping","Nynäshamn","Nässjö","Osby","Oskarshamn","Pajala","Partille","Perstorp","Piteå","Ronneby","Sandviken","Sigtuna","Simrishamn","Skara","Skellefteå","Skövde","Sollefteå","Sollentuna","Solna","Staffanstorp","Stenungsund","Storuman","Strängnäs","Strömstad","Strömsund","Sundbyberg","Sundsvall","Svedala","Säffle","Söderhamn","Södertälje","Sölvesborg","Tidaholm","Tomelilla","Tranås","Trelleborg","Trollhättan","Trosa","Tyresö","Täby","Uddevalla","Ulricehamn","Umeå","Upplands Väsby","Varberg","Vaxholm","Vellinge","Vetlanda","Vilhelmina","Visby","Vänersborg","Värnamo","Västervik","Växjö","Ystad","Älmhult","Älvsbyn","Ängelholm","Åkersberga","Åmål","Örnsköldsvik","Östersund","Överkalix"]
 };
 
 const CATS = [
@@ -3673,7 +3481,10 @@ function renderCountryGrid(container, filter, onSelect){
       const div = document.createElement('div');
       div.className = 'countrycard cardPop' + (enabled ? '' : ' disabled');
       div.style.animationDelay = Math.min(idx * 0.02, 0.4) + 's';
-      div.innerHTML = `<span class="flag">${c.flag}</span><span>${c.name}</span>` + (enabled ? '' : `<span class="soon">${t('en','soon')}</span>`);
+      const big = container.classList.contains('bigcountries');
+      div.innerHTML = big
+        ? `<span class="flag">${c.flag}</span><span class="cname">${c.name}</span><span class="csub">${(CITIES[c.name]||[]).length} cities</span>`
+        : `<span class="flag">${c.flag}</span><span>${c.name}</span>` + (enabled ? '' : `<span class="soon">${t('en','soon')}</span>`);
       if(enabled){
         div.addEventListener('click', ()=> onSelect(c));
         makeKeyboardClickable(div, c.name);
@@ -3684,9 +3495,7 @@ function renderCountryGrid(container, filter, onSelect){
 
 const countryGrid = document.getElementById('countryGrid');
 renderCountryGrid(countryGrid, "", onBrowseCountrySelected);
-document.getElementById('countrySearch').addEventListener('input', e=>{
-  renderCountryGrid(countryGrid, e.target.value, onBrowseCountrySelected);
-});
+
 
 function onBrowseCountrySelected(c){
   requireLogin(()=>{
@@ -3702,10 +3511,12 @@ function onBrowseCountrySelected(c){
 
 let browseCity = null;
 
-function renderCityGrid(c){
+function renderCityGrid(c, filter){
   const grid = document.getElementById('cityGrid');
   grid.innerHTML = "";
-  CITIES[c.name].forEach((city, idx)=>{
+  const f = (filter || '').trim().toLowerCase();
+  if(filter === undefined){ const si = document.getElementById('citySearch'); if(si) si.value = ''; }
+  CITIES[c.name].filter(city => !f || city.toLowerCase().includes(f)).forEach((city, idx)=>{
     const div = document.createElement('div');
     div.className = 'citycard cardPop';
     div.style.animationDelay = (idx * 0.03) + 's';
@@ -3721,6 +3532,9 @@ function renderCityGrid(c){
   });
 }
 
+document.getElementById('citySearch').addEventListener('input', e=>{
+  if(browseCountry) renderCityGrid(browseCountry, e.target.value);
+});
 document.getElementById('backFromCity').addEventListener('click', ()=> show('home'));
 document.getElementById('backFromServices').addEventListener('click', ()=>{
   if(browseCountry) renderCityGrid(browseCountry);
