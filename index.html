@@ -990,6 +990,7 @@
   .formfield textarea{ min-height:88px; }
   .pricecurrencyrow{ display:flex; gap:10px; }
   .pricecurrencyrow input{ flex:1 1 auto; min-width:0; }
+  .pricenote{ margin-top:8px; font-size:12.5px; padding:7px 10px; }
   .pricecurrencyrow select{ flex:0 0 auto; width:auto; min-width:92px; }
   .uploadbox{
     border:1.5px dashed var(--line);
@@ -2787,6 +2788,7 @@
             <option value="" id="currencyPlaceholderOpt">Currency</option>
           </select>
         </div>
+        <input type="text" id="svcPriceNote" class="pricenote" maxlength="40" placeholder="Anything to add to the price? (e.g. per hour, + materials)" autocomplete="off">
       </div>
       <div class="formfield">
         <label id="lblWhatYouDo">What do you do?</label>
@@ -3884,7 +3886,7 @@ function renderListingCards(lang){
         <h3>${escapeHtml(l.name)}</h3>
         <p class="provider">${t(lang, l.cat)} <span class="verified">${ic('check')}</span></p>
         <p class="desc">${escapeHtml(l.desc)}</p>
-        ${typeof l.price === 'number' && l.price > 0 ? `<p class="price">${t(lang,'from')} ${l.price.toLocaleString()}${l.currency ? ' '+l.currency : ''}</p>` : ''}
+        ${typeof l.price === 'number' && l.price > 0 ? `<p class="price">${t(lang,'from')} ${l.price.toLocaleString()}${l.currency ? ' '+l.currency : ''}${l.priceNote ? ' · '+escapeHtml(l.priceNote) : ''}</p>` : ''}
         <div class="tagrow"></div>
         <button class="contactbtn">${t(lang,'contactHelper')}</button>
       </div>`;
@@ -4009,7 +4011,7 @@ function openServiceDetail(service, lang){
     ${typeof service.price === 'number' && service.price > 0 ? `
     <div class="ddetail-item">
       <div class="diico">${ic('pricetag')}</div>
-      <div><div class="dilabel">${t(lang,'priceDetailLabel')}</div><div class="divalue">${service.price.toLocaleString()}${service.currency ? ' '+service.currency : ''}</div></div>
+      <div><div class="dilabel">${t(lang,'priceDetailLabel')}</div><div class="divalue">${service.price.toLocaleString()}${service.currency ? ' '+service.currency : ''}${service.priceNote ? ' · '+escapeHtml(service.priceNote) : ''}</div></div>
     </div>` : ''}
     <div class="ddetail-item" style="grid-column:1 / -1;">
       <div class="diico">${ic('pin')}</div>
@@ -4673,12 +4675,16 @@ function setLoginMode(mode){
   document.getElementById('loginSubmitBtn').textContent = mode === 'login' ? 'Log in' : 'Create account';
   document.getElementById('loginHintText').textContent = mode === 'login'
     ? 'Don\'t have an account? Tap "Create new account" above.'
-    : 'Pick a username nobody else has used, and add your mobile number (Gmail/email is optional). You\'ll only need to do this once — after that you\'ll be signed in automatically.';
+    : 'Pick a username (max 10 characters) nobody else has used, and add your mobile number (Gmail/email is optional). You\'ll only need to do this once — after that you\'ll be signed in automatically.';
+  document.getElementById('loginUsernameInput').maxLength = mode === 'register' ? 10 : 20; // new usernames max 10; older accounts may still have up to 20
   document.getElementById('loginErrorMsg').classList.add('hidden');
   updateLoginSubmitState();
 }
-function isValidUsername(username){
-  return /^[A-Za-z0-9_\.\-]{3,20}$/.test(username || '');
+function isValidUsername(username, allowLegacyLength){
+  // New usernames are max 10 characters; existing accounts made before that
+  // limit (up to 20) can still log in with their old name.
+  const max = allowLegacyLength ? 20 : 10;
+  return new RegExp('^[A-Za-z0-9_.\\-]{3,' + max + '}$').test(username || '');
 }
 function isValidPhone(phone){
   return /^[\d\s\+\-\(\)]{6,20}$/.test(phone || '') && /\d{5,}/.test((phone || '').replace(/\D/g,''));
@@ -4686,7 +4692,7 @@ function isValidPhone(phone){
 function updateLoginSubmitState(){
   const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
-  let ok = isValidUsername(username) && /^\d{6}$/.test(code);
+  let ok = isValidUsername(username, loginMode !== 'register') && /^\d{6}$/.test(code);
   if(loginMode === 'register'){
     const phone = document.getElementById('loginPhoneInput').value.trim();
     ok = ok && isValidPhone(phone);
@@ -4708,7 +4714,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   const email = document.getElementById('loginEmailInput').value.trim();
   const errEl = document.getElementById('loginErrorMsg');
   errEl.classList.add('hidden');
-  if(!isValidUsername(username) || !/^\d{6}$/.test(code)) return;
+  if(!isValidUsername(username, loginMode !== 'register') || !/^\d{6}$/.test(code)) return;
   if(loginMode === 'register' && !isValidPhone(phone)) return;
 
   // Re-check the ban list right before letting someone in, so a ban made
@@ -4859,7 +4865,7 @@ function updateProfileSaveState(){
   const username = document.getElementById('profileUsernameInput').value.trim();
   const code = document.getElementById('profileCodeInput').value.trim();
   const phone = document.getElementById('profilePhoneInput').value.trim();
-  document.getElementById('profileSaveBtn').disabled = !(isValidUsername(username) && /^\d{6}$/.test(code) && isValidPhone(phone));
+  document.getElementById('profileSaveBtn').disabled = !(isValidUsername(username, username === (currentUser && currentUser.username)) && /^\d{6}$/.test(code) && isValidPhone(phone));
 }
 ['profileUsernameInput','profileCodeInput','profilePhoneInput'].forEach(id=>{
   document.getElementById(id).addEventListener('input', updateProfileSaveState);
@@ -4937,7 +4943,7 @@ document.getElementById('profileSaveBtn').addEventListener('click', async ()=>{
   const phone = document.getElementById('profilePhoneInput').value.trim();
   const email = document.getElementById('profileEmailInput').value.trim();
   const bio = document.getElementById('profileBioInput').value.trim();
-  if(!isValidUsername(newUsername) || !/^\d{6}$/.test(newCode) || !isValidPhone(phone)) return;
+  if(!isValidUsername(newUsername, newUsername === currentUser.username) || !/^\d{6}$/.test(newCode) || !isValidPhone(phone)) return;
 
   const oldKey = currentUser.username.trim().toLowerCase();
   const newKey = newUsername.trim().toLowerCase();
@@ -5263,6 +5269,7 @@ function showPostForm(c){
   document.getElementById('lblPrice').textContent = t(c.lang,'priceLabel');
   document.getElementById('svcPrice').placeholder = t(c.lang,'pricePh');
   document.getElementById('svcPrice').value = "";
+  document.getElementById('svcPriceNote').value = "";
   const currencySelect = document.getElementById('svcCurrency');
   currencySelect.innerHTML = `<option value="">${t(c.lang,'currencyPlaceholder')}</option>` +
     CURRENCIES.map(cur => `<option value="${cur}">${cur}</option>`).join('');
@@ -5346,7 +5353,10 @@ function checkPublishEnabled(){
 }
 document.getElementById('formConsentCheckbox').addEventListener('change', checkPublishEnabled);
 document.getElementById('svcName').addEventListener('input', checkPublishEnabled);
-document.getElementById('svcPrice').addEventListener('input', checkPublishEnabled);
+document.getElementById('svcPrice').addEventListener('input', (e)=>{
+  e.target.value = e.target.value.replace(/\D/g,'').slice(0,6); // whole numbers, max 6 digits
+  checkPublishEnabled();
+});
 document.getElementById('svcCurrency').addEventListener('change', checkPublishEnabled);
 document.getElementById('svcDesc').addEventListener('input', checkPublishEnabled);
 document.getElementById('svcCategory').addEventListener('change', checkPublishEnabled);
@@ -5805,6 +5815,7 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
     name, desc, cat,
     price: priceVal,
     currency: currencyVal,
+    priceNote: document.getElementById('svcPriceNote').value.trim().slice(0,40) || null,
     image: svcImageData,
     video: svcVideoData,
     locations,
