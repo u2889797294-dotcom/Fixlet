@@ -273,6 +273,11 @@
     .bigcountries .countrycard .flag{ font-size:54px; }
     .bigcountries .countrycard .cname{ font-size:18px; }
   }
+
+  .limithint{ font-size:11.5px; font-weight:600; color:var(--ink-soft); margin:5px 2px 0; text-align:right; }
+  .limithint.full{ color:#c0392b; }
+  .logincard .limithint{ color:#8a8a8a; text-align:left; margin:-4px 0 8px; font-size:10.5px; }
+  .logincard .limithint.full{ color:#ff6b4a; }
   /* ---------- headings ---------- */
   .lede{
     color:var(--ink-soft);
@@ -2587,7 +2592,7 @@
     <p class="cityhint cityhint-top" id="cityHint">Can't find your city? Pick the one nearest to you — city names are shown in English.</p>
     <div class="backrow"><button class="backbtn" id="backFromCity">&larr; <span id="backFromCityLabel">Change country</span></button></div>
     <p class="lede" id="cityLede">Choose your city</p>
-    <input type="text" class="plain-search" id="citySearch" placeholder="Search city…" autocomplete="off">
+    <input type="text" class="plain-search" id="citySearch" maxlength="150" placeholder="Search city…" autocomplete="off">
     <div class="citygrid" id="cityGrid"></div>
   </div>
 
@@ -2613,7 +2618,7 @@
 
     <div class="finnsearchrow">
       <div class="finnsearch">
-        <input type="text" id="siteSearchInput" placeholder="What do you need help with?">
+        <input type="text" id="siteSearchInput" maxlength="150" placeholder="What do you need help with?">
         <div class="searchico" id="siteSearchBtn" role="button" tabindex="0" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><circle cx="11" cy="11" r="7"/><line x1="20.5" y1="20.5" x2="16.2" y2="16.2"/></svg></div>
       </div>
     </div>
@@ -2628,12 +2633,12 @@
     <div class="popularheading" id="popularHeading">Popular listings</div>
     <p class="popularsub" id="popularSub">Handpicked providers near you</p>
     <div class="filterbar">
-      <input type="text" class="filterinput" id="listingFilterInput" placeholder="Search listings…">
+      <input type="text" class="filterinput" id="listingFilterInput" maxlength="150" placeholder="Search listings…">
       <div class="chipscroll" id="filterChipRow"></div>
       <div class="pricefilterrow">
-        <input type="number" min="0" step="1" inputmode="decimal" class="pricefilterinput" id="minPriceFilter" placeholder="Min price">
+        <input type="number" min="0" step="1" inputmode="decimal" class="pricefilterinput" id="minPriceFilter" maxlength="6" placeholder="Min price">
         <span class="pricefiltersep">–</span>
-        <input type="number" min="0" step="1" inputmode="decimal" class="pricefilterinput" id="maxPriceFilter" placeholder="Max price">
+        <input type="number" min="0" step="1" inputmode="decimal" class="pricefilterinput" id="maxPriceFilter" maxlength="6" placeholder="Max price">
       </div>
     </div>
     <div class="popularlist" id="popularList"></div>
@@ -2691,7 +2696,7 @@
         <div id="stripeButtonMount" class="paywallbtnmount"></div>
 
         <div class="cardfields" id="cardFieldsWrap">
-          <input type="text" id="cardName" class="cardinput" placeholder="Name on card">
+          <input type="text" id="cardName" class="cardinput" maxlength="150" placeholder="Name on card">
           <input type="text" id="cardNumber" class="cardinput" placeholder="Card number" inputmode="numeric" maxlength="19">
           <div class="cardrow2">
             <input type="text" id="cardExpiry" class="cardinput" placeholder="MM/YY" inputmode="numeric" maxlength="5">
@@ -2724,14 +2729,15 @@
         <p><strong>9. Messaging.</strong> Users can contact a Listing through Fixlet!'s messaging feature. Each customer has their own separate conversation with the Listing's owner, which is visible to those two accounts (and to Fixlet! administrators where needed to enforce these Terms or respond to a report). Messages are stored in our database. Do not share anything through messages that you would not want stored, and never send payment details or passwords.</p>
         <p><strong>10. Conduct.</strong> Users must communicate respectfully through the messaging feature. Harassment, fraud, or attempts to circumvent these Terms may result in removal of your Listings or account. If you use Fixlet! to offer, advertise, or facilitate anything illegal under the laws that apply to you, or otherwise misuse the platform, Fixlet! may remove the relevant Listings, suspend your access, and permanently ban your account (identified by your unique username) from the platform, without prior notice and without refund of any amounts already paid. Whether to ban, unban, suspend or delete an account is decided solely and entirely at the discretion of the Fixlet! administrators, who are not required to give a reason or to follow any particular procedure, and whose decision is final.</p>
         <p><strong>11. Administrator actions.</strong> Fixlet! administrators may, at their discretion and for the reasons in section 10, delete any Listing, delete an account, ban or unban a username, and immediately and remotely sign your account out of every device where it is currently logged in (a "forced logout"), in each case without prior notice. Banning is entirely up to the administrators. A forced logout does not by itself delete your account or your Listings, and you can normally sign back in unless your account has also been banned.</p>
-        <p><strong>12. Sponsoring and Premium.</strong> Listings can be sponsored to be shown more prominently, and a Premium option that sponsors all of your Listings is planned. Where these are shown as "coming soon" they are not yet available, and the price, duration and terms will be shown to you before you pay.</p>
-        <p><strong>13. Intellectual property.</strong> The Fixlet! concept, name, design and software belong to Transform4Future Anna Madeleine Nordlund. If you copy or steal the idea, the design, or the content of Fixlet! — or another user's Listing, photos or text — you can be sued. You keep the rights to what you upload, and you give Fixlet! permission to store and display it on the platform for as long as your Listing is active.</p>
-        <p><strong>14. No guarantee of service.</strong> Fixlet! is provided "as is". We do not guarantee uninterrupted availability, that any Listing will result in business, that your data will always save to the server (a poor connection can cause a save to fail), or that any user you contact will respond or perform as described. Any figures, examples, or testimonials shown in the app are illustrative only and are not a promise of results.</p>
-        <p><strong>15. Liability.</strong> To the maximum extent permitted by law, Fixlet! is not liable for any damages, losses, or disputes arising from interactions between users, from unauthorised use of an account whose username and number were shared or guessed, or from services purchased or rendered as a result of a Listing.</p>
-        <p><strong>16. Local laws.</strong> You are responsible for complying with the laws and regulations that apply to you and your Listing in your own country and city, including any licensing, tax, or consumer-protection requirements for the services you offer.</p>
-        <p><strong>17. Privacy and cookies.</strong> How we handle your data, and the local storage we use to keep you signed in, is described in our Privacy Policy and Cookies Policy, which form part of these Terms.</p>
-        <p><strong>18. Changes to these Terms.</strong> These Terms may be updated from time to time. Continued use of Fixlet! after changes are posted constitutes acceptance of the updated Terms.</p>
-        <p><strong>19. Contact.</strong> Questions about these Terms, billing, refunds, or your account can be directed through the app's messaging feature, or by calling our helpline at +47 413 74 773.</p>
+        <p><strong>12. Limits on what you can write.</strong> To keep Fixlet! fast and readable, every text box has a limit, shown in small text under the box. In general a field may contain at most 20 words. The exceptions are: a Listing description (at most 400 words), a Listing price note (40 characters), a price (6 digits), your username (10 characters), your 6-digit number, your mobile number (20 characters), your email address (60 characters) and your "about you" text (300 characters). Text over a limit is cut off automatically. These limits do not apply to chat messages. Fixlet! may change the limits at any time.</p>
+        <p><strong>13. Sponsoring and Premium.</strong> Listings can be sponsored to be shown more prominently, and a Premium option that sponsors all of your Listings is planned. Where these are shown as "coming soon" they are not yet available, and the price, duration and terms will be shown to you before you pay.</p>
+        <p><strong>14. Intellectual property.</strong> The Fixlet! concept, name, design and software belong to Transform4Future Anna Madeleine Nordlund. If you copy or steal the idea, the design, or the content of Fixlet! — or another user's Listing, photos or text — you can be sued. You keep the rights to what you upload, and you give Fixlet! permission to store and display it on the platform for as long as your Listing is active.</p>
+        <p><strong>15. No guarantee of service.</strong> Fixlet! is provided "as is". We do not guarantee uninterrupted availability, that any Listing will result in business, that your data will always save to the server (a poor connection can cause a save to fail), or that any user you contact will respond or perform as described. Any figures, examples, or testimonials shown in the app are illustrative only and are not a promise of results.</p>
+        <p><strong>16. Liability.</strong> To the maximum extent permitted by law, Fixlet! is not liable for any damages, losses, or disputes arising from interactions between users, from unauthorised use of an account whose username and number were shared or guessed, or from services purchased or rendered as a result of a Listing.</p>
+        <p><strong>17. Local laws.</strong> You are responsible for complying with the laws and regulations that apply to you and your Listing in your own country and city, including any licensing, tax, or consumer-protection requirements for the services you offer.</p>
+        <p><strong>18. Privacy and cookies.</strong> How we handle your data, and the local storage we use to keep you signed in, is described in our Privacy Policy and Cookies Policy, which form part of these Terms.</p>
+        <p><strong>19. Changes to these Terms.</strong> These Terms may be updated from time to time. Continued use of Fixlet! after changes are posted constitutes acceptance of the updated Terms.</p>
+        <p><strong>20. Contact.</strong> Questions about these Terms, billing, refunds, or your account can be directed through the app's messaging feature, or by calling our helpline at +47 413 74 773.</p>
         <p class="bizdetails"><strong>Business details:</strong> Transform4Future Anna Madeleine Nordlund · Harriet Backers vei 14E, 1415 Oppegård, Norway · Org. no. 924 590 734 · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a></p>
       </div>
       <p class="legallinks">See also: <a href="#" id="termsToPrivacyLink">Privacy Policy</a> · <a href="#" id="termsToCookiesLink">Cookies Policy</a></p>
@@ -2814,7 +2820,7 @@
       </div>
       <div class="formfield">
         <label id="lblBusinessName">Business name</label>
-        <input type="text" id="svcName" placeholder="e.g. Ola's Handyman Service">
+        <input type="text" id="svcName" maxlength="150" placeholder="e.g. Ola's Handyman Service">
       </div>
       <div class="formfield">
         <label id="lblPrice">Price</label>
@@ -2828,7 +2834,7 @@
       </div>
       <div class="formfield">
         <label id="lblWhatYouDo">What do you do?</label>
-        <textarea id="svcDesc" placeholder="Describe your service…"></textarea>
+        <textarea id="svcDesc" maxlength="5000" placeholder="Describe your service…"></textarea>
       </div>
       <div class="formfield">
         <label id="lblImage">Add a photo of your business</label>
@@ -5583,6 +5589,71 @@ function seedDemoServices(){
   // Demo seed data disabled — the marketplace starts empty until real services are published.
 })();
 
+
+/* ---------------- Text limits ----------------
+   Every text box except chat has a limit, shown in small text under the box
+   (and listed in the Terms of Service). Default: 20 words. Exceptions: the
+   listing description (400 words) and fields with their own character limit
+   (username, phone, email, price note, about-you). Text over the limit is cut
+   off as it's typed or pasted. */
+function limitWords(text, max){
+  const re = /\S+/g; let m, count = 0;
+  while((m = re.exec(text))){
+    count++;
+    if(count > max) return text.slice(0, m.index);
+  }
+  return text;
+}
+function countWords(text){ return (text.match(/\S+/g) || []).length; }
+
+(function setupTextLimits(){
+  const WORDS = 20;
+  // [element id, kind, limit, hint label]; kind: 'words' | 'chars' | 'static'
+  const cfg = [
+    ['svcName','words',WORDS],
+    ['svcDesc','words',400],
+    ['svcPriceNote','chars',40],
+    ['svcPrice','static','Max 6 digits'],
+    ['profileBioInput','chars',300],
+    ['profileUsernameInput','static','Max 10 characters (older, longer usernames can be kept)'],
+    ['profilePhoneInput','chars',20],
+    ['profileEmailInput','chars',60],
+    ['loginUsernameInput','static','Username: 3–10 characters (older accounts: up to 20)'],
+    ['loginPhoneInput','chars',20],
+    ['loginEmailInput','chars',60],
+    ['cardName','words',WORDS],
+    ['citySearch','words',WORDS,true],
+    ['siteSearchInput','words',WORDS,true],
+    ['listingFilterInput','words',WORDS,true]
+  ];
+  cfg.forEach(([id, kind, limit, silent])=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    let hint = null;
+    if(!silent){
+      hint = document.createElement('div');
+      hint.className = 'limithint';
+      const anchor = el.closest('.pricecurrencyrow') || el;
+      anchor.insertAdjacentElement('afterend', hint);
+    }
+    function update(){
+      if(kind === 'words'){
+        let v = el.value;
+        if(countWords(v) > limit){ v = limitWords(v, limit); el.value = v; }
+        const n = countWords(v);
+        if(hint){ hint.textContent = n + ' / ' + limit + ' words'; hint.classList.toggle('full', n >= limit); }
+      } else if(kind === 'chars'){
+        if(el.value.length > limit) el.value = el.value.slice(0, limit);
+        if(hint){ hint.textContent = el.value.length + ' / ' + limit + ' characters'; hint.classList.toggle('full', el.value.length >= limit); }
+      } else if(hint){
+        hint.textContent = limit;
+      }
+    }
+    el.addEventListener('input', update, true);
+    update();
+  });
+})();
+
 (async function initUser(){
   await loadRegisteredCodes();
   await loadBannedCodes();
@@ -5621,8 +5692,8 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
   const countries = [...postSelectedCountries];
   const totalSelected = Object.values(postSelectedCitiesByCountry).reduce((sum,set)=> sum + set.size, 0);
   if(countries.length === 0 || totalSelected === 0) return;
-  const name = document.getElementById('svcName').value.trim();
-  const desc = document.getElementById('svcDesc').value.trim();
+  const name = limitWords(document.getElementById('svcName').value, 20).trim();
+  const desc = limitWords(document.getElementById('svcDesc').value, 400).trim();
   const cat = document.getElementById('svcCategory').value;
   const priceVal = parseFloat(document.getElementById('svcPrice').value);
   const currencyVal = document.getElementById('svcCurrency').value;
