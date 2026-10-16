@@ -2729,7 +2729,7 @@
         <p><strong>9. Messaging.</strong> Users can contact a Listing through Fixlet!'s messaging feature. Each customer has their own separate conversation with the Listing's owner, which is visible to those two accounts (and to Fixlet! administrators where needed to enforce these Terms or respond to a report). Messages are stored in our database. Do not share anything through messages that you would not want stored, and never send payment details or passwords.</p>
         <p><strong>10. Conduct.</strong> Users must communicate respectfully through the messaging feature. Harassment, fraud, or attempts to circumvent these Terms may result in removal of your Listings or account. If you use Fixlet! to offer, advertise, or facilitate anything illegal under the laws that apply to you, or otherwise misuse the platform, Fixlet! may remove the relevant Listings, suspend your access, and permanently ban your account (identified by your unique username) from the platform, without prior notice and without refund of any amounts already paid. Whether to ban, unban, suspend or delete an account is decided solely and entirely at the discretion of the Fixlet! administrators, who are not required to give a reason or to follow any particular procedure, and whose decision is final.</p>
         <p><strong>11. Administrator actions.</strong> Fixlet! administrators may, at their discretion and for the reasons in section 10, delete any Listing, delete an account, ban or unban a username, and immediately and remotely sign your account out of every device where it is currently logged in (a "forced logout"), in each case without prior notice. Banning is entirely up to the administrators. A forced logout does not by itself delete your account or your Listings, and you can normally sign back in unless your account has also been banned.</p>
-        <p><strong>12. Limits on what you can write.</strong> To keep Fixlet! fast and readable, every text box has a limit, shown in small text under the box. In general a field may contain at most 20 words. The exceptions are: a Listing description (at most 400 words), a Listing price note (40 characters), a price (6 digits), your username (10 characters), your 6-digit number, your mobile number (20 characters), your email address (60 characters) and your "about you" text (300 characters). Text over a limit is cut off automatically. These limits do not apply to chat messages. Fixlet! may change the limits at any time.</p>
+        <p><strong>12. Limits on what you can write.</strong> To keep Fixlet! fast and readable, every text box has a limit, shown in small text under the box. In general a field may contain at most 20 words. The exceptions are: a Listing description (at most 400 characters), a Listing price note (40 characters), a price (6 digits), your username (10 characters), your 6-digit number, your mobile number (20 characters), your email address (60 characters) and your "about you" text (300 characters). Text over a limit is cut off automatically. These limits do not apply to chat messages. Fixlet! may change the limits at any time.</p>
         <p><strong>13. Sponsoring and Premium.</strong> Listings can be sponsored to be shown more prominently, and a Premium option that sponsors all of your Listings is planned. Where these are shown as "coming soon" they are not yet available, and the price, duration and terms will be shown to you before you pay.</p>
         <p><strong>14. Intellectual property.</strong> The Fixlet! concept, name, design and software belong to Transform4Future Anna Madeleine Nordlund. If you copy or steal the idea, the design, or the content of Fixlet! — or another user's Listing, photos or text — you can be sued. You keep the rights to what you upload, and you give Fixlet! permission to store and display it on the platform for as long as your Listing is active.</p>
         <p><strong>15. No guarantee of service.</strong> Fixlet! is provided "as is". We do not guarantee uninterrupted availability, that any Listing will result in business, that your data will always save to the server (a poor connection can cause a save to fail), or that any user you contact will respond or perform as described. Any figures, examples, or testimonials shown in the app are illustrative only and are not a promise of results.</p>
@@ -2834,7 +2834,7 @@
       </div>
       <div class="formfield">
         <label id="lblWhatYouDo">What do you do?</label>
-        <textarea id="svcDesc" maxlength="5000" placeholder="Describe your service…"></textarea>
+        <textarea id="svcDesc" maxlength="400" placeholder="Describe your service…"></textarea>
       </div>
       <div class="formfield">
         <label id="lblImage">Add a photo of your business</label>
@@ -5593,7 +5593,7 @@ function seedDemoServices(){
 /* ---------------- Text limits ----------------
    Every text box except chat has a limit, shown in small text under the box
    (and listed in the Terms of Service). Default: 20 words. Exceptions: the
-   listing description (400 words) and fields with their own character limit
+   listing description (400 characters) and fields with their own character limit
    (username, phone, email, price note, about-you). Text over the limit is cut
    off as it's typed or pasted. */
 function limitWords(text, max){
@@ -5611,7 +5611,7 @@ function countWords(text){ return (text.match(/\S+/g) || []).length; }
   // [element id, kind, limit, hint label]; kind: 'words' | 'chars' | 'static'
   const cfg = [
     ['svcName','words',WORDS],
-    ['svcDesc','words',400],
+    ['svcDesc','chars',400],
     ['svcPriceNote','chars',40],
     ['svcPrice','static','Max 6 digits'],
     ['profileBioInput','chars',300],
@@ -5693,7 +5693,7 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
   const totalSelected = Object.values(postSelectedCitiesByCountry).reduce((sum,set)=> sum + set.size, 0);
   if(countries.length === 0 || totalSelected === 0) return;
   const name = limitWords(document.getElementById('svcName').value, 20).trim();
-  const desc = limitWords(document.getElementById('svcDesc').value, 400).trim();
+  const desc = document.getElementById('svcDesc').value.slice(0, 400).trim();
   const cat = document.getElementById('svcCategory').value;
   const priceVal = parseFloat(document.getElementById('svcPrice').value);
   const currencyVal = document.getElementById('svcCurrency').value;
