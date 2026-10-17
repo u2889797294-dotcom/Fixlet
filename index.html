@@ -268,7 +268,8 @@
   .cstats{ list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:5px; align-items:flex-start; }
   .cstats li{ font-size:13px; font-weight:600; color:var(--ink-soft); display:flex; align-items:center; gap:7px; }
   .cstats li b{ color:var(--ink); font-weight:800; }
-  .cstats .chk{ flex:none; width:17px; height:17px; border-radius:50%; background:var(--teal); color:#fff; font-size:11px; line-height:17px; text-align:center; font-weight:800; }
+  .cstats .chk{ flex:none; width:17px; height:17px; border-radius:50%; background:#39ff14; color:#06330a; font-size:11px; line-height:17px; text-align:center; font-weight:900; box-shadow:0 0 6px #39ff14, 0 0 12px rgba(57,255,20,.55); }
+  .cstats .chk.nochk{ background:none; box-shadow:none; }
   .bigcountries .countrycard .csub{ font-size:12.5px; font-weight:700; color:var(--teal); background:#fff; border:1px solid var(--line); padding:3px 11px; border-radius:999px; }
   @media (max-width:520px){
     .herotext h1{ font-size:26px; }
@@ -3494,8 +3495,8 @@ function countryStats(name){
 }
 function countryStatsHTML(name){
   const st = countryStats(name);
-  const row = (n,l)=>`<li><span class="chk">✓</span><span><b>${n}</b> ${l}</span></li>`;
-  return `<ul class="cstats">${row(st.services, st.services===1?'service':'services')}${row(st.cities,'cities')}${row(st.members, st.members===1?'member logged in':'members logged in')}</ul>`;
+  const row = (n,l,chk)=>`<li>${chk===false?'<span class="chk nochk"></span>':'<span class="chk">✓</span>'}<span><b>${n}</b> ${l}</span></li>`;
+  return `<ul class="cstats">${row(st.services, st.services===1?'service':'services')}${row(st.cities,'cities')}${row(st.members, st.members===1?'member logged in':'members logged in', false)}</ul>`;
 }
 function refreshCountryGrids(){
   try{
