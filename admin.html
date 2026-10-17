@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fixlet! Admin</title>
+<title>Fixvice Admin</title>
 <style>
   :root{ --teal:#0d9488; --ink:#111827; --ink-soft:#6b7280; --line:#e5e7eb; --mist:#f3f4f6; --bad:#dc2626; --bad-bg:#fde8e8; --good-bg:#e6f7ed; --good:#0a6b33; }
   *{ box-sizing:border-box; }
@@ -53,8 +53,8 @@
 <body>
 
 <div id="gate">
-  <h2>Fixlet! Admin</h2>
-  <p>Dette er et administrasjonspanel for hele Fixlet!-databasen. Alt som gjøres her påvirker den <strong>live</strong> nettsiden umiddelbart for alle brukere. Skriv inn admin-passordet for å fortsette.</p>
+  <h2>Fixvice Admin</h2>
+  <p>Dette er et administrasjonspanel for hele Fixvice-databasen. Alt som gjøres her påvirker den <strong>live</strong> nettsiden umiddelbart for alle brukere. Skriv inn admin-passordet for å fortsette.</p>
   <input type="password" id="gatePassword" placeholder="Admin-passord" autocomplete="off">
   <button class="primary" id="gateSubmit">Logg inn</button>
   <p id="gateError" style="color:var(--bad); display:none;">Feil passord.</p>
@@ -62,7 +62,7 @@
 
 <div id="app" style="display:none;">
   <header>
-    <h1>Fixlet! Admin</h1>
+    <h1>Fixvice Admin</h1>
     <span class="who">Koblet til samme database som nettsiden</span>
   </header>
   <main>
@@ -100,7 +100,7 @@
 </div>
 
 <script>
-/* Same Supabase project/table as the main Fixlet! site (index.html) —
+/* Same Supabase project/table as the main Fixvice site (index.html) —
    four rows in one table, used as a tiny key-value store:
      id="global"      -> all listings (services)
      id="users"       -> every registered account, as
