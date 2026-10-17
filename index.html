@@ -265,6 +265,10 @@
   .bigcountries .countrycard:hover{ transform:translateY(-4px); box-shadow:0 18px 40px rgba(13,148,136,.18); }
   .bigcountries .countrycard .flag{ font-size:76px; line-height:1.05; margin-bottom:6px; }
   .bigcountries .countrycard .cname{ font-size:24px; font-weight:800; color:var(--ink); }
+  .cstats{ list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:5px; align-items:flex-start; }
+  .cstats li{ font-size:13px; font-weight:600; color:var(--ink-soft); display:flex; align-items:center; gap:7px; }
+  .cstats li b{ color:var(--ink); font-weight:800; }
+  .cstats .chk{ flex:none; width:17px; height:17px; border-radius:50%; background:var(--teal); color:#fff; font-size:11px; line-height:17px; text-align:center; font-weight:800; }
   .bigcountries .countrycard .csub{ font-size:12.5px; font-weight:700; color:var(--teal); background:#fff; border:1px solid var(--line); padding:3px 11px; border-radius:999px; }
   @media (max-width:520px){
     .herotext h1{ font-size:26px; }
@@ -2792,7 +2796,7 @@
       <span class="selectioncount" id="postCountrySelCount">0 selected</span>
       <button class="continuebtn" id="postCountryContinueBtn" disabled>Continue</button>
     </div>
-    <div class="countrygrid" id="postCountryGrid"></div>
+    <div class="countrygrid bigcountries" id="postCountryGrid"></div>
   </div>
 
   <!-- ===================== POST: CITY MULTI-SELECT (grouped by country) ===================== -->
@@ -3478,6 +3482,28 @@ let postSelectedCountries = new Set(); // Set of country objects (with effLang)
 let postSelectedCitiesByCountry = {};  // { countryName: Set(cities) }
 
 /* ---------------- Render: browsing country grid ---------------- */
+function countryStats(name){
+  let ms = []; try{ ms = myServices; }catch(e){}
+  const services = (Array.isArray(ms) ? ms : []).filter(s=>{
+    const locs = s.locations || [{ country: s.country, cities: s.cities }];
+    return locs.some(loc => loc && loc.country === name);
+  }).length;
+  let rc = []; try{ rc = registeredCodes; }catch(e){} // declared further down; not initialised on first paint
+  const members = (Array.isArray(rc) ? rc : []).filter(a => a && typeof a === 'object' && a.country === name).length;
+  return { services, cities: (CITIES[name]||[]).length, members };
+}
+function countryStatsHTML(name){
+  const st = countryStats(name);
+  const row = (n,l)=>`<li><span class="chk">✓</span><span><b>${n}</b> ${l}</span></li>`;
+  return `<ul class="cstats">${row(st.services, st.services===1?'service':'services')}${row(st.cities,'cities')}${row(st.members, st.members===1?'member logged in':'members logged in')}</ul>`;
+}
+function refreshCountryGrids(){
+  try{
+    if(typeof countryGrid !== 'undefined' && countryGrid) renderCountryGrid(countryGrid, "", onBrowseCountrySelected);
+    const pg = document.getElementById('postCountryGrid');
+    if(pg && pg.children.length) renderPostCountryGrid();
+  }catch(e){}
+}
 function renderCountryGrid(container, filter, onSelect){
   container.innerHTML = "";
   COUNTRIES
@@ -3489,7 +3515,7 @@ function renderCountryGrid(container, filter, onSelect){
       div.style.animationDelay = Math.min(idx * 0.02, 0.4) + 's';
       const big = container.classList.contains('bigcountries');
       div.innerHTML = big
-        ? `<span class="flag">${c.flag}</span><span class="cname">${c.name}</span><span class="csub">${(CITIES[c.name]||[]).length} cities</span>`
+        ? `<span class="flag">${c.flag}</span><span class="cname">${c.name}</span>${countryStatsHTML(c.name)}`
         : `<span class="flag">${c.flag}</span><span>${c.name}</span>` + (enabled ? '' : `<span class="soon">${t('en','soon')}</span>`);
       if(enabled){
         div.addEventListener('click', ()=> onSelect(c));
@@ -4461,8 +4487,21 @@ async function clearUser(){
    page instead of the home screen. Only meaningful once sign-in itself is
    also remembered (see loadUser() being called from initUser below). */
 const LAST_LOCATION_STORAGE_KEY = 'jelp_lastLocation_v1';
+async function recordAccountCountry(countryName){
+  try{
+    if(!currentUser || !currentUser.username || !countryName) return;
+    const key = currentUser.username.trim().toLowerCase();
+    await loadRegisteredCodes(); // merge, don't overwrite
+    const idx = registeredCodes.findIndex(a => a && typeof a === 'object' && a.username && a.username.trim().toLowerCase() === key);
+    if(idx === -1 || registeredCodes[idx].country === countryName) return;
+    registeredCodes[idx].country = countryName;
+    await saveRegisteredCodes();
+    refreshCountryGrids();
+  }catch(e){}
+}
 async function saveLastLocation(){
   if(!browseCountry || !browseCity) return;
+  recordAccountCountry(browseCountry.name);
   const raw = JSON.stringify({ countryName: browseCountry.name, city: browseCity });
   try { if(window.storage){ await window.storage.set(LAST_LOCATION_STORAGE_KEY, raw, true); } } catch(e){}
   try { localStorage.setItem(LAST_LOCATION_STORAGE_KEY, raw); } catch(e){}
@@ -4810,7 +4849,8 @@ document.getElementById('profileSaveBtn').addEventListener('click', async ()=>{
     phone,
     email: email || null,
     bio: bio || null,
-    avatar: profileAvatarData || null
+    avatar: profileAvatarData || null,
+    country: (idx !== -1 && registeredCodes[idx] && registeredCodes[idx].country) || null
   };
   if(idx !== -1) registeredCodes[idx] = updatedAccount;
   else registeredCodes.push(updatedAccount);
@@ -4984,7 +5024,8 @@ function renderPostCountryGrid(){
     const div = document.createElement('div');
     div.className = 'countrycard cardPop';
     div.style.animationDelay = Math.min(idx * 0.015, 0.35) + 's';
-    div.innerHTML = `<span class="flag">${c.flag}</span><span>${c.name}</span>`;
+    div.innerHTML = `<span class="flag">${c.flag}</span><span class="cname">${c.name}</span>${countryStatsHTML(c.name)}`;
+    if([...postSelectedCountries].some(x => x.name === c.name)) div.classList.add('selected');
     div.addEventListener('click', ()=>{
       const already = [...postSelectedCountries].find(x => x.name === c.name);
       if(already){
@@ -5593,6 +5634,7 @@ function seedDemoServices(){
 
 (async function initMyServices(){
   await loadServices();
+  refreshCountryGrids();
   // Demo seed data disabled — the marketplace starts empty until real services are published.
 })();
 
@@ -5693,10 +5735,12 @@ function countWords(text){ return (text.match(/\S+/g) || []).length; }
     }
   }
   startForceLogoutWatcher();
+  refreshCountryGrids();
 })();
 
 document.getElementById('publishBtn').addEventListener('click', async ()=>{
   const countries = [...postSelectedCountries];
+  if(countries[0]) recordAccountCountry(countries[0].name);
   const totalSelected = Object.values(postSelectedCitiesByCountry).reduce((sum,set)=> sum + set.size, 0);
   if(countries.length === 0 || totalSelected === 0) return;
   const name = limitWords(document.getElementById('svcName').value, 20).trim();
