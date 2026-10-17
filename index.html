@@ -3496,7 +3496,7 @@ function countryStats(name){
 function countryStatsHTML(name){
   const st = countryStats(name);
   const row = (n,l,chk)=>`<li>${chk===false?'<span class="chk nochk"></span>':'<span class="chk">✓</span>'}<span><b>${n}</b> ${l}</span></li>`;
-  return `<ul class="cstats">${row(st.services, st.services===1?'service':'services')}${row(st.cities,'cities')}${row(st.members, st.members===1?'member logged in':'members logged in', false)}</ul>`;
+  return `<ul class="cstats">${row(st.services, st.services===1?'service':'services')}${row(st.cities,'cities')}</ul>`;
 }
 function refreshCountryGrids(){
   try{
