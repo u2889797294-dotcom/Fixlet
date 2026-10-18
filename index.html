@@ -274,6 +274,16 @@
   .phonerow select{ flex:none; width:104px; padding:0 8px; border-radius:12px; border:1px solid var(--line); background:#fff; font:inherit; font-weight:700; color:var(--ink); }
   .phonerow input{ flex:1; min-width:0; }
 
+  /* ---------- big red logout + confirm modal ---------- */
+  .bigredbtn{ display:block; width:100%; margin-top:22px; padding:16px; border:none; border-radius:16px; background:linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; font:inherit; font-size:17px; font-weight:800; letter-spacing:.01em; cursor:pointer; box-shadow:0 8px 22px rgba(185,28,28,.28); transition:transform .15s ease, box-shadow .15s ease; }
+  .bigredbtn:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(185,28,28,.38); }
+  #confirmOverlay .modal-card{ max-width:360px; text-align:center; }
+  #confirmOverlay .modal-icon.danger{ background:#fee2e2; color:#dc2626; border-radius:50%; width:56px; height:56px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
+  #confirmOverlay .modal-icon.danger svg{ width:26px; height:26px; }
+  #confirmOverlay .confirm-actions{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+  #confirmOverlay .confirm-yes{ padding:13px; border:none; border-radius:14px; background:linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+  #confirmOverlay .confirm-no{ padding:13px; border:1px solid var(--line); border-radius:14px; background:#fff; color:var(--ink); font:inherit; font-weight:700; cursor:pointer; }
+
   /* ---------- loading screen ---------- */
   #loadingScreen{ position:fixed; inset:0; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:linear-gradient(165deg,#ffffff 0%,#effaf5 100%); transition:opacity .35s ease, visibility .35s ease; }
   #loadingScreen.done{ opacity:0; visibility:hidden; pointer-events:none; }
@@ -3005,6 +3015,7 @@
       <p class="loginerror hidden" id="profileErrorMsg"></p>
       <p class="loggedinas hidden" id="profileSuccessMsg"></p>
       <button class="publishbtn" id="profileSaveBtn" disabled>Save changes</button>
+      <button class="bigredbtn" id="profileLogoutBtn">Log out</button>
     </div>
   </div>
 
@@ -3091,6 +3102,18 @@
       <p>Sponsored listings jump to the top and get way more clicks. Are you sure you don't want to sponsor this service?</p>
       <button class="continuebtn" id="sponsorConfirmSponsorBtn" style="width:100%;">Yes, sponsor it — €29</button>
       <button class="termslinkbtn" id="sponsorConfirmPublishBtn">No thanks, just publish</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="confirmOverlay" role="dialog" aria-modal="true">
+    <div class="modal-card cardPop">
+      <div class="modal-icon danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg></div>
+      <h3 id="confirmTitle">Are you sure?</h3>
+      <p id="confirmText"></p>
+      <div class="confirm-actions">
+        <button class="confirm-yes" id="confirmYes">Yes, delete</button>
+        <button class="confirm-no" id="confirmNo">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -4508,7 +4531,7 @@ async function loadForceLogoutMap(){
 async function checkForceLogout(){
   if(!currentUser || !currentUser.username) return;
   await loadForceLogoutMap();
-  const kickedAt = forceLogoutMap[currentUser.username];
+  const kickedAt = Math.max(forceLogoutMap[currentUser.username] || 0, forceLogoutMap[currentUser.username.trim().toLowerCase()] || 0) || undefined; // admin stores lowercase keys
   if(kickedAt && (!currentUser.loginTime || kickedAt > currentUser.loginTime)){
     await clearUser();
     show('home');
@@ -4730,6 +4753,26 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
     show('home');
   }
 });
+/* Reusable confirmation popup: askConfirm({title,text,yes,no}) -> Promise<boolean>. */
+function askConfirm(opts){
+  return new Promise(resolve=>{
+    const ov = document.getElementById('confirmOverlay');
+    document.getElementById('confirmTitle').textContent = opts.title || 'Are you sure?';
+    document.getElementById('confirmText').textContent = opts.text || '';
+    const yes = document.getElementById('confirmYes'), no = document.getElementById('confirmNo');
+    yes.textContent = opts.yes || 'Yes'; no.textContent = opts.no || 'Cancel';
+    const done = (v)=>{ ov.classList.add('hidden'); yes.onclick = no.onclick = ov.onclick = null; resolve(v); };
+    yes.onclick = ()=> done(true);
+    no.onclick = ()=> done(false);
+    ov.onclick = (e)=>{ if(e.target === ov) done(false); };
+    ov.classList.remove('hidden');
+  });
+}
+
+async function doLogout(){
+  await clearUser();
+  show('home');
+}
 document.getElementById('logoutBtn').addEventListener('click', async ()=>{
   await clearUser();
   show('home');
@@ -4838,6 +4881,7 @@ document.getElementById('profileCodeInput').addEventListener('input', (e)=>{
   e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
 });
 
+document.getElementById('profileLogoutBtn').addEventListener('click', doLogout);
 document.getElementById('openProfileBtn').addEventListener('click', ()=>{
   renderProfileScreen();
   show('profile');
@@ -6025,8 +6069,14 @@ function renderMyServices(lang){
         openSponsorScreen(s, s.lang, 'myServices');
       });
     }
-    card.querySelector('.mysvc-delete').addEventListener('click', (e)=>{
+    card.querySelector('.mysvc-delete').addEventListener('click', async (e)=>{
       e.stopPropagation();
+      const ok = await askConfirm({
+        title: 'Delete this service?',
+        text: 'You are about to permanently delete "' + (s.name || 'this service') + '" together with all its messages. This cannot be undone.',
+        yes: 'Yes, delete it', no: 'Keep it'
+      });
+      if(!ok) return;
       myServices = myServices.filter(x => x.id !== s.id);
       saveServices();
       renderMyServices(lang);

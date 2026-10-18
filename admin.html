@@ -240,6 +240,7 @@ function renderListings(){
 
 async function deleteListing(id){
   if(!confirm('Slette denne tjenesten permanent for alle brukere?')) return;
+  if(!confirm('ER DU HELT SIKKER? Tjenesten og alle samtalene i den forsvinner for alltid. Dette kan ikke angres.')) return;
   try{
     services = services.filter(s => s.id !== id);
     await putRow('global', services);
