@@ -276,6 +276,10 @@
   .loginwarn button{ width:100%; padding:11px; border:none; border-radius:12px; background:linear-gradient(135deg,#0d9488,#7ac943); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
   .loginwarn.acked{ display:none; }
   #loginFormWrap.locked{ opacity:.4; pointer-events:none; filter:grayscale(.4); user-select:none; }
+  .loginack{ display:flex; gap:10px; align-items:flex-start; text-align:left; margin:2px 0 10px; padding:10px 12px; border:1.5px solid #f59e0b; background:#fffbeb; color:#7c2d12; border-radius:12px; font-size:12.5px; line-height:1.4; font-weight:600; cursor:pointer; }
+  .loginack.hidden{ display:none; }
+  .loginack input{ margin-top:2px; width:18px; height:18px; flex:none; accent-color:#0d9488; }
+  .loginack strong{ color:#b45309; }
   .phonerow{ display:flex; gap:8px; }
   .phonerow select{ flex:none; width:104px; padding:0 8px; border-radius:12px; border:1px solid var(--line); background:#fff; font:inherit; font-weight:700; color:var(--ink); }
   .phonerow input{ flex:1; min-width:0; }
@@ -1587,6 +1591,8 @@
     margin-bottom:8px;
   }
   .logincodeinput:focus{ outline:none; border-color:#fff; }
+  .logincodeinput, .logincodeinput:-webkit-autofill{ -webkit-text-security:none !important; -webkit-text-fill-color:#fff !important; caret-color:#fff; opacity:1; font-size:20px; }
+  .logincodeinput::placeholder{ -webkit-text-fill-color:#8a8a8a; color:#8a8a8a; }
   .loginusernameinput{
     width:100%;
     background:#000;
@@ -2622,19 +2628,13 @@
         <h2 class="loginheading">Log in to Fixvice</h2>
         <p class="loginsub" id="loginSubText">Use your own username and 6-digit number. Create them the first time, then use the same username and number every time you come back.</p>
 
-        <div class="loginwarn" id="loginWarn" role="alert">
-          <strong>⚠️ Important — read this first</strong>
-          <p>Type your username and your 6-digit number exactly right. If you write any of them wrong, you risk losing your account — and nobody, not even Fixvice, can recover it for you. Write them down somewhere safe.</p>
-          <button type="button" id="loginWarnGotIt">Got it</button>
-        </div>
-        <div id="loginFormWrap" class="locked">
         <div class="logintabs">
           <button type="button" class="logintab active" id="loginTabLogin">Log in</button>
           <button type="button" class="logintab" id="loginTabRegister">Create new account</button>
         </div>
 
         <input type="text" maxlength="20" class="loginusernameinput" id="loginUsernameInput" placeholder="Username" autocomplete="off" autocapitalize="none" spellcheck="false">
-        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="logincodeinput" id="loginCodeInput" placeholder="• • • • • •" autocomplete="off">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="logincodeinput" id="loginCodeInput" placeholder="6-digit number" autocomplete="off" autocorrect="off" spellcheck="false">
         <div id="loginExtraFieldsWrap" class="hidden">
           <div class="phonerow">
             <select id="loginPhoneCC" aria-label="Country code">
@@ -2650,9 +2650,12 @@
           <input type="email" maxlength="60" class="loginusernameinput" id="loginEmailInput" placeholder="Gmail / email (optional)" autocomplete="off">
         </div>
         <p class="loginerror hidden" id="loginErrorMsg"></p>
+        <label class="loginack hidden" id="loginAckLabel">
+          <input type="checkbox" id="loginAckCheckbox">
+          <span><strong>⚠️ Check your username and number.</strong> If you type any of them wrong, you risk losing your account.</span>
+        </label>
         <button class="continuebtn" id="loginSubmitBtn" style="width:100%;" disabled>Log in</button>
         <p class="loginnote" id="loginHintText">Don't have an account? Tap "Create new account" above.</p>
-        </div>
       </div>
 
       <div class="loginfeatures-row">
@@ -3081,7 +3084,7 @@
         </div>
         <div class="formfield lockedfield">
           <label id="lblProfileCode">6-digit number</label>
-          <input type="password" inputmode="numeric" maxlength="6" id="profileCodeInput" autocomplete="off" readonly tabindex="-1">
+          <input type="text" inputmode="numeric" maxlength="6" id="profileCodeInput" autocomplete="off" readonly tabindex="-1">
         </div>
         <div class="formfield lockedfield">
           <label id="lblProfilePhone">Mobile number</label>
@@ -4705,6 +4708,7 @@ function setLoginMode(mode){
   document.getElementById('loginTabLogin').classList.toggle('active', mode === 'login');
   document.getElementById('loginTabRegister').classList.toggle('active', mode === 'register');
   document.getElementById('loginExtraFieldsWrap').classList.toggle('hidden', mode !== 'register');
+  document.getElementById('loginAckLabel').classList.toggle('hidden', mode !== 'register');
   document.getElementById('loginSubmitBtn').textContent = mode === 'login' ? 'Log in' : 'Create account';
   document.getElementById('loginHintText').textContent = mode === 'login'
     ? 'Don\'t have an account? Tap "Create new account" above.'
@@ -4724,12 +4728,12 @@ function isValidPhone(phone){
 }
 let loginAcked = false;
 function setLoginAcked(v){
-  loginAcked = v;
-  document.getElementById('loginWarn').classList.toggle('acked', v);
-  document.getElementById('loginFormWrap').classList.toggle('locked', !v);
+  loginAcked = !!v;
+  const cb = document.getElementById('loginAckCheckbox');
+  if(cb) cb.checked = loginAcked;
   updateLoginSubmitState();
 }
-document.getElementById('loginWarnGotIt').addEventListener('click', ()=> setLoginAcked(true));
+document.getElementById('loginAckCheckbox').addEventListener('change', (e)=> setLoginAcked(e.target.checked));
 function updateLoginSubmitState(){
   const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
@@ -4738,7 +4742,7 @@ function updateLoginSubmitState(){
     const phone = document.getElementById('loginPhoneInput').value.trim();
     ok = ok && isValidPhone(phone) && !!document.getElementById('loginPhoneCC').value;
   }
-  document.getElementById('loginSubmitBtn').disabled = !(ok && loginAcked);
+  document.getElementById('loginSubmitBtn').disabled = !(ok && (loginMode !== 'register' || loginAcked));
 }
 document.getElementById('loginTabLogin').addEventListener('click', ()=> setLoginMode('login'));
 document.getElementById('loginTabRegister').addEventListener('click', ()=> setLoginMode('register'));
@@ -4759,7 +4763,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   const phone = cc ? (cc + ' ' + document.getElementById('loginPhoneInput').value.trim()) : document.getElementById('loginPhoneInput').value.trim();
   const email = document.getElementById('loginEmailInput').value.trim();
   const errEl = document.getElementById('loginErrorMsg');
-  if(!loginAcked) return;
+  if(loginMode === 'register' && !loginAcked){ errEl.textContent = 'Please tick the box to confirm you have checked your username and number.'; errEl.classList.remove('hidden'); return; }
   if(loginMode === 'register' && !cc){ errEl.textContent = 'Please choose your country code (+47, +46, +45 or +358).'; errEl.classList.remove('hidden'); return; }
   errEl.classList.add('hidden');
   if(!isValidUsername(username, loginMode !== 'register') || !/^\d{6}$/.test(code)) return;
@@ -5909,7 +5913,6 @@ function countWords(text){ return (text.match(/\S+/g) || []).length; }
     ['profileBioInput','chars',300],
     ['profileEmailInput','chars',60],
     ['loginUsernameInput','static','Username: 3–10 characters (older accounts: up to 20)'],
-    ['loginPhoneInput','chars',14],
     ['profileNameInput','chars',20],
     ['loginEmailInput','chars',60],
     ['cardName','words',WORDS],
