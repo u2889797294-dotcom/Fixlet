@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Fixvice Brukeraktivitet</title>
+<style>
+  :root{ --teal:#0d9488; --ink:#111827; --ink-soft:#6b7280; --line:#e5e7eb; --mist:#f3f4f6; --bad:#dc2626; --good-bg:#e6f7ed; --good:#0a6b33; }
+  *{ box-sizing:border-box; }
+  body{ font-family:system-ui,-apple-system,sans-serif; margin:0; background:#fafafa; color:var(--ink); }
+  header{ background:#fff; border-bottom:1px solid var(--line); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5; gap:12px; flex-wrap:wrap; }
+  header h1{ font-size:17px; margin:0; }
+  header a{ font-size:13px; color:var(--teal); font-weight:700; text-decoration:none; }
+  main{ max-width:960px; margin:0 auto; padding:20px; }
+  button{ font-family:inherit; font-size:13.5px; font-weight:600; padding:9px 15px; border-radius:9px; border:1.5px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; }
+  button:hover{ background:var(--mist); }
+  button.primary{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  input[type=text], input[type=password], select{ font-family:inherit; font-size:13.5px; padding:9px 12px; border-radius:9px; border:1.5px solid var(--line); outline:none; background:#fff; }
+  input:focus{ border-color:var(--teal); }
+  .toolbar{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+  .row{ display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+  .row h3{ margin:0 0 4px; font-size:14.5px; }
+  .meta{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; }
+  .pill{ display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--mist); color:var(--ink-soft); margin-right:4px; }
+  .pill.ok{ background:var(--good-bg); color:var(--good); }
+  .empty{ text-align:center; color:var(--ink-soft); padding:40px 0; font-size:13.5px; }
+  .stat-row{ display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .stat{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 18px; min-width:130px; flex:1; }
+  .stat .n{ font-size:22px; font-weight:800; }
+  .stat .l{ font-size:12px; color:var(--ink-soft); }
+  .overview{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:18px; font-size:13px; line-height:1.7; }
+  .overview b{ color:var(--ink); }
+  #gate{ position:fixed; inset:0; background:#fff; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; z-index:50; padding:20px; text-align:center; }
+  #gate input{ width:220px; text-align:center; letter-spacing:1px; }
+  #gate p{ font-size:12.5px; color:var(--ink-soft); max-width:380px; }
+  .warn{ background:#fff7e6; border:1px solid #f0d98c; color:#7a5b00; font-size:12.5px; padding:10px 14px; border-radius:10px; margin-bottom:16px; }
+  .tl{ display:none; margin-top:10px; max-height:280px; overflow:auto; border-top:1px dashed var(--line); padding-top:8px; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h2>Fixvice Brukeraktivitet</h2>
+  <p>Her ser du hva brukerne gjør på Fixvice (kun de som har sagt ja til sporing). Skriv inn admin-passordet for å fortsette.</p>
+  <input type="password" id="gatePassword" placeholder="Admin-passord" autocomplete="off">
+  <button class="primary" id="gateSubmit">Logg inn</button>
+  <p id="gateError" style="color:var(--bad); display:none;">Feil passord.</p>
+</div>
+
+<div id="app" style="display:none;">
+  <header>
+    <h1>📊 Fixvice Brukeraktivitet</h1>
+    <a href="admin.html">← Til adminpanelet</a>
+  </header>
+  <main>
+    <div class="warn">
+      Viser kun aktivitet fra brukere som har sagt ja til aktivitetssporing (cookie-varselet eller profilen). Innholdet i meldinger, adresser og bilder lagres aldri. Brukeren kan slå sporingen av når som helst. Passordet er kun en enkel sperre i nettleseren, ikke ekte sikkerhet.
+    </div>
+
+    <div class="stat-row" id="statRow"></div>
+    <div class="overview" id="overview"></div>
+
+    <div class="toolbar">
+      <button id="reloadActivity">Oppdater</button>
+      <input type="text" id="activitySearch" placeholder="Søk brukernavn…" maxlength="20">
+      <select id="activitySort">
+        <option value="recent">Sist aktive først</option>
+        <option value="events">Flest hendelser først</option>
+        <option value="name">Navn A–Å</option>
+      </select>
+      <button id="downloadCsv">Last ned CSV</button>
+    </div>
+    <div id="msg" class="meta" style="margin-bottom:8px;"></div>
+    <div id="activityList"></div>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = "https://upqntfrjjkmlrguhwgut.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_4gbfqCFJaOqhUC-Bp_Hg3A_d0K-l4Kc";
+const SUPABASE_TABLE = "Jelp-services";
+const ADMIN_PASSWORD = "GaisRik908070"; // same simple browser gate as admin.html
+
+let activityRows = [];
+let registeredCodes = [];
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+const H = { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` };
+
+async function getUsers(){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.users&select=data`, { headers: H });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const rows = await res.json();
+  return (rows && rows[0] && Array.isArray(rows[0].data)) ? rows[0].data : [];
+}
+function identityKey(a){
+  const rec = typeof a === 'string' ? { code: a, username: null } : a;
+  return rec.username ? rec.username.trim().toLowerCase() : rec.code;
+}
+
+function topN(map, n){
+  return Object.entries(map).sort((a,b)=> b[1]-a[1]).slice(0, n).map(([k,v]) => `${escapeHtml(k)} (${v})`).join(', ') || '—';
+}
+function fmtTime(t){ return new Date(t).toLocaleString('nb-NO', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
+function describeEvent(e){
+  switch(e.type){
+    case 'screen': return 'Åpnet skjerm: ' + e.name;
+    case 'view_listing': return 'Åpnet tjeneste ' + (e.id || '') + (e.cat ? ' ('+e.cat+')' : '');
+    case 'open_chat': return 'Åpnet chat på tjeneste ' + (e.id || '');
+    case 'chat_send': return 'Sendte melding (' + e.kind + ')';
+    case 'browse_city': return 'Valgte by: ' + e.city + ', ' + e.country;
+    case 'plans_view': return 'Så boost-valgene';
+    case 'plan_select': return 'Valgte plan: ' + e.plan;
+    case 'plans_skip': return 'Hoppet over boost';
+    case 'publish': return 'Publiserte tjeneste' + (e.cat ? ' ('+e.cat+')' : '') + (e.countries ? ' i ' + e.countries.join(', ') : '');
+    case 'login': return 'Logget inn (' + e.mode + ')';
+    case 'session_start': return 'Startet økt';
+    case 'consent_on': return 'Sa ja til aktivitetssporing';
+    default: return e.type;
+  }
+}
+function summarize(d){
+  const ev = d.events;
+  const screens = {}, cities = {}, plans = {};
+  let listings = 0, msgs = 0, publishes = 0, planViews = 0;
+  const sessions = new Set();
+  ev.forEach(e=>{
+    sessions.add(e.s);
+    if(e.type === 'screen') screens[e.name] = (screens[e.name]||0) + 1;
+    if(e.type === 'browse_city'){ const k = e.city + ' (' + e.country + ')'; cities[k] = (cities[k]||0) + 1; }
+    if(e.type === 'view_listing') listings++;
+    if(e.type === 'chat_send') msgs++;
+    if(e.type === 'publish') publishes++;
+    if(e.type === 'plans_view') planViews++;
+    if(e.type === 'plan_select') plans[e.plan] = (plans[e.plan]||0) + 1;
+  });
+  return { screens, cities, plans, listings, msgs, publishes, planViews, sessions: sessions.size, last: ev[ev.length-1].t };
+}
+
+async function loadActivity(){
+  const list = document.getElementById('activityList');
+  const msg = document.getElementById('msg');
+  list.innerHTML = '<div class="empty">Laster…</div>';
+  msg.textContent = '';
+  try{
+    const [actRes, users] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=like.an_*&select=id,data`, { headers: H }),
+      getUsers().catch(()=> null)
+    ]);
+    if(!actRes.ok) throw new Error('HTTP ' + actRes.status);
+    const rows = await actRes.json();
+    activityRows = (rows || []).map(r => r.data).filter(d => d && Array.isArray(d.events) && d.events.length > 0);
+    if(users) registeredCodes = users;
+    else msg.textContent = '⚠️ Kunne ikke hente brukerlisten — viser bare brukere med aktivitet.';
+    render();
+  }catch(e){
+    list.innerHTML = '<div class="empty">Klarte ikke å hente aktivitet: ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+function renderOverview(){
+  const total = registeredCodes.length;
+  const tracked = activityRows.length;
+  const allEvents = activityRows.reduce((n,d)=> n + d.events.length, 0);
+  const screens = {}, cities = {}, plans = {};
+  let listings = 0, msgs = 0, publishes = 0, planViews = 0;
+  activityRows.forEach(d=>{
+    const s = summarize(d);
+    Object.entries(s.screens).forEach(([k,v])=> screens[k] = (screens[k]||0) + v);
+    Object.entries(s.cities).forEach(([k,v])=> cities[k] = (cities[k]||0) + v);
+    Object.entries(s.plans).forEach(([k,v])=> plans[k] = (plans[k]||0) + v);
+    listings += s.listings; msgs += s.msgs; publishes += s.publishes; planViews += s.planViews;
+  });
+  const day = Date.now() - 24*3600*1000;
+  const activeToday = activityRows.filter(d => summarize(d).last > day).length;
+  document.getElementById('statRow').innerHTML = [
+    [total || '—', 'Registrerte brukere'], [tracked, 'Med aktivitetsdata'], [activeToday, 'Aktive siste 24t'], [allEvents, 'Hendelser totalt']
+  ].map(([n,l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+  document.getElementById('overview').innerHTML = tracked === 0
+    ? 'Ingen aktivitet registrert ennå. Sporingen starter først når en bruker har trykket «Accept all» i cookie-varselet (eller slått det på i profilen).'
+    : `<b>Mest besøkte skjermer:</b> ${topN(screens, 5)}<br>
+       <b>Mest valgte byer:</b> ${topN(cities, 5)}<br>
+       <b>Tjenester åpnet:</b> ${listings} · <b>Meldinger sendt:</b> ${msgs} · <b>Publisert:</b> ${publishes}<br>
+       <b>Sett boost-valg:</b> ${planViews} · <b>Valgte planer:</b> ${topN(plans, 3)}`;
+}
+
+function render(){
+  renderOverview();
+  const list = document.getElementById('activityList');
+  const q = document.getElementById('activitySearch').value.trim().toLowerCase();
+  const sort = document.getElementById('activitySort').value;
+  let rows = activityRows.filter(d => !q || (d.user||'').includes(q));
+  if(sort === 'events') rows.sort((a,b)=> b.events.length - a.events.length);
+  else if(sort === 'name') rows.sort((a,b)=> (a.user||'').localeCompare(b.user||''));
+  else rows.sort((a,b)=> summarize(b).last - summarize(a).last);
+  const withData = new Set(activityRows.map(d => d.user));
+  const silent = registeredCodes.map(identityKey).filter(k => k && !withData.has(k) && (!q || k.includes(q))).sort();
+  list.innerHTML = '';
+  if(rows.length === 0 && silent.length === 0){ list.innerHTML = '<div class="empty">Ingen brukere funnet.</div>'; return; }
+  rows.forEach(d=>{
+    const sm = summarize(d);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="row">
+        <div>
+          <h3>@${escapeHtml(d.user)} <span class="meta">sist aktiv ${fmtTime(sm.last)}</span></h3>
+          <div class="meta">
+            <span class="pill ok">${d.events.length} hendelser</span> <span class="pill">${sm.sessions} økt(er)</span>
+            <br>Skjermer: ${topN(sm.screens, 4)}
+            <br>Byer: ${topN(sm.cities, 3)}
+            <br>Tjenester åpnet: ${sm.listings} · Meldinger sendt: ${sm.msgs} · Publisert: ${sm.publishes}
+            <br>Sett boost-valg: ${sm.planViews} · Valgt plan: ${topN(sm.plans, 3)}
+          </div>
+        </div>
+        <div><button data-act="tl">Tidslinje</button></div>
+      </div>
+      <div class="meta tl"></div>`;
+    const tl = card.querySelector('.tl');
+    card.querySelector('[data-act="tl"]').addEventListener('click', ()=>{
+      if(tl.style.display === 'block'){ tl.style.display = 'none'; return; }
+      tl.innerHTML = d.events.slice(-100).reverse().map(e => `${fmtTime(e.t)} — ${escapeHtml(describeEvent(e))}`).join('<br>');
+      tl.style.display = 'block';
+    });
+    list.appendChild(card);
+  });
+  silent.forEach(k=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<div class="row"><div><h3>@${escapeHtml(k)}</h3><div class="meta"><span class="pill">Ingen aktivitet</span> Har ikke sagt ja til sporing, eller har ikke vært aktiv ennå.</div></div></div>`;
+    list.appendChild(card);
+  });
+}
+
+document.getElementById('reloadActivity').addEventListener('click', loadActivity);
+document.getElementById('activitySearch').addEventListener('input', render);
+document.getElementById('activitySort').addEventListener('change', render);
+document.getElementById('downloadCsv').addEventListener('click', ()=>{
+  const lines = ['bruker,tid,type,detalj'];
+  activityRows.forEach(d => d.events.forEach(e => {
+    const detail = describeEvent(e).replace(/"/g, '""');
+    lines.push(`${d.user},${new Date(e.t).toISOString()},${e.type},"${detail}"`);
+  }));
+  const blob = new Blob([lines.join('\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'fixvice-aktivitet.csv'; a.click();
+  setTimeout(()=> URL.revokeObjectURL(a.href), 2000);
+});
+
+/* ---------------- Password gate (shares the unlock with admin.html) ---------------- */
+function unlock(){
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadActivity();
+}
+document.getElementById('gateSubmit').addEventListener('click', ()=>{
+  if(document.getElementById('gatePassword').value === ADMIN_PASSWORD){
+    try{ sessionStorage.setItem('fixletAdminUnlocked', '1'); } catch(e){}
+    unlock();
+  } else {
+    document.getElementById('gateError').style.display = 'block';
+  }
+});
+document.getElementById('gatePassword').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') document.getElementById('gateSubmit').click();
+});
+try{
+  if(sessionStorage.getItem('fixletAdminUnlocked') === '1') unlock();
+} catch(e){}
+</script>
+</body>
+</html>

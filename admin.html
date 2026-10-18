@@ -63,7 +63,7 @@
 <div id="app" style="display:none;">
   <header>
     <h1>Fixvice Admin</h1>
-    <span class="who">Koblet til samme database som nettsiden</span>
+    <span class="who"><a href="activity.html" style="color:#0d9488;font-weight:700;text-decoration:none;">📊 Brukeraktivitet →</a> &nbsp; Koblet til samme database som nettsiden</span>
   </header>
   <main>
     <div class="warn">
@@ -75,7 +75,6 @@
     <div class="tabs">
       <div class="tab active" data-tab="listings">Tjenester</div>
       <div class="tab" data-tab="accounts">Kontoer &amp; bannlysing</div>
-      <div class="tab" data-tab="activity">Brukeraktivitet</div>
     </div>
 
     <div id="msg" class="msg"></div>
@@ -97,15 +96,6 @@
         <button class="logout" id="deleteAllUsersBtn" style="background:#b91c1c;color:#fff;">Slett ALLE brukere</button>
       </div>
       <div id="accountsList"></div>
-    </div>
-
-    <div class="panel" id="panel-activity">
-      <div class="warn" style="margin-bottom:12px;">Viser kun aktivitet fra brukere som har sagt ja til aktivitetssporing (cookie-varselet eller profilen). Innholdet i meldinger, adresser og bilder lagres aldri. Brukeren kan slå det av når som helst.</div>
-      <div class="toolbar">
-        <button id="reloadActivity">Oppdater aktivitet</button>
-        <input type="text" id="activitySearch" placeholder="Søk brukernavn…" maxlength="20">
-      </div>
-      <div id="activityList"></div>
     </div>
   </main>
 </div>
@@ -295,12 +285,6 @@ function normalizedAccounts(){
   return registeredCodes.map(a => typeof a === 'string' ? { code: a, username: null } : a);
 }
 
-function activityPill(key){
-  const d = activityRows.find(x => x.user === key);
-  if(!d) return '<span class="pill">Ingen aktivitetsdata</span>';
-  return '<span class="pill ok">📊 ' + d.events.length + ' hendelser · sist ' + fmtTime(d.events[d.events.length-1].t) + '</span>';
-}
-
 function renderAccounts(){
   const list = document.getElementById('accountsList');
   const accounts = normalizedAccounts();
@@ -325,7 +309,6 @@ function renderAccounts(){
           <h3>${acct.username ? '@' + escapeHtml(acct.username) : '(intet brukernavn)'} <span class="meta">${acct.code ? '#'+escapeHtml(acct.code) : ''}</span></h3>
           <div class="meta">
             <span class="pill ${isBanned ? 'banned' : 'ok'}">${isBanned ? 'Bannlyst' : 'Aktiv'}</span>
-            ${activityPill(key)}
             ${ownedCount} tjeneste(r) publisert
             ${acct.phone ? ' · 📱 '+escapeHtml(acct.phone) : ''}
             ${acct.email ? ' · ✉️ '+escapeHtml(acct.email) : ''}
@@ -481,116 +464,12 @@ function escapeHtml(str){
 }
 
 /* ---------------- Tabs ---------------- */
-/* ---------------- User activity (analytics rows "an_<username>") ---------------- */
-let activityRows = [];
-async function loadActivity(){
-  const list = document.getElementById('activityList');
-  list.innerHTML = '<div class="empty">Laster…</div>';
-  try{
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=like.an_*&select=id,data`, {
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
-    });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const rows = await res.json();
-    activityRows = (rows || []).map(r => r.data).filter(d => d && Array.isArray(d.events) && d.events.length > 0);
-    renderActivity();
-    renderAccounts();
-  }catch(e){
-    list.innerHTML = '<div class="empty">Klarte ikke å hente aktivitet: ' + escapeHtml(e.message) + '</div>';
-  }
-}
-function topN(map, n){
-  return Object.entries(map).sort((a,b)=> b[1]-a[1]).slice(0, n).map(([k,v]) => `${escapeHtml(k)} (${v})`).join(', ') || '—';
-}
-function fmtTime(t){ return new Date(t).toLocaleString('nb-NO', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
-function describeEvent(e){
-  switch(e.type){
-    case 'screen': return 'Åpnet skjerm: ' + e.name;
-    case 'view_listing': return 'Åpnet tjeneste ' + (e.id || '') + (e.cat ? ' ('+e.cat+')' : '');
-    case 'open_chat': return 'Åpnet chat på tjeneste ' + (e.id || '');
-    case 'chat_send': return 'Sendte melding (' + e.kind + ')';
-    case 'browse_city': return 'Valgte by: ' + e.city + ', ' + e.country;
-    case 'plans_view': return 'Så boost-valgene';
-    case 'plan_select': return 'Valgte plan: ' + e.plan;
-    case 'plans_skip': return 'Hoppet over boost';
-    case 'publish': return 'Publiserte tjeneste' + (e.cat ? ' ('+e.cat+')' : '') + (e.countries ? ' i ' + e.countries.join(', ') : '');
-    case 'login': return 'Logget inn (' + e.mode + ')';
-    case 'session_start': return 'Startet økt';
-    case 'consent_on': return 'Sa ja til aktivitetssporing';
-    default: return e.type;
-  }
-}
-function summarize(d){
-  const ev = d.events;
-  const screens = {}, cities = {}, plans = {};
-  let listings = 0, msgs = 0, publishes = 0, planViews = 0;
-  const sessions = new Set();
-  ev.forEach(e=>{
-    sessions.add(e.s);
-    if(e.type === 'screen') screens[e.name] = (screens[e.name]||0) + 1;
-    if(e.type === 'browse_city') cities[e.city + ' (' + e.country + ')'] = (cities[e.city + ' (' + e.country + ')']||0) + 1;
-    if(e.type === 'view_listing') listings++;
-    if(e.type === 'chat_send') msgs++;
-    if(e.type === 'publish') publishes++;
-    if(e.type === 'plans_view') planViews++;
-    if(e.type === 'plan_select') plans[e.plan] = (plans[e.plan]||0) + 1;
-  });
-  return { screens, cities, plans, listings, msgs, publishes, planViews, sessions: sessions.size, last: ev[ev.length-1].t };
-}
-function renderActivity(){
-  const list = document.getElementById('activityList');
-  const q = document.getElementById('activitySearch').value.trim().toLowerCase();
-  const rows = activityRows.filter(d => !q || (d.user||'').includes(q)).sort((a,b)=> (b.lastSeen||0) - (a.lastSeen||0));
-  const withData = new Set(activityRows.map(d => d.user));
-  const silent = normalizedAccounts().map(identityKey).filter(k => k && !withData.has(k) && (!q || k.includes(q)));
-  list.innerHTML = '';
-  if(rows.length === 0 && silent.length === 0){ list.innerHTML = '<div class="empty">Ingen brukere funnet.</div>'; return; }
-  if(rows.length === 0){ list.innerHTML = '<div class="empty" style="padding:14px 0;">Ingen aktivitet registrert ennå — ingen har sagt ja til sporing, eller ingen har vært aktive etter at funksjonen ble lagt ut.</div>'; }
-  rows.forEach(d=>{
-    const sm = summarize(d);
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="row">
-        <div>
-          <h3>@${escapeHtml(d.user)} <span class="meta">sist aktiv ${fmtTime(sm.last)}</span></h3>
-          <div class="meta">
-            <span class="pill ok">${d.events.length} hendelser</span> <span class="pill">${sm.sessions} økt(er)</span>
-            <br>Skjermer: ${topN(sm.screens, 4)}
-            <br>Byer: ${topN(sm.cities, 3)}
-            <br>Tjenester åpnet: ${sm.listings} · Meldinger sendt: ${sm.msgs} · Publisert: ${sm.publishes}
-            <br>Sett boost-valg: ${sm.planViews} · Valgt plan: ${topN(sm.plans, 3)}
-          </div>
-        </div>
-        <div class="btnrow"><button data-act="tl">Tidslinje</button></div>
-      </div>
-      <div class="meta tl" style="display:none; margin-top:10px; max-height:260px; overflow:auto; border-top:1px dashed var(--line); padding-top:8px;"></div>`;
-    const tl = card.querySelector('.tl');
-    card.querySelector('[data-act="tl"]').addEventListener('click', ()=>{
-      if(tl.style.display === 'none'){
-        tl.innerHTML = d.events.slice(-80).reverse().map(e => `${fmtTime(e.t)} — ${escapeHtml(describeEvent(e))}`).join('<br>');
-        tl.style.display = 'block';
-      } else tl.style.display = 'none';
-    });
-    list.appendChild(card);
-  });
-  silent.sort().forEach(k=>{
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<div class="row"><div><h3>@${escapeHtml(k)}</h3><div class="meta"><span class="pill">Ingen aktivitet</span> Har ikke sagt ja til sporing, eller har ikke vært aktiv ennå.</div></div></div>`;
-    list.appendChild(card);
-  });
-}
-document.getElementById('reloadActivity').addEventListener('click', loadActivity);
-document.getElementById('activitySearch').addEventListener('input', renderActivity);
-
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=> t.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p=> p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
-    if(tab.dataset.tab === 'activity') loadActivity();
   });
 });
 
@@ -598,7 +477,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
 function unlock(){
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  loadAll().then(()=> loadActivity()).catch(e=> showMsg('Klarte ikke å laste data: ' + e.message, false));
+  loadAll().catch(e=> showMsg('Klarte ikke å laste data: ' + e.message, false));
 }
 document.getElementById('gateSubmit').addEventListener('click', ()=>{
   const val = document.getElementById('gatePassword').value;
