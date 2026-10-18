@@ -2438,6 +2438,35 @@
     border-bottom-left-radius:16px;
   }
   .chatbubble .ctime{ display:block; font-size:10px; opacity:.7; margin-top:5px; }
+  .chatbubble.wide{ max-width:88%; }
+  .chatbubble img.chatimg{ display:block; max-width:100%; max-height:280px; border-radius:12px; cursor:zoom-in; margin:0 0 4px; }
+  .formcard{ min-width:230px; }
+  .formcard .fc-title{ font-weight:800; font-size:14px; margin-bottom:6px; }
+  .formcard .fc-note{ font-size:12.5px; opacity:.85; margin-bottom:8px; }
+  .formcard .fc-field{ margin:8px 0; }
+  .formcard label{ display:block; font-size:11.5px; font-weight:800; margin-bottom:3px; opacity:.9; }
+  .formcard input, .formcard textarea{ width:100%; box-sizing:border-box; padding:9px 10px; border-radius:10px; border:1.5px solid var(--line); font:inherit; font-size:14px; color:var(--ink); background:#fff; }
+  .formcard .fc-row{ display:flex; gap:6px; }
+  .formcard .fc-row input{ min-width:0; }
+  .formcard button.fc-send{ width:100%; margin-top:8px; padding:10px; border:none; border-radius:12px; background:var(--grad); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+  .formcard .fc-status{ font-size:12px; font-weight:700; margin-top:6px; }
+  .formcard .fc-warn{ font-size:11px; opacity:.8; margin-top:6px; }
+  .formcard .fc-answer{ margin:4px 0; font-size:13.5px; }
+  .formcard .fc-answer b{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:.03em; opacity:.8; }
+  .chatbubble.me.formcard input, .chatbubble.me.formcard textarea{ color:var(--ink); }
+  .chattool{ background:#fff !important; color:var(--teal) !important; border:1.5px solid var(--line) !important; }
+  .chattool:hover{ border-color:var(--teal) !important; }
+  #formComposeOverlay .modal-card{ max-width:380px; text-align:left; }
+  #formComposeOverlay h3{ margin:0 0 4px; text-align:center; }
+  #formComposeOverlay p.fcsub{ text-align:center; font-size:13px; color:var(--ink-soft); margin:0 0 12px; }
+  #formComposeOverlay .fcopt{ display:flex; gap:10px; align-items:center; padding:10px 12px; border:1.5px solid var(--line); border-radius:12px; margin-bottom:8px; font-weight:700; font-size:14px; cursor:pointer; }
+  #formComposeOverlay .fcopt input{ width:18px; height:18px; accent-color:#0d9488; }
+  #formComposeOverlay textarea{ width:100%; box-sizing:border-box; padding:10px; border-radius:10px; border:1.5px solid var(--line); font:inherit; font-size:14px; margin:4px 0 10px; }
+  #formComposeOverlay .fcbtns{ display:flex; gap:8px; }
+  #formComposeOverlay .fcbtns button{ flex:1; padding:12px; border-radius:12px; font:inherit; font-weight:800; cursor:pointer; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  #formComposeOverlay .fcbtns button.primary{ border:none; background:var(--grad); color:#fff; }
+  #imgLightbox{ cursor:zoom-out; }
+  #imgLightbox img{ max-width:94vw; max-height:90vh; border-radius:12px; display:block; }
   .chatempty{ text-align:center; color:var(--ink-soft); font-size:13px; padding:40px 0; }
   .chatinputrow{
     max-width:640px;
@@ -2878,6 +2907,7 @@
         <p><strong>10. Conduct.</strong> Users must communicate respectfully through the messaging feature. Harassment, fraud, or attempts to circumvent these Terms may result in removal of your Listings or account. If you use Fixvice to offer, advertise, or facilitate anything illegal under the laws that apply to you, or otherwise misuse the platform, Fixvice may remove the relevant Listings, suspend your access, and permanently ban your account (identified by your unique username) from the platform, without prior notice and without refund of any amounts already paid. Whether to ban, unban, suspend or delete an account is decided solely and entirely at the discretion of the Fixvice administrators, who are not required to give a reason or to follow any particular procedure, and whose decision is final.</p>
         <p><strong>11. Administrator actions.</strong> Fixvice administrators may, at their discretion and for the reasons in section 10, delete any Listing, delete an account, ban or unban a username, and immediately and remotely sign your account out of every device where it is currently logged in (a "forced logout"), in each case without prior notice. Banning is entirely up to the administrators. A forced logout does not by itself delete your account or your Listings, and you can normally sign back in unless your account has also been banned.</p>
         <p><strong>12. Limits on what you can write.</strong> To keep Fixvice fast and readable, every text box has a limit, shown in small text under the box. In general a field may contain at most 20 words. The exceptions are: a Listing description (at most 400 characters), a Listing price note (40 characters), a price (6 digits), your username (10 characters), your 6-digit number, your mobile number (20 characters), your email address (60 characters) and your "about you" text (300 characters). Text over a limit is cut off automatically. These limits do not apply to chat messages. Fixvice may change the limits at any time.</p>
+        <p><strong>12a. Photos and detail forms in chat.</strong> You can send photos and request details (such as a full address and when someone can come) in the chat. Anything you send there is stored with the conversation and can be seen by the other person, so only share what you are comfortable sharing and only with people you trust. Do not send illegal content, or other people's personal details without their consent.</p>
         <p><strong>13. Sponsoring and Premium.</strong> Listings can be sponsored to be shown more prominently: a one-time +50% boost (€7.90), a one-time +100% boost (€9.90), or Premium (€9 per week) that sponsors all of your Listings. Boost percentages describe the intended increase in visibility and are not a guarantee of results. Where these are shown as "coming soon" they are not yet available, and the price, duration and terms will be shown to you before you pay.</p>
         <p><strong>14. Intellectual property.</strong> The Fixvice concept, name, design and software belong to Transform4Future Anna Madeleine Nordlund. If you copy or steal the idea, the design, or the content of Fixvice — or another user's Listing, photos or text — you can be sued. You keep the rights to what you upload, and you give Fixvice permission to store and display it on the platform for as long as your Listing is active.</p>
         <p><strong>15. No guarantee of service.</strong> Fixvice is provided "as is". We do not guarantee uninterrupted availability, that any Listing will result in business, that your data will always save to the server (a poor connection can cause a save to fail), or that any user you contact will respond or perform as described. Any figures, examples, or testimonials shown in the app are illustrative only and are not a promise of results.</p>
@@ -3144,6 +3174,9 @@
     </div>
     <div class="chatbody" id="chatBody"></div>
     <div class="chatinputrow">
+      <button type="button" class="chattool" id="chatImgBtn" title="Send a photo" aria-label="Send a photo">📷</button>
+      <button type="button" class="chattool" id="chatFormBtn" title="Request details (address, time…)" aria-label="Request details">📋</button>
+      <input type="file" id="chatImgInput" accept="image/*" style="display:none">
       <input type="text" id="chatInput" placeholder="Write a message…">
       <button id="chatSendBtn" disabled></button>
     </div>
@@ -3184,6 +3217,25 @@
       <button class="termslinkbtn" id="sponsorConfirmPublishBtn">No thanks, just publish</button>
     </div>
   </div>
+
+  <div class="modal-overlay hidden" id="formComposeOverlay" role="dialog" aria-modal="true">
+    <div class="modal-card cardPop">
+      <h3>📋 Request details</h3>
+      <p class="fcsub">Pick what the other person needs to fill in. They get a form in the chat.</p>
+      <label class="fcopt"><input type="checkbox" value="address" checked> Full address</label>
+      <label class="fcopt"><input type="checkbox" value="date" checked> Date they can come</label>
+      <label class="fcopt"><input type="checkbox" value="time" checked> Time they can come</label>
+      <label class="fcopt"><input type="checkbox" value="phone"> Phone number</label>
+      <label class="fcopt"><input type="checkbox" value="notes"> Extra notes</label>
+      <textarea id="formComposeNote" rows="2" maxlength="200" placeholder="Optional message, e.g. “So I can plan the visit”"></textarea>
+      <div class="fcbtns">
+        <button type="button" id="formComposeCancel">Cancel</button>
+        <button type="button" class="primary" id="formComposeSend">Send form</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="imgLightbox"><img alt=""></div>
 
   <div class="modal-overlay hidden" id="confirmOverlay" role="dialog" aria-modal="true">
     <div class="modal-card cardPop">
@@ -4154,24 +4206,34 @@ function renderChatMessages(){
     // who actually sent it.
     bubble.className = 'chatbubble ' + (m.from === myRole ? 'me' : 'them');
     const timeStr = new Date(m.time).toLocaleTimeString(LOCALE_MAP[activeChatLang] || 'en-GB', {hour:'2-digit', minute:'2-digit'});
-    bubble.innerHTML = `${escapeHtml(m.text)}<span class="ctime">${timeStr}</span>`;
+    if(m.type === 'image' && m.image){
+      bubble.classList.add('wide');
+      const im = document.createElement('img');
+      im.className = 'chatimg'; im.src = m.image; im.alt = 'Photo';
+      im.addEventListener('click', ()=> openImageLightbox(m.image));
+      bubble.appendChild(im);
+      const tm = document.createElement('span'); tm.className = 'ctime'; tm.textContent = timeStr;
+      bubble.appendChild(tm);
+    } else if(m.type === 'form'){
+      renderFormBubble(bubble, m, myRole, timeStr);
+    } else if(m.type === 'formReply'){
+      renderFormReplyBubble(bubble, m, timeStr);
+    } else {
+      bubble.innerHTML = `${escapeHtml(m.text)}<span class="ctime">${timeStr}</span>`;
+    }
     body.appendChild(bubble);
   });
   body.scrollTop = body.scrollHeight;
 }
 
-async function sendChatMessage(){
-  const input = document.getElementById('chatInput');
-  const text = input.value.trim();
-  if(!text || !activeChatService || !activeChatCustomerCode) return;
+async function sendChatPayload(payload){
+  if(!activeChatService || !activeChatCustomerCode) return false;
   const serviceId = activeChatService.id;
   const customerCode = activeChatCustomerCode;
   const myRole = myRoleFor(activeChatService);
   if(!activeChatService.conversations) activeChatService.conversations = {};
   if(!activeChatService.conversations[customerCode]) activeChatService.conversations[customerCode] = [];
-  activeChatService.conversations[customerCode].push({ text, time: Date.now(), from: myRole });
-  input.value = "";
-  document.getElementById('chatSendBtn').disabled = true;
+  activeChatService.conversations[customerCode].push(Object.assign({ time: Date.now(), from: myRole }, payload));
   renderChatMessages();
   const saved = await saveChatMessage(serviceId, customerCode);
   if(!saved){
@@ -4180,6 +4242,142 @@ async function sendChatMessage(){
   }
   pushNotification(activeChatLang, t(activeChatLang,'newMessagePrefix') + " \"" + activeChatService.name + "\"", activeChatService, customerCode);
   if(!screens.myServices.classList.contains('hidden')) renderMyServices(activeChatLang);
+  return saved;
+}
+
+async function sendChatMessage(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text || !activeChatService || !activeChatCustomerCode) return;
+  input.value = "";
+  document.getElementById('chatSendBtn').disabled = true;
+  await sendChatPayload({ text });
+}
+
+/* ---------- Photos in chat ----------
+   Photos are shrunk in the browser (max 800px, JPEG) before sending, since
+   messages live in the same shared data as the listings and big photos
+   would bloat it. */
+function openImageLightbox(src){
+  const ov = document.getElementById('imgLightbox');
+  ov.querySelector('img').src = src;
+  ov.classList.remove('hidden');
+  ov.onclick = ()=>{ ov.classList.add('hidden'); ov.querySelector('img').removeAttribute('src'); };
+}
+document.getElementById('chatImgBtn').addEventListener('click', ()=> document.getElementById('chatImgInput').click());
+document.getElementById('chatImgInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  e.target.value = '';
+  if(!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const probe = new Image();
+    probe.onload = ()=>{
+      const MAX = 800;
+      let w = probe.naturalWidth, h = probe.naturalHeight;
+      if(w > MAX || h > MAX){ if(w >= h){ h = Math.round(h*MAX/w); w = MAX; } else { w = Math.round(w*MAX/h); h = MAX; } }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(probe, 0, 0, w, h);
+      let q = 0.72, data = canvas.toDataURL('image/jpeg', q);
+      while(data.length > 180000 && q > 0.3){ q -= 0.1; data = canvas.toDataURL('image/jpeg', q); }
+      if(data.length > 400000){ showToast('That photo is too large — try a smaller one.', null, activeChatLang, 5000); return; }
+      sendChatPayload({ type:'image', image:data, text:'📷 Photo' });
+    };
+    probe.onerror = ()=> showToast('Could not read that photo.', null, activeChatLang, 5000);
+    probe.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ---------- Detail-request forms in chat ----------
+   Either side (the business or the customer) can send a small form asking the
+   other for details — full address, date/time they can come, etc. The other
+   person fills it in right in the chat; their answers come back as a message. */
+const FORM_FIELD_LABELS = { address:'Full address', date:'Date you can come', time:'Time you can come', phone:'Phone number', notes:'Extra notes' };
+document.getElementById('chatFormBtn').addEventListener('click', ()=>{
+  if(!activeChatService) return;
+  document.getElementById('formComposeNote').value = '';
+  document.getElementById('formComposeOverlay').classList.remove('hidden');
+});
+document.getElementById('formComposeCancel').addEventListener('click', ()=> document.getElementById('formComposeOverlay').classList.add('hidden'));
+document.getElementById('formComposeSend').addEventListener('click', async ()=>{
+  const fields = [...document.querySelectorAll('#formComposeOverlay .fcopt input:checked')].map(i=>i.value);
+  if(fields.length === 0){ showToast('Pick at least one thing to ask for.', null, activeChatLang, 3000); return; }
+  const note = document.getElementById('formComposeNote').value.trim().slice(0,200);
+  document.getElementById('formComposeOverlay').classList.add('hidden');
+  await sendChatPayload({ type:'form', formId:'f' + Date.now(), fields, note, answered:false, text:'📋 Details requested: ' + fields.map(f=>FORM_FIELD_LABELS[f]).join(', ') });
+});
+
+function renderFormBubble(bubble, m, myRole, timeStr){
+  bubble.classList.add('wide','formcard');
+  const mine = m.from === myRole;
+  const title = document.createElement('div'); title.className = 'fc-title';
+  title.textContent = mine ? '📋 You asked for details' : '📋 Details requested';
+  bubble.appendChild(title);
+  if(m.note){ const n = document.createElement('div'); n.className = 'fc-note'; n.textContent = m.note; bubble.appendChild(n); }
+  if(mine || m.answered){
+    const list = document.createElement('div'); list.className = 'fc-note';
+    list.textContent = (m.fields || []).map(f=>FORM_FIELD_LABELS[f]).join(' · ');
+    bubble.appendChild(list);
+    const st = document.createElement('div'); st.className = 'fc-status';
+    st.textContent = m.answered ? '✅ Answered' : '⏳ Waiting for an answer…';
+    bubble.appendChild(st);
+  } else {
+    const inputs = {};
+    (m.fields || []).forEach(f=>{
+      const wrap = document.createElement('div'); wrap.className = 'fc-field';
+      const lab = document.createElement('label'); lab.textContent = FORM_FIELD_LABELS[f] || f; wrap.appendChild(lab);
+      if(f === 'address'){
+        const street = Object.assign(document.createElement('input'), { type:'text', placeholder:'Street and number', maxLength:80 });
+        const row = document.createElement('div'); row.className = 'fc-row'; row.style.marginTop = '6px';
+        const zip = Object.assign(document.createElement('input'), { type:'text', placeholder:'Postcode', maxLength:10 }); zip.style.flex = '0 0 34%';
+        const city = Object.assign(document.createElement('input'), { type:'text', placeholder:'City', maxLength:40 });
+        row.appendChild(zip); row.appendChild(city);
+        wrap.appendChild(street); wrap.appendChild(row);
+        inputs.address = ()=> (street.value.trim() && zip.value.trim() && city.value.trim()) ? (street.value.trim() + ', ' + zip.value.trim() + ' ' + city.value.trim()) : '';
+      } else if(f === 'notes'){
+        const ta = Object.assign(document.createElement('textarea'), { rows:2, maxLength:200 });
+        wrap.appendChild(ta); inputs.notes = ()=> ta.value.trim();
+      } else {
+        const inp = Object.assign(document.createElement('input'), { type: f === 'date' ? 'date' : f === 'time' ? 'time' : 'tel', maxLength:20 });
+        wrap.appendChild(inp); inputs[f] = ()=> inp.value.trim();
+      }
+      bubble.appendChild(wrap);
+    });
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'fc-send'; btn.textContent = 'Send details';
+    const err = document.createElement('div'); err.className = 'fc-status'; err.style.color = '#b91c1c';
+    btn.addEventListener('click', async ()=>{
+      const answers = {};
+      for(const f of (m.fields || [])){
+        const v = inputs[f] ? inputs[f]() : '';
+        if(!v && f !== 'notes'){ err.textContent = 'Please fill in: ' + FORM_FIELD_LABELS[f] + (f === 'address' ? ' (street, postcode and city)' : ''); return; }
+        if(v) answers[f] = v;
+      }
+      btn.disabled = true;
+      m.answered = true;
+      const summary = Object.keys(answers).map(k => FORM_FIELD_LABELS[k] + ': ' + answers[k]).join(' · ');
+      await sendChatPayload({ type:'formReply', formId:m.formId, answers, text:'📋 Details sent — ' + summary });
+    });
+    bubble.appendChild(btn); bubble.appendChild(err);
+    const warn = document.createElement('div'); warn.className = 'fc-warn';
+    warn.textContent = '🔒 Only share your address with someone you trust.';
+    bubble.appendChild(warn);
+  }
+  const tm = document.createElement('span'); tm.className = 'ctime'; tm.textContent = timeStr; bubble.appendChild(tm);
+}
+
+function renderFormReplyBubble(bubble, m, timeStr){
+  bubble.classList.add('wide','formcard');
+  const title = document.createElement('div'); title.className = 'fc-title'; title.textContent = '📋 Details';
+  bubble.appendChild(title);
+  Object.keys(m.answers || {}).forEach(k=>{
+    const row = document.createElement('div'); row.className = 'fc-answer';
+    const b = document.createElement('b'); b.textContent = FORM_FIELD_LABELS[k] || k;
+    row.appendChild(b); row.appendChild(document.createTextNode(m.answers[k]));
+    bubble.appendChild(row);
+  });
+  const tm = document.createElement('span'); tm.className = 'ctime'; tm.textContent = timeStr; bubble.appendChild(tm);
 }
 
 document.getElementById('chatInput').addEventListener('input', (e)=>{
