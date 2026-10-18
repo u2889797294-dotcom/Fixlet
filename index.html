@@ -274,6 +274,34 @@
   .phonerow select{ flex:none; width:104px; padding:0 8px; border-radius:12px; border:1px solid var(--line); background:#fff; font:inherit; font-weight:700; color:var(--ink); }
   .phonerow input{ flex:1; min-width:0; }
 
+  /* ---------- plans screen (after publishing) ---------- */
+  .plans-wrap{ max-width:900px; margin:0 auto; padding:0 20px 60px; text-align:center; }
+  .plans-wrap h2{ font-size:28px; font-weight:800; margin:6px 0 6px; color:var(--ink); letter-spacing:-.01em; }
+  .plans-wrap .plans-sub{ font-size:15px; color:var(--ink-soft); margin:0 0 26px; font-weight:500; }
+  .plans-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:stretch; }
+  .plancard{ position:relative; display:flex; flex-direction:column; align-items:center; gap:6px; padding:34px 18px 22px; border:2px solid var(--line); border-radius:24px; background:linear-gradient(165deg,#fff 0%,#effaf5 100%); box-shadow:0 10px 28px rgba(15,38,32,.08); cursor:pointer; text-align:center; font:inherit; color:inherit; transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+  .plancard:hover{ transform:translateY(-5px); box-shadow:0 18px 40px rgba(13,148,136,.2); border-color:var(--teal); }
+  .plancard .plan-badge{ position:absolute; top:-13px; left:50%; transform:translateX(-50%); white-space:nowrap; padding:5px 14px; border-radius:999px; font-size:11.5px; font-weight:800; letter-spacing:.03em; text-transform:uppercase; color:#fff; background:#64748b; }
+  .plancard.popular{ border-color:#f59e0b; box-shadow:0 14px 36px rgba(245,158,11,.25); }
+  .plancard.popular .plan-badge{ background:linear-gradient(135deg,#f59e0b,#ef6c00); }
+  .plancard.best{ border-color:#7c3aed; background:linear-gradient(165deg,#faf5ff 0%,#f1e9ff 100%); box-shadow:0 14px 36px rgba(124,58,237,.22); }
+  .plancard.best .plan-badge{ background:linear-gradient(135deg,#7c3aed,#4f46e5); }
+  .plancard .plan-pct{ font-size:40px; font-weight:900; line-height:1; color:var(--teal); }
+  .plancard.best .plan-pct{ color:#6d28d9; }
+  .plancard .plan-label{ font-size:13.5px; font-weight:700; color:var(--ink-soft); }
+  .plancard .plan-price{ font-size:30px; font-weight:900; color:var(--ink); margin-top:8px; }
+  .plancard .plan-price small{ font-size:14px; font-weight:700; color:var(--ink-soft); }
+  .plancard .plan-kind{ font-size:12px; font-weight:700; color:var(--ink-soft); }
+  .plancard ul{ list-style:none; margin:10px 0 14px; padding:0; text-align:left; font-size:13px; font-weight:600; color:var(--ink); display:flex; flex-direction:column; gap:6px; }
+  .plancard li::before{ content:"✓ "; color:var(--teal); font-weight:900; }
+  .plancard .plan-cta{ margin-top:auto; width:100%; padding:12px; border-radius:14px; background:var(--grad); color:#fff; font-weight:800; font-size:14px; }
+  .plans-explain{ max-width:680px; margin:26px auto 0; text-align:left; font-size:13.5px; line-height:1.55; color:var(--ink-soft); }
+  .plans-explain p{ margin:0 0 8px; }
+  .plans-explain strong{ color:var(--ink); }
+  .plans-skip{ display:inline-block; margin-top:18px; padding:10px 18px; border:none; background:none; color:var(--ink-soft); font:inherit; font-size:14px; font-weight:700; text-decoration:underline; cursor:pointer; }
+  .plans-skip:hover{ color:var(--ink); }
+  @media (max-width:760px){ .plans-grid{ grid-template-columns:1fr; gap:22px; } .plans-wrap h2{ font-size:23px; } }
+
   /* ---------- big red logout + confirm modal ---------- */
   .bigredbtn{ display:block; width:100%; margin-top:22px; padding:16px; border:none; border-radius:16px; background:linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; font:inherit; font-size:17px; font-weight:800; letter-spacing:.01em; cursor:pointer; box-shadow:0 8px 22px rgba(185,28,28,.28); transition:transform .15s ease, box-shadow .15s ease; }
   .bigredbtn:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(185,28,28,.38); }
@@ -2736,7 +2764,51 @@
     </div>
   </div>
 
-  <!-- ===================== SPONSOR A SERVICE (one-time €29) / PREMIUM (€9/week) ===================== -->
+  <!-- ===================== SPONSOR A SERVICE (one-time boosts) / PREMIUM (€9/week) ===================== -->
+  <div class="screen hidden" id="plansScreen">
+    <div class="plans-wrap">
+      <h2>🎉 Your service is published!</h2>
+      <p class="plans-sub">Want more people to see it? Pick a boost — or skip it, it's totally optional.</p>
+      <div class="plans-grid">
+        <button type="button" class="plancard" id="plan50">
+          <span class="plan-badge">Good start</span>
+          <span class="plan-pct">+50%</span>
+          <span class="plan-label">more clicks</span>
+          <span class="plan-price">€7.90</span>
+          <span class="plan-kind">one-time · this service</span>
+          <ul><li>Shown higher in your city</li><li>"Sponsored" badge</li><li>Boosted for 30 days</li></ul>
+          <span class="plan-cta">Choose +50%</span>
+        </button>
+        <button type="button" class="plancard popular" id="plan100">
+          <span class="plan-badge">⭐ Most popular</span>
+          <span class="plan-pct">+100%</span>
+          <span class="plan-label">more clicks</span>
+          <span class="plan-price">€9.90</span>
+          <span class="plan-kind">one-time · this service</span>
+          <ul><li>Jumps to the very top</li><li>"Sponsored" badge</li><li>Boosted for 30 days</li></ul>
+          <span class="plan-cta">Choose +100%</span>
+        </button>
+        <button type="button" class="plancard best" id="planPremium">
+          <span class="plan-badge">💎 Best value</span>
+          <span class="plan-pct">Premium</span>
+          <span class="plan-label">all your services</span>
+          <span class="plan-price">€9<small>/week</small></span>
+          <span class="plan-kind">weekly · cancel anytime</span>
+          <ul><li>Every service boosted</li><li>New services included</li><li>Top spot in every city</li></ul>
+          <span class="plan-cta">Go Premium</span>
+        </button>
+      </div>
+      <div class="plans-explain">
+        <p><strong>+50% more clicks (€7.90):</strong> a one-time boost for this service only. It is shown higher up in the marketplace in your cities and gets a "Sponsored" badge for 30 days.</p>
+        <p><strong>+100% more clicks (€9.90):</strong> our most popular one-time boost for this service. It goes right to the top, before regular listings and the +50% boost, for 30 days.</p>
+        <p><strong>Premium (€9 per week):</strong> instead of paying per service, every service on your account is boosted — including all the ones you publish later. Best value if you have more than one service. Cancel anytime.</p>
+        <p>Payments aren't live yet — this is a preview of the prices. Nothing is charged today.</p>
+      </div>
+      <button type="button" class="plans-skip" id="plansSkipBtn">Skip — publish without a boost</button>
+      <p class="plans-explain" style="text-align:center;margin-top:4px;">No problem! Your service is already live. You can boost it any time later from "Your services".</p>
+    </div>
+  </div>
+
   <div class="screen hidden" id="paywallScreen">
     <div class="backrow"><button class="backbtn" id="backFromPaywall">&larr; Back</button></div>
     <div class="paywallwrap">
@@ -2797,7 +2869,7 @@
         <p><strong>10. Conduct.</strong> Users must communicate respectfully through the messaging feature. Harassment, fraud, or attempts to circumvent these Terms may result in removal of your Listings or account. If you use Fixvice to offer, advertise, or facilitate anything illegal under the laws that apply to you, or otherwise misuse the platform, Fixvice may remove the relevant Listings, suspend your access, and permanently ban your account (identified by your unique username) from the platform, without prior notice and without refund of any amounts already paid. Whether to ban, unban, suspend or delete an account is decided solely and entirely at the discretion of the Fixvice administrators, who are not required to give a reason or to follow any particular procedure, and whose decision is final.</p>
         <p><strong>11. Administrator actions.</strong> Fixvice administrators may, at their discretion and for the reasons in section 10, delete any Listing, delete an account, ban or unban a username, and immediately and remotely sign your account out of every device where it is currently logged in (a "forced logout"), in each case without prior notice. Banning is entirely up to the administrators. A forced logout does not by itself delete your account or your Listings, and you can normally sign back in unless your account has also been banned.</p>
         <p><strong>12. Limits on what you can write.</strong> To keep Fixvice fast and readable, every text box has a limit, shown in small text under the box. In general a field may contain at most 20 words. The exceptions are: a Listing description (at most 400 characters), a Listing price note (40 characters), a price (6 digits), your username (10 characters), your 6-digit number, your mobile number (20 characters), your email address (60 characters) and your "about you" text (300 characters). Text over a limit is cut off automatically. These limits do not apply to chat messages. Fixvice may change the limits at any time.</p>
-        <p><strong>13. Sponsoring and Premium.</strong> Listings can be sponsored to be shown more prominently, and a Premium option that sponsors all of your Listings is planned. Where these are shown as "coming soon" they are not yet available, and the price, duration and terms will be shown to you before you pay.</p>
+        <p><strong>13. Sponsoring and Premium.</strong> Listings can be sponsored to be shown more prominently: a one-time +50% boost (€7.90), a one-time +100% boost (€9.90), or Premium (€9 per week) that sponsors all of your Listings. Boost percentages describe the intended increase in visibility and are not a guarantee of results. Where these are shown as "coming soon" they are not yet available, and the price, duration and terms will be shown to you before you pay.</p>
         <p><strong>14. Intellectual property.</strong> The Fixvice concept, name, design and software belong to Transform4Future Anna Madeleine Nordlund. If you copy or steal the idea, the design, or the content of Fixvice — or another user's Listing, photos or text — you can be sued. You keep the rights to what you upload, and you give Fixvice permission to store and display it on the platform for as long as your Listing is active.</p>
         <p><strong>15. No guarantee of service.</strong> Fixvice is provided "as is". We do not guarantee uninterrupted availability, that any Listing will result in business, that your data will always save to the server (a poor connection can cause a save to fail), or that any user you contact will respond or perform as described. Any figures, examples, or testimonials shown in the app are illustrative only and are not a promise of results.</p>
         <p><strong>16. Liability.</strong> To the maximum extent permitted by law, Fixvice is not liable for any damages, losses, or disputes arising from interactions between users, from unauthorised use of an account whose username and number were shared or guessed, or from services purchased or rendered as a result of a Listing.</p>
@@ -2924,10 +2996,6 @@
       <label class="formconsent">
         <input type="checkbox" id="formConsentCheckbox">
         <span>I confirm this information is accurate and that I have the right to publish this content.</span>
-      </label>
-      <label class="sponsorcheck">
-        <input type="checkbox" id="sponsorAtPublishCheckbox">
-        <span>🚀 Also sponsor this listing — get more than 100%+ clicks for €29 (optional — coming soon)</span>
       </label>
       <button class="publishbtn" id="publishBtn" disabled>Publish service</button>
     </div>
@@ -3100,7 +3168,7 @@
       <div class="modal-icon"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2.5 15,9.2 22,10.2 17,15.1 18.2,22 12,18.6 5.8,22 7,15.1 2,10.2 9,9.2"/></svg></div>
       <h3>Wait — skip the boost?</h3>
       <p>Sponsored listings jump to the top and get way more clicks. Are you sure you don't want to sponsor this service?</p>
-      <button class="continuebtn" id="sponsorConfirmSponsorBtn" style="width:100%;">Yes, sponsor it — €29</button>
+      <button class="continuebtn" id="sponsorConfirmSponsorBtn" style="width:100%;">Yes, show me the boosts</button>
       <button class="termslinkbtn" id="sponsorConfirmPublishBtn">No thanks, just publish</button>
     </div>
   </div>
@@ -3537,6 +3605,7 @@ const screens = {
   privacy: document.getElementById('privacyScreen'),
   cookies: document.getElementById('cookiesScreen'),
   paywall: document.getElementById('paywallScreen'),
+  plans: document.getElementById('plansScreen'),
   city: document.getElementById('cityScreen'),
   services: document.getElementById('servicesScreen'),
   postCountry: document.getElementById('postCountryScreen'),
@@ -4372,11 +4441,13 @@ document.getElementById('navNewListingBtn').addEventListener('click', ()=>{
   document.getElementById('listServiceBtn').click();
 });
 
-/* ---------------- Sponsor a service (one-time €29) / Premium (€9/week, sponsors everything) ---------------- */
+/* ---------------- Sponsor a service (one-time boosts) / Premium (€9/week, sponsors everything) ---------------- */
 let sponsorTargetService = null;
 let sponsorReturnScreen = 'services';
 let sponsorReturnLang = 'en';
-let sponsorMode = 'single'; // 'single' = this one listing (€29 one-time), 'premium' = every listing (€9/week)
+let sponsorMode = 'single'; // 'single' = this one listing (one-time boost, see sponsorPlan), 'premium' = every listing (€9/week)
+let sponsorPlan = { pct:100, price:'9.90' };
+let paywallFromPlans = false;
 
 /* NOTE: there's no backend here, so a "€9/week" charge can't actually be
    re-billed automatically — clicking through to Stripe just flips this flag
@@ -5050,20 +5121,37 @@ function renderSponsorScreenContent(){
     b4.textContent = "Cancel the weekly payment anytime — no lock-in";
     note.textContent = "Payments aren't live yet — this is a preview. Once launched, €9/week will cover every service on your account.";
   } else {
-    bannerBig.textContent = "100%+ MORE CLICKS";
+    bannerBig.textContent = "+" + sponsorPlan.pct + "% MORE CLICKS";
     bannerSmall.textContent = "Sponsored listings get seen first";
     badge.textContent = "Boost this listing to the top";
-    title.textContent = "Get more than 100%+ clicks!";
+    title.textContent = "Get " + sponsorPlan.pct + "% more clicks!";
     sub.textContent = "A one-time boost — no subscription, cancel-anytime nonsense, just a push when you need it.";
     priceLabel.textContent = "One-time payment";
-    priceAmount.innerHTML = "€29";
+    priceAmount.innerHTML = "€" + sponsorPlan.price;
     b1.textContent = "Jump to the top of the marketplace in your city";
     b2.textContent = "Get a \"Sponsored\" badge on your listing";
     b3.textContent = "Shown before regular listings for 30 days";
     b4.textContent = "No recurring charges — pay once, boost once";
-    note.textContent = "Payments aren't live yet — this is a preview. Once launched, a one-time €29 charge features your listing for 30 days.";
+    note.textContent = "Payments aren't live yet — this is a preview. Once launched, a one-time €" + sponsorPlan.price + " charge boosts your listing for 30 days.";
   }
 }
+
+function openPlansScreen(service, lang, returnTo){
+  sponsorTargetService = service;
+  sponsorReturnScreen = returnTo || 'services';
+  sponsorReturnLang = lang || 'en';
+  show('plans');
+  window.scrollTo(0, 0);
+}
+function leavePlansScreen(){
+  if(sponsorReturnScreen === 'myServices'){ renderMyServices(sponsorReturnLang); show('myServices'); }
+  else if(browseCountry && browseCity){ renderSiteScreen(browseCountry, browseCity); show('services'); }
+  else show('home');
+}
+document.getElementById('plan50').addEventListener('click', ()=>{ sponsorPlan = { pct:50, price:'7.90' }; paywallFromPlans = true; openSponsorScreen(sponsorTargetService, sponsorReturnLang, sponsorReturnScreen); });
+document.getElementById('plan100').addEventListener('click', ()=>{ sponsorPlan = { pct:100, price:'9.90' }; paywallFromPlans = true; openSponsorScreen(sponsorTargetService, sponsorReturnLang, sponsorReturnScreen); });
+document.getElementById('planPremium').addEventListener('click', ()=>{ paywallFromPlans = true; openPremiumScreen(sponsorReturnLang, sponsorReturnScreen); });
+document.getElementById('plansSkipBtn').addEventListener('click', leavePlansScreen);
 
 function openSponsorScreen(service, lang, returnTo){
   sponsorMode = 'single';
@@ -5113,10 +5201,12 @@ function checkPaywallFormValid(){
 });
 
 document.getElementById('goPremiumBtn').addEventListener('click', ()=>{
+  paywallFromPlans = false;
   openPremiumScreen(currentLang, 'myServices');
 });
 
 document.getElementById('backFromPaywall').addEventListener('click', ()=>{
+  if(paywallFromPlans){ paywallFromPlans = false; show('plans'); return; }
   if(sponsorReturnScreen === 'myServices'){ renderMyServices(sponsorReturnLang); show('myServices'); }
   else if(sponsorReturnScreen === 'services' && browseCountry && browseCity){ renderSiteScreen(browseCountry, browseCity); show('services'); }
   else show('home');
@@ -5276,7 +5366,6 @@ let svcVideoData = null;
 
 function showPostForm(c){
   document.getElementById('formConsentCheckbox').checked = false;
-  document.getElementById('sponsorAtPublishCheckbox').checked = false;
   document.getElementById('postFormLede').textContent = t(c.lang,'postFormLede');
   document.getElementById('backFromPostFormLabel').textContent = t(c.lang,'changeCity');
   document.getElementById('lblCategory').textContent = t(c.lang,'categoryLabel');
@@ -5940,15 +6029,8 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
   browseCountry = countries[0];
   browseCity = firstLoc.cities[0];
 
-  if(document.getElementById('sponsorAtPublishCheckbox').checked){
-    openSponsorScreen(service, countries[0].lang, 'services');
-  } else {
-    // They didn't tick the sponsor box — double-check before letting the
-    // listing go out unsponsored, since boosted listings do so much better.
-    pendingPublishedService = service;
-    pendingPublishedLang = countries[0].lang;
-    openSponsorConfirm();
-  }
+  // After publishing, offer the boost plans (skippable).
+  openPlansScreen(service, countries[0].lang, 'services');
 });
 
 /* ---------------- "Are you sure?" nudge when publishing without sponsoring ---------------- */
@@ -6044,7 +6126,7 @@ function renderMyServices(lang){
       : `<div class="nocontacts">${t(s.lang,'noContactsYet')}</div>`;
     const sponsorBlock = isServiceSponsored(s)
       ? `<div class="sponsoredbadge">${ic('star')} Sponsored — boosted to the top</div>`
-      : `<button class="sponsorbtn">${ic('star')} Get more than 100%+ clicks — €29 (Coming soon)</button>`;
+      : `<button class="sponsorbtn">${ic('star')} Boost this service — from €7.90 (Coming soon)</button>`;
     card.innerHTML = `
       <button class="mysvc-delete" title="${t(lang,'deleteBtn')}">${ic('trash')}</button>
       <div class="mysvc-thumb${s.video ? ' has-video' : ''}">
@@ -6066,7 +6148,7 @@ function renderMyServices(lang){
     if(!isServiceSponsored(s)){
       card.querySelector('.sponsorbtn').addEventListener('click', (e)=>{
         e.stopPropagation();
-        openSponsorScreen(s, s.lang, 'myServices');
+        openPlansScreen(s, s.lang, 'myServices');
       });
     }
     card.querySelector('.mysvc-delete').addEventListener('click', async (e)=>{
