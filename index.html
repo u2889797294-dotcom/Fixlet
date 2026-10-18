@@ -312,6 +312,18 @@
   .plans-skip:hover{ color:var(--ink); }
   @media (max-width:760px){ .plans-grid{ grid-template-columns:1fr; gap:22px; } .plans-wrap h2{ font-size:23px; } }
 
+  /* ---------- Terms popup on open ---------- */
+  #tosPopup{ z-index:100000; }
+  #tosPopup .modal-card{ max-width:520px; width:100%; max-height:88vh; display:flex; flex-direction:column; padding:22px 20px 18px; text-align:left; }
+  #tosPopup h3{ margin:0 0 4px; font-size:21px; font-weight:800; text-align:center; }
+  #tosPopup .tos-sub{ margin:0 0 10px; text-align:center; font-size:13px; color:var(--ink-soft); }
+  #tosPopup .tos-scroll{ overflow-y:auto; border:1px solid var(--line); border-radius:14px; padding:12px 14px; font-size:13px; line-height:1.5; color:var(--ink-soft); background:#fafcfb; -webkit-overflow-scrolling:touch; }
+  #tosPopup .tos-scroll p{ margin:0 0 10px; }
+  #tosPopup .tos-scroll strong{ color:var(--ink); }
+  #tosPopup .tos-agree{ margin-top:14px; width:100%; padding:14px; border:none; border-radius:14px; background:var(--grad); color:#fff; font:inherit; font-size:16px; font-weight:800; cursor:pointer; }
+  #tosPopup .tos-links{ margin-top:8px; text-align:center; font-size:12px; color:var(--ink-soft); }
+  #tosPopup .tos-links a{ color:var(--teal); font-weight:700; }
+
   /* ---------- big red logout + confirm modal ---------- */
   .bigredbtn{ display:block; width:100%; margin-top:22px; padding:16px; border:none; border-radius:16px; background:linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; font:inherit; font-size:17px; font-weight:800; letter-spacing:.01em; cursor:pointer; box-shadow:0 8px 22px rgba(185,28,28,.28); transition:transform .15s ease, box-shadow .15s ease; }
   .bigredbtn:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(185,28,28,.38); }
@@ -2898,9 +2910,9 @@
         <p><strong>1. What Fixvice is.</strong> Fixvice is a listings platform that lets individuals and businesses publish service listings ("Listings") so that other users can find and contact them. Fixvice does not perform, supervise, or guarantee the quality of any service listed. Any agreement to perform work is strictly between the person offering the service and the person contacting them.</p>
         <p><strong>2. Accounts and signing in.</strong> To publish a Listing, message other users, or browse by country and city, you need an account. An account has a username and a 6-digit number. The username must be unique: it is 3–10 characters (letters, digits, underscore, dot or hyphen; older accounts created before this limit may be up to 20), and it is the identity of your account across Fixvice (your Listings, your conversations, bans and sign-outs). The 6-digit number is not unique — several accounts may share the same number — and you sign in by entering your username and number together. When you create an account you must give a mobile number and may optionally add an email address. There is no separate password, so keep your username and number private: you are responsible for everything done through your account, and anyone who knows both can sign in as you. Once signed in, Fixvice keeps you signed in on that device and takes you straight back to the country and city you last browsed, until you sign out, clear your browser's storage, or an administrator signs you out (see section 11).</p>
         <p><strong>3. Your profile.</strong> From your profile you can add a profile photo and a short "about you" text, and change your username, 6-digit number, mobile number and email address at any time. A new username must be available, must follow the rules in section 2, and must not be a banned username. If you change your username, your existing Listings and conversations are moved to the new username. Do not use a username, photo or text that impersonates another person or business, or that is offensive, misleading or illegal.</p>
-        <p><strong>4. Free trial and billing.</strong> Publishing a Listing requires a subscription. New subscriptions include a 7-day free trial. A valid payment card is required to start the trial, but you will not be charged during those 7 days. If you do not cancel before the trial ends, you will automatically be charged $19, and $19 again every month after that, until you cancel.</p>
-        <p><strong>5. Cancelling.</strong> You may cancel at any time, including during the free trial, from your profile page. Cancelling during the trial means you will not be charged. Cancelling after the trial stops future monthly charges but does not refund amounts already charged.</p>
-        <p><strong>6. Refund policy.</strong> Because the free trial gives you 7 full days to try Fixvice and cancel before any charge occurs, monthly subscription charges are non-refundable once billed. If you believe you were charged in error (for example, a charge occurred despite cancelling before your trial ended), contact us through the messaging feature or our helpline within 14 days and we will review it.</p>
+        <p><strong>4. Free listings and optional paid boosts.</strong> Publishing a Listing on Fixvice is free. You can optionally pay to boost visibility: a one-time +50% boost for one service (€7.90), a one-time +100% boost for one service (€9.90), or Premium (€9 per week) that boosts all of your services. One-time boosts last 30 days. Where these are shown as "coming soon", payments are not yet live and nothing is charged; the price, duration and terms are always shown to you before you pay, and you are never charged without an action from you.</p>
+        <p><strong>5. Cancelling.</strong> You may cancel Premium at any time, which stops future weekly charges. Cancelling does not refund amounts already charged. A one-time boost simply ends after its 30 days and does not renew.</p>
+        <p><strong>6. Refund policy.</strong> Boost and Premium charges are non-refundable once billed. If you believe you were charged in error (for example, a charge occurred after you cancelled), contact us through the messaging feature or our helpline within 14 days and we will review it.</p>
         <p><strong>7. Listings, prices and categories.</strong> A Listing contains a business name, description, category, photo (and optionally a video), the countries and cities where you work, and a price. The price must be a whole number of at most 6 digits, shown in US dollars (USD), British pounds (GBP) or euros (EUR), and you may add a short note of up to 40 characters under it (for example "per hour" or "+ materials"). Prices are what you state and are shown as a "from" price; they are not a binding offer by Fixvice, and the final price is agreed between you and the customer. Choose the category that fits your service; the category "Other" is available if none fits. If your service is a regulated profession (for example legal or financial services), you are responsible for holding any licence or authorisation required.</p>
         <p><strong>8. Your content.</strong> You are responsible for the accuracy of the information, images, video, profile photo and text you upload. You must not publish content that is illegal, misleading, or that you do not have the rights to use. Fixvice may remove any Listing at its discretion. By submitting a Listing you confirm the content is your own or that you have permission to use it, and that the information provided is accurate to the best of your knowledge. You can delete your own Listings at any time.</p>
         <p><strong>9. Messaging.</strong> Users can contact a Listing through Fixvice's messaging feature. Each customer has their own separate conversation with the Listing's owner, which is visible to those two accounts (and to Fixvice administrators where needed to enforce these Terms or respond to a report). Messages are stored in our database. Do not share anything through messages that you would not want stored, and never send payment details or passwords.</p>
@@ -2927,7 +2939,7 @@
       <h2>Privacy Policy</h2>
       <div class="termsbody">
         <p><strong>1. What we collect.</strong> When you create an account, we store your chosen username, your 6-digit account number, your mobile number, and — if you choose to provide them — an email address, a profile photo and a short "about you" text. When you publish a Listing, we store the business name, description, category, cities/countries, and any photo or video you upload. When you message another user, we store the text of that message. When you subscribe, payment is handled directly by Stripe — Fixvice does not see or store your full card number.</p>
-        <p><strong>2. Why we collect it.</strong> We only collect what is needed to run the marketplace: to display your Listing, let other users contact you, and manage your subscription. We do not collect more personal data than necessary for these purposes, and we do not sell your data to third parties.</p>
+        <p><strong>2. Why we collect it.</strong> We only collect what is needed to run the marketplace: to display your Listing, let other users contact you, and manage any boost or Premium you buy. We do not collect more personal data than necessary for these purposes, and we do not sell your data to third parties.</p>
         <p><strong>3. Where it's stored.</strong> Listing and message data is stored in our database (Supabase) so it can be shared across devices. Some settings may also be kept in your browser's local storage on your own device.</p>
         <p><strong>4. Third-party services.</strong> Fixvice uses Stripe to process payments and Supabase to store data. These providers may process data on our behalf under their own privacy policies. Fixvice does not currently use analytics or advertising trackers.</p>
         <p><strong>5. Your rights.</strong> You can delete your own Listings at any time from your profile, which removes their content from the marketplace. To request a full copy or deletion of your data, contact us using the details below.</p>
@@ -3232,6 +3244,16 @@
         <button type="button" id="formComposeCancel">Cancel</button>
         <button type="button" class="primary" id="formComposeSend">Send form</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="tosPopup" role="dialog" aria-modal="true" aria-labelledby="tosPopupTitle">
+    <div class="modal-card cardPop">
+      <h3 id="tosPopupTitle">Terms of Service</h3>
+      <p class="tos-sub">Please read and accept to continue using Fixvice.</p>
+      <div class="tos-scroll" id="tosPopupBody"></div>
+      <button type="button" class="tos-agree" id="tosAgreeBtn">I agree — continue</button>
+      <div class="tos-links"><a href="#" id="tosPopupPrivacy">Privacy Policy</a> · <a href="#" id="tosPopupCookies">Cookies Policy</a></div>
     </div>
   </div>
 
@@ -6183,9 +6205,31 @@ window.__initUserP = (async function initUser(){
 
 /* Loading screen: shown until the account + listings data have loaded
    (or 8 seconds have passed, so a slow network never blocks the app). */
+const TOS_ACCEPTED_KEY = 'fixvice_tos_accepted_v1';
+function showTosPopupIfNeeded(){
+  let accepted = false;
+  try { accepted = localStorage.getItem(TOS_ACCEPTED_KEY) === '1'; } catch(e){}
+  if(accepted) return;
+  const src = document.querySelector('#termsScreen .termsbody');
+  const dest = document.getElementById('tosPopupBody');
+  if(!src || !dest) return;
+  dest.innerHTML = src.innerHTML; // same text as the Terms of Service page
+  document.getElementById('tosPopup').classList.remove('hidden');
+  dest.scrollTop = 0;
+}
+function closeTosPopup(){ document.getElementById('tosPopup').classList.add('hidden'); }
+document.getElementById('tosAgreeBtn').addEventListener('click', ()=>{
+  try { localStorage.setItem(TOS_ACCEPTED_KEY, '1'); } catch(e){}
+  closeTosPopup();
+});
+document.getElementById('tosPopupPrivacy').addEventListener('click', (e)=>{ e.preventDefault(); closeTosPopup(); show('privacy'); });
+document.getElementById('tosPopupCookies').addEventListener('click', (e)=>{ e.preventDefault(); closeTosPopup(); show('cookies'); });
+
+let __loadingHidden = false;
 function hideLoadingScreen(){
   const el = document.getElementById('loadingScreen');
   if(el) el.classList.add('done');
+  if(!__loadingHidden){ __loadingHidden = true; setTimeout(showTosPopupIfNeeded, 350); }
 }
 Promise.allSettled([window.__initServicesP, window.__initUserP]).then(hideLoadingScreen);
 setTimeout(hideLoadingScreen, 8000);
