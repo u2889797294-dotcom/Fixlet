@@ -261,6 +261,12 @@
   .profilecard .pc-edit:hover{ transform:scale(1.08); box-shadow:0 4px 12px rgba(13,148,136,.25); }
   .profilecard .pc-edit svg{ width:18px; height:18px; }
   .lockedfield input[readonly]{ background:#f3f5f4; color:#7a8a85; cursor:not-allowed; }
+  .acctdetails{ margin:8px 0 4px; border:1px dashed var(--line); border-radius:14px; padding:10px 14px; background:#fafcfb; }
+  .acctdetails summary{ cursor:pointer; font-size:13px; font-weight:700; color:var(--ink-soft); list-style:none; }
+  .acctdetails summary::-webkit-details-marker{ display:none; }
+  .acctdetails summary::before{ content:"▸ "; }
+  .acctdetails[open] summary::before{ content:"▾ "; }
+  .acctdetails .formfield{ margin-top:12px; }
   .lockednote{ font-size:12px; color:var(--ink-soft); margin:5px 2px 0; }
 
   /* ---------- login: warning + country code ---------- */
@@ -3059,19 +3065,6 @@
         <label id="lblProfileName">Name</label>
         <input type="text" maxlength="20" id="profileNameInput" autocomplete="off" placeholder="Your name or business name">
       </div>
-      <div class="formfield lockedfield">
-        <label id="lblProfileUsername">Username (login — can't be changed)</label>
-        <input type="text" maxlength="20" id="profileUsernameInput" autocomplete="off" readonly tabindex="-1">
-      </div>
-      <div class="formfield lockedfield">
-        <label id="lblProfileCode">6-digit number (login — can't be changed)</label>
-        <input type="password" inputmode="numeric" maxlength="6" id="profileCodeInput" autocomplete="off" readonly tabindex="-1">
-        <p class="lockednote">🔒 These two are what you log in with, so they are locked. You can change your photo, name and the details below.</p>
-      </div>
-      <div class="formfield">
-        <label id="lblProfilePhone">Mobile number</label>
-        <input type="tel" maxlength="20" id="profilePhoneInput" autocomplete="off">
-      </div>
       <div class="formfield">
         <label id="lblProfileEmail">Gmail / email (optional)</label>
         <input type="email" maxlength="60" id="profileEmailInput" autocomplete="off">
@@ -3080,6 +3073,22 @@
         <label id="lblProfileBio">About you (optional)</label>
         <textarea id="profileBioInput" maxlength="300" placeholder="A short line about you or your business…"></textarea>
       </div>
+      <details class="acctdetails" id="profileDetails">
+        <summary>Show login details</summary>
+        <div class="formfield lockedfield">
+          <label id="lblProfileUsername">Username</label>
+          <input type="text" maxlength="20" id="profileUsernameInput" autocomplete="off" readonly tabindex="-1">
+        </div>
+        <div class="formfield lockedfield">
+          <label id="lblProfileCode">6-digit number</label>
+          <input type="password" inputmode="numeric" maxlength="6" id="profileCodeInput" autocomplete="off" readonly tabindex="-1">
+        </div>
+        <div class="formfield lockedfield">
+          <label id="lblProfilePhone">Mobile number</label>
+          <input type="tel" maxlength="20" id="profilePhoneInput" autocomplete="off" readonly tabindex="-1">
+        </div>
+        <p class="lockednote">🔒 These are what you log in with and can't be changed here.</p>
+      </details>
       <p class="loginerror hidden" id="profileErrorMsg"></p>
       <p class="loggedinas hidden" id="profileSuccessMsg"></p>
       <button class="publishbtn" id="profileSaveBtn" disabled>Save changes</button>
@@ -4927,6 +4936,7 @@ function renderProfileScreen(){
   document.getElementById('profileAvatarIcon').innerHTML = ic('camera');
   const account = findAccountByUsername(currentUser.username) || currentUser;
   profileAvatarData = account.avatar || null;
+  const det = document.getElementById('profileDetails'); if(det) det.open = false;
   document.getElementById('profileNameInput').value = account.displayName || '';
   document.getElementById('profileUsernameInput').value = currentUser.username || '';
   document.getElementById('profileCodeInput').value = account.code || currentUser.code || '';
@@ -4943,7 +4953,7 @@ function updateProfileSaveState(){
   const username = document.getElementById('profileUsernameInput').value.trim();
   const code = document.getElementById('profileCodeInput').value.trim();
   const phone = document.getElementById('profilePhoneInput').value.trim();
-  document.getElementById('profileSaveBtn').disabled = !(isValidUsername(username, username === (currentUser && currentUser.username)) && /^\d{6}$/.test(code) && isValidPhone(phone));
+  document.getElementById('profileSaveBtn').disabled = !(isValidUsername(username, username === (currentUser && currentUser.username)) && /^\d{6}$/.test(code));
 }
 ['profileUsernameInput','profileCodeInput','profilePhoneInput','profileNameInput'].forEach(id=>{
   document.getElementById(id).addEventListener('input', updateProfileSaveState);
@@ -5023,7 +5033,7 @@ document.getElementById('profileSaveBtn').addEventListener('click', async ()=>{
   const email = document.getElementById('profileEmailInput').value.trim();
   const bio = document.getElementById('profileBioInput').value.trim();
   const displayName = document.getElementById('profileNameInput').value.trim();
-  if(!isValidUsername(newUsername, newUsername === currentUser.username) || !/^\d{6}$/.test(newCode) || !isValidPhone(phone)) return;
+  if(!isValidUsername(newUsername, newUsername === currentUser.username) || !/^\d{6}$/.test(newCode)) return;
 
   const oldKey = currentUser.username.trim().toLowerCase();
   const newKey = newUsername.trim().toLowerCase();
@@ -5897,7 +5907,6 @@ function countWords(text){ return (text.match(/\S+/g) || []).length; }
     ['svcPriceNote','chars',40],
     ['svcPrice','static','Max 6 digits'],
     ['profileBioInput','chars',300],
-    ['profilePhoneInput','chars',20],
     ['profileEmailInput','chars',60],
     ['loginUsernameInput','static','Username: 3–10 characters (older accounts: up to 20)'],
     ['loginPhoneInput','chars',14],
