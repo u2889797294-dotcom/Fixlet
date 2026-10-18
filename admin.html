@@ -93,6 +93,7 @@
         <button id="manualBanBtn">Bannlys brukernavn</button>
         <button id="reloadAccounts">Oppdater liste</button>
         <button class="logout" id="logoutAllBtn">Logg ut ALLE kontoer</button>
+        <button class="logout" id="deleteAllUsersBtn" style="background:#b91c1c;color:#fff;">Slett ALLE brukere</button>
       </div>
       <div id="accountsList"></div>
     </div>
@@ -412,6 +413,37 @@ document.getElementById('logoutAllBtn').addEventListener('click', async ()=>{
     showMsg(`Alle ${accounts.length} kontoer blir logget ut (kan ta inntil 10 sekunder).`, true);
   } catch(e){
     showMsg('Klarte ikke å logge ut alle kontoene: ' + e.message, false);
+  }
+});
+
+document.getElementById('deleteAllUsersBtn').addEventListener('click', async ()=>{
+  try{
+    const latestUsers = await getRow('users');
+    if(latestUsers.length === 0){ showMsg('Det finnes ingen brukere å slette.', true); return; }
+    if(!confirm(`Slette ALLE ${latestUsers.length} brukere PERMANENT? Alle kontoer fjernes og alle blir logget ut. Dette kan ikke angres.`)) return;
+    const typed = prompt('Skriv SLETT ALLE for å bekrefte:');
+    if(typed !== 'SLETT ALLE'){ showMsg('Avbrutt — ingenting ble slettet.', false); return; }
+    const alsoListings = confirm('Slette også ALLE tjenester og samtaler?\n\nOK = ja, slett alt\nAvbryt = behold tjenestene (de blir uten eier)');
+
+    // 1) Kick everyone out first (works by timestamp, see forceLogout), 2) then remove the accounts.
+    const now = Date.now();
+    latestUsers.forEach(a=>{
+      const rec = typeof a === 'string' ? { code: a, username: null } : a;
+      forceLogoutMap[identityKey(rec)] = now;
+    });
+    await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
+    await putRow('users', []);
+    registeredCodes = [];
+    if(alsoListings){
+      await putRow('global', []);
+      services = [];
+    }
+    showMsg(`Alle ${latestUsers.length} brukere er slettet og logget ut${alsoListings ? ', sammen med alle tjenester' : ''} (utlogging kan ta inntil 10 sekunder).`, true);
+    renderStats();
+    renderListings();
+    renderAccounts();
+  } catch(e){
+    showMsg('Klarte ikke å slette alle brukerne: ' + e.message, false);
   }
 });
 
