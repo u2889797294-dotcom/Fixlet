@@ -1676,6 +1676,8 @@
     padding:0;
     font-family:inherit;
   }
+  .cookiebtns{ display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+  .cookiedeclinebtn{ border:1px solid rgba(255,255,255,.35); background:transparent; color:#fff; font-weight:700; font-size:12.5px; padding:8px 14px; border-radius:10px; cursor:pointer; font-family:inherit; }
   .cookieacceptbtn{
     border:none;
     background:var(--grad);
@@ -2920,6 +2922,7 @@
         <p><strong>11. Administrator actions.</strong> Fixvice administrators may, at their discretion and for the reasons in section 10, delete any Listing, delete an account, ban or unban a username, and immediately and remotely sign your account out of every device where it is currently logged in (a "forced logout"), in each case without prior notice. Banning is entirely up to the administrators. A forced logout does not by itself delete your account or your Listings, and you can normally sign back in unless your account has also been banned.</p>
         <p><strong>12. Limits on what you can write.</strong> To keep Fixvice fast and readable, every text box has a limit, shown in small text under the box. In general a field may contain at most 20 words. The exceptions are: a Listing description (at most 400 characters), a Listing price note (40 characters), a price (6 digits), your username (10 characters), your 6-digit number, your mobile number (20 characters), your email address (60 characters) and your "about you" text (300 characters). Text over a limit is cut off automatically. These limits do not apply to chat messages. Fixvice may change the limits at any time.</p>
         <p><strong>12a. Photos and detail forms in chat.</strong> You can send photos and request details (such as a full address and when someone can come) in the chat. Anything you send there is stored with the conversation and can be seen by the other person, so only share what you are comfortable sharing and only with people you trust. Do not send illegal content, or other people's personal details without their consent.</p>
+        <p><strong>12b. Activity tracking (analytics).</strong> If you accept "Accept all" in the cookie notice (or switch it on in your profile), Fixvice records what you do while you are signed in: which pages and screens you open and in what order, which countries, cities and listings you browse and click, which boosts or Premium plans you look at or choose, what you publish, and when you were last active, together with your username and time stamps. We use this to understand how Fixvice is used, to improve it, to prevent abuse, and so that administrators can see the activity of each account. We do not record the content of your messages, addresses or photos you send, passwords, or what you type in forms. We do not sell this data. You can switch this off at any time in your profile ("Share my activity with Fixvice"), and you can ask to have it deleted. Deleting your account also deletes your activity record.</p>
         <p><strong>13. Sponsoring and Premium.</strong> Listings can be sponsored to be shown more prominently: a one-time +50% boost (€7.90), a one-time +100% boost (€9.90), or Premium (€9 per week) that sponsors all of your Listings. Boost percentages describe the intended increase in visibility and are not a guarantee of results. Where these are shown as "coming soon" they are not yet available, and the price, duration and terms will be shown to you before you pay.</p>
         <p><strong>14. Intellectual property.</strong> The Fixvice concept, name, design and software belong to Transform4Future Anna Madeleine Nordlund. If you copy or steal the idea, the design, or the content of Fixvice — or another user's Listing, photos or text — you can be sued. You keep the rights to what you upload, and you give Fixvice permission to store and display it on the platform for as long as your Listing is active.</p>
         <p><strong>15. No guarantee of service.</strong> Fixvice is provided "as is". We do not guarantee uninterrupted availability, that any Listing will result in business, that your data will always save to the server (a poor connection can cause a save to fail), or that any user you contact will respond or perform as described. Any figures, examples, or testimonials shown in the app are illustrative only and are not a promise of results.</p>
@@ -2945,6 +2948,7 @@
         <p><strong>5. Your rights.</strong> You can delete your own Listings at any time from your profile, which removes their content from the marketplace. To request a full copy or deletion of your data, contact us using the details below.</p>
         <p><strong>6. Data retention.</strong> We keep your Listing and message data for as long as your account is active, or until you delete it.</p>
         <p><strong>7. Administrative account actions.</strong> To keep the platform safe and enforce these Terms, Fixvice administrators can see basic account and session information (such as your username and whether you are currently signed in) and can remotely sign an account out of all of its active sessions ("forced logout"), in addition to banning or unbanning an account. This is an administrative security measure, not a form of tracking, and is used for moderation and enforcement purposes only.</p>
+        <p><strong>7b. Activity data.</strong> If you allow it (cookie notice or your profile), we collect activity data tied to your username: screens opened, countries, cities and listings viewed or clicked, boost/Premium plans viewed or chosen, listings published, number and type of chat messages sent (never their content, addresses or photos), and time stamps. The legal basis is your consent, which you can withdraw at any time in your profile. It is stored in our database (Supabase), visible to Fixvice administrators, kept while your account exists, and deleted with it.</p>
         <p><strong>8. Changes.</strong> We may update this Privacy Policy from time to time; continued use of Fixvice after changes are posted means you accept the updated policy.</p>
         <p><strong>9. Contact.</strong> Questions about your data can be directed through the app's messaging feature, or by calling our helpline at +47 413 74 773.</p>
         <p class="bizdetails"><strong>Data controller:</strong> Transform4Future Anna Madeleine Nordlund · Harriet Backers vei 14E, 1415 Oppegård, Norway · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a></p>
@@ -2958,7 +2962,7 @@
     <div class="termswrap">
       <h2>Cookies &amp; Local Storage Policy</h2>
       <div class="termsbody">
-        <p><strong>1. We don't use tracking cookies.</strong> Fixvice does not use advertising or analytics cookies, and does not track you across other websites.</p>
+        <p><strong>1. No advertising trackers.</strong> Fixvice does not use advertising cookies and does not track you across other websites. If you choose "Accept all" (or switch it on in your profile), Fixvice records your activity inside Fixvice while you are signed in — see section 12b of the Terms of Service and section 7b of the Privacy Policy. "Necessary only" turns this off.</p>
         <p><strong>2. What we do store on your device.</strong> Fixvice uses your browser's local storage (not a traditional cookie) to remember essential things like your language preference and your subscription status, so the app works correctly when you return.</p>
         <p><strong>3. Third-party storage.</strong> If you complete a payment, Stripe's own checkout page may set its own cookies, governed by Stripe's privacy and cookie policy, not ours.</p>
         <p><strong>4. Managing storage.</strong> You can clear this local storage at any time through your browser's settings; doing so will sign you out of any active session in this app. Separately, a Fixvice administrator can also remotely end your active session(s) at any time (a "forced logout") for safety or Terms-enforcement reasons, as described in our Terms of Service and Privacy Policy — in that case the app will automatically sign you out the next time it checks your session, without you clearing anything yourself.</p>
@@ -2969,8 +2973,8 @@
 
   <!-- ===================== COOKIE / DATA CONSENT BANNER ===================== -->
   <div class="cookiebanner hidden" id="cookieBanner">
-    <p>Fixvice uses your browser's local storage to remember your preferences and keep you signed in — no advertising trackers. <button class="cookielink" id="cookieBannerLearnMore">Learn more</button></p>
-    <button class="cookieacceptbtn" id="cookieBannerAccept">Got it</button>
+    <p>Fixvice uses your browser's local storage to keep you signed in. If you allow it, we also record your activity on Fixvice while you're signed in (pages you visit, listings you click, boosts you look at) to improve the service — never your messages, address or photos. No advertising trackers. You can change this any time in your profile. <button class="cookielink" id="cookieBannerLearnMore">Learn more</button></p>
+    <div class="cookiebtns"><button class="cookieacceptbtn" id="cookieBannerAccept">Accept all</button><button class="cookiedeclinebtn" id="cookieBannerDecline">Necessary only</button></div>
   </div>
 
   <!-- ===================== POST: COUNTRY MULTI-SELECT ===================== -->
@@ -3118,6 +3122,10 @@
         <label id="lblProfileBio">Description (optional)</label>
         <textarea id="profileBioInput" maxlength="300" placeholder="Optional — a short description of you or your business…"></textarea>
       </div>
+      <label class="loginack" style="background:#fff;color:var(--ink);border-color:var(--line);border-radius:12px;margin-top:12px;">
+        <input type="checkbox" id="profileAnalyticsToggle">
+        <span><strong style="color:var(--ink)">Share my activity with Fixvice</strong><br>Lets us see which pages and listings you use, to improve the service. Never your messages, addresses or photos. You can turn this off any time.</span>
+      </label>
       <details class="acctdetails" id="profileDetails">
         <summary>Show login details</summary>
         <div class="formfield lockedfield">
@@ -5049,6 +5057,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   document.getElementById('loginEmailInput').value = "";
   await loadPremium();
   await saveLastLocation(); // in case a browsed country/city was set before login was required
+  track('login', { mode: loginMode });
   if(pendingLoginAction){
     const action = pendingLoginAction;
     pendingLoginAction = null;
@@ -5161,6 +5170,7 @@ function renderProfileScreen(){
   const account = findAccountByUsername(currentUser.username) || currentUser;
   profileAvatarData = account.avatar || null;
   const det = document.getElementById('profileDetails'); if(det) det.open = false;
+  const anT = document.getElementById('profileAnalyticsToggle'); if(anT) anT.checked = analyticsOn();
   document.getElementById('profileNameInput').value = account.displayName || '';
   document.getElementById('profileUsernameInput').value = currentUser.username || '';
   document.getElementById('profileCodeInput').value = account.code || currentUser.code || '';
@@ -5455,19 +5465,24 @@ document.getElementById('backFromCookies').addEventListener('click', ()=> show('
 
 /* ---------------- Cookie / data consent banner ---------------- */
 const COOKIE_CONSENT_KEY = 'jelp_cookie_consent_v1';
+const AN_KEY = 'fixvice_analytics_v1'; // 'on' | 'off' | (unset = not asked yet)
 function showCookieBannerIfNeeded(){
   let dismissed = false;
-  try { dismissed = localStorage.getItem(COOKIE_CONSENT_KEY) === '1'; } catch(e){}
+  // The banner is shown until an analytics choice (accept / necessary only) has been made.
+  try { dismissed = localStorage.getItem(COOKIE_CONSENT_KEY) === '1' && localStorage.getItem(AN_KEY) !== null; } catch(e){}
   if(!dismissed){
     document.getElementById('cookieBanner').classList.remove('hidden');
     document.body.classList.add('cookie-banner-open');
   }
 }
-document.getElementById('cookieBannerAccept').addEventListener('click', ()=>{
+function closeCookieBanner(analytics){
   try { localStorage.setItem(COOKIE_CONSENT_KEY, '1'); } catch(e){}
+  setAnalyticsConsent(analytics);
   document.getElementById('cookieBanner').classList.add('hidden');
   document.body.classList.remove('cookie-banner-open');
-});
+}
+document.getElementById('cookieBannerAccept').addEventListener('click', ()=> closeCookieBanner(true));
+document.getElementById('cookieBannerDecline').addEventListener('click', ()=> closeCookieBanner(false));
 document.getElementById('cookieBannerLearnMore').addEventListener('click', ()=>{
   show('cookies');
 });
@@ -6201,10 +6216,95 @@ window.__initUserP = (async function initUser(){
   }
   startForceLogoutWatcher();
   refreshCountryGrids();
+  track('session_start', {});
 })();
 
 /* Loading screen: shown until the account + listings data have loaded
    (or 8 seconds have passed, so a slow network never blocks the app). */
+/* ---------------- Activity analytics (consent-based) ----------------
+   Only runs when the signed-in user has accepted it (cookie notice or the
+   toggle in their profile). Records WHAT they do (screens, listings,
+   cities, plan clicks, publishing, message counts) per username — never
+   message text, addresses, photos or typed form input. One row per user
+   ("an_<username>") so users never overwrite each other. */
+function analyticsOn(){ try { return localStorage.getItem(AN_KEY) === 'on'; } catch(e){ return false; } }
+function setAnalyticsConsent(on){
+  try { localStorage.setItem(AN_KEY, on ? 'on' : 'off'); } catch(e){}
+  if(on) track('consent_on', {}); else anQueue = [];
+  const t = document.getElementById('profileAnalyticsToggle'); if(t) t.checked = !!on;
+}
+let anQueue = [];
+const anSession = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+function track(type, data){
+  try{
+    if(!analyticsOn() || !currentUser || !currentUser.username) return;
+    anQueue.push(Object.assign({ t: Date.now(), s: anSession, type }, data || {}));
+    if(anQueue.length >= 12) flushAnalytics();
+  }catch(e){}
+}
+let anFlushing = false;
+async function flushAnalytics(){
+  if(anFlushing || anQueue.length === 0 || !supabaseConfigured() || !analyticsOn() || !currentUser || !currentUser.username) return;
+  anFlushing = true;
+  const batch = anQueue.splice(0);
+  const user = currentUser.username.trim().toLowerCase();
+  const id = 'an_' + user;
+  try{
+    let row = { user, firstSeen: Date.now(), events: [] };
+    const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${encodeURIComponent(id)}&select=data`, {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    if(getRes.ok){
+      const rows = await getRes.json();
+      if(rows && rows[0] && rows[0].data && Array.isArray(rows[0].data.events)) row = rows[0].data;
+    }
+    row.user = user;
+    row.lastSeen = Date.now();
+    row.events = row.events.concat(batch).slice(-500);
+    const putRes = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+      method: "POST",
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify({ id, data: row })
+    });
+    if(!putRes.ok) throw new Error('HTTP ' + putRes.status);
+  }catch(e){
+    anQueue = batch.concat(anQueue).slice(-200); // keep for the next try
+  }finally{ anFlushing = false; }
+}
+setInterval(flushAnalytics, 20000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'hidden') flushAnalytics(); });
+window.addEventListener('pagehide', flushAnalytics);
+document.getElementById('profileAnalyticsToggle').addEventListener('change', (e)=> setAnalyticsConsent(e.target.checked));
+
+// --- hooks (wrap existing functions so the rest of the app needn't change) ---
+(function(){
+  const _show = show;
+  show = function(name){ _show(name); track('screen', { name }); };
+  const _openDetail = openServiceDetail;
+  openServiceDetail = function(service, lang){
+    try{ track('view_listing', { id: service && service.id, cat: service && service.category, country: service && service.country }); }catch(e){}
+    return _openDetail(service, lang);
+  };
+  const _openChat = openChat;
+  openChat = function(service, lang, customerCode){
+    try{ track('open_chat', { id: service && service.id }); }catch(e){}
+    return _openChat(service, lang, customerCode);
+  };
+  const _saveLoc = saveLastLocation;
+  saveLastLocation = function(){
+    try{ if(browseCountry && browseCity) track('browse_city', { country: browseCountry.name, city: browseCity }); }catch(e){}
+    return _saveLoc();
+  };
+  const _plans = openPlansScreen;
+  openPlansScreen = function(service, lang, returnTo){ track('plans_view', { from: returnTo }); return _plans(service, lang, returnTo); };
+  const _chatPayload = sendChatPayload;
+  sendChatPayload = function(payload){ track('chat_send', { kind: (payload && payload.type) || 'text' }); return _chatPayload(payload); };
+})();
+['plan50','plan100','planPremium'].forEach(id=>{
+  document.getElementById(id).addEventListener('click', ()=> track('plan_select', { plan: id.replace('plan','').toLowerCase() }));
+});
+document.getElementById('plansSkipBtn').addEventListener('click', ()=> track('plans_skip', {}));
+
 const TOS_ACCEPTED_KEY = 'fixvice_tos_accepted_v1';
 function showTosPopupIfNeeded(){
   let accepted = false;
@@ -6273,6 +6373,7 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
     conversations: {}
   };
   myServices.unshift(service);
+  track('publish', { cat, countries: countries.map(c=>c.name) });
   const saved = await saveServices();
   if(!saved){
     const detail = lastSaveErrorDetail ? (' [' + lastSaveErrorDetail + ']') : '';
