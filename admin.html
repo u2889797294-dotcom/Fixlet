@@ -295,6 +295,12 @@ function normalizedAccounts(){
   return registeredCodes.map(a => typeof a === 'string' ? { code: a, username: null } : a);
 }
 
+function activityPill(key){
+  const d = activityRows.find(x => x.user === key);
+  if(!d) return '<span class="pill">Ingen aktivitetsdata</span>';
+  return '<span class="pill ok">📊 ' + d.events.length + ' hendelser · sist ' + fmtTime(d.events[d.events.length-1].t) + '</span>';
+}
+
 function renderAccounts(){
   const list = document.getElementById('accountsList');
   const accounts = normalizedAccounts();
@@ -319,6 +325,7 @@ function renderAccounts(){
           <h3>${acct.username ? '@' + escapeHtml(acct.username) : '(intet brukernavn)'} <span class="meta">${acct.code ? '#'+escapeHtml(acct.code) : ''}</span></h3>
           <div class="meta">
             <span class="pill ${isBanned ? 'banned' : 'ok'}">${isBanned ? 'Bannlyst' : 'Aktiv'}</span>
+            ${activityPill(key)}
             ${ownedCount} tjeneste(r) publisert
             ${acct.phone ? ' · 📱 '+escapeHtml(acct.phone) : ''}
             ${acct.email ? ' · ✉️ '+escapeHtml(acct.email) : ''}
@@ -487,6 +494,7 @@ async function loadActivity(){
     const rows = await res.json();
     activityRows = (rows || []).map(r => r.data).filter(d => d && Array.isArray(d.events) && d.events.length > 0);
     renderActivity();
+    renderAccounts();
   }catch(e){
     list.innerHTML = '<div class="empty">Klarte ikke å hente aktivitet: ' + escapeHtml(e.message) + '</div>';
   }
@@ -533,8 +541,11 @@ function renderActivity(){
   const list = document.getElementById('activityList');
   const q = document.getElementById('activitySearch').value.trim().toLowerCase();
   const rows = activityRows.filter(d => !q || (d.user||'').includes(q)).sort((a,b)=> (b.lastSeen||0) - (a.lastSeen||0));
-  if(rows.length === 0){ list.innerHTML = '<div class="empty">Ingen aktivitet registrert ennå (ingen har sagt ja til sporing, eller ingen har vært aktive).</div>'; return; }
+  const withData = new Set(activityRows.map(d => d.user));
+  const silent = normalizedAccounts().map(identityKey).filter(k => k && !withData.has(k) && (!q || k.includes(q)));
   list.innerHTML = '';
+  if(rows.length === 0 && silent.length === 0){ list.innerHTML = '<div class="empty">Ingen brukere funnet.</div>'; return; }
+  if(rows.length === 0){ list.innerHTML = '<div class="empty" style="padding:14px 0;">Ingen aktivitet registrert ennå — ingen har sagt ja til sporing, eller ingen har vært aktive etter at funksjonen ble lagt ut.</div>'; }
   rows.forEach(d=>{
     const sm = summarize(d);
     const card = document.createElement('div');
@@ -563,6 +574,12 @@ function renderActivity(){
     });
     list.appendChild(card);
   });
+  silent.sort().forEach(k=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<div class="row"><div><h3>@${escapeHtml(k)}</h3><div class="meta"><span class="pill">Ingen aktivitet</span> Har ikke sagt ja til sporing, eller har ikke vært aktiv ennå.</div></div></div>`;
+    list.appendChild(card);
+  });
 }
 document.getElementById('reloadActivity').addEventListener('click', loadActivity);
 document.getElementById('activitySearch').addEventListener('input', renderActivity);
@@ -581,7 +598,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
 function unlock(){
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  loadAll().catch(e=> showMsg('Klarte ikke å laste data: ' + e.message, false));
+  loadAll().then(()=> loadActivity()).catch(e=> showMsg('Klarte ikke å laste data: ' + e.message, false));
 }
 document.getElementById('gateSubmit').addEventListener('click', ()=>{
   const val = document.getElementById('gatePassword').value;
