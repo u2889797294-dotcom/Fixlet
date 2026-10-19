@@ -906,6 +906,13 @@
     z-index:2;
   }
   .plcard .fav svg{ width:14px; height:14px; }
+  .plcard .cardshare{
+    position:absolute; top:10px; right:44px; z-index:3; width:28px; height:28px; padding:0; border:none;
+    border-radius:50%; background:rgba(255,255,255,.92); display:flex; align-items:center; justify-content:center;
+    color:var(--ink-soft); cursor:pointer;
+  }
+  .plcard .cardshare svg{ width:14px; height:14px; }
+  .plcard .cardshare:hover{ color:#0d9488; }
   .plcard .videobadge{
     position:absolute;
     bottom:10px; left:10px;
@@ -4009,6 +4016,7 @@ function renderListingCards(lang){
       <div class="thumb" style="background:linear-gradient(135deg,#0d9488,#7ac943)">
         ${l.image ? `<img src="${l.image}" class="lazyfade" onload="this.classList.add('loaded')" style="width:100%;height:100%;object-fit:contain;position:absolute;inset:0;background:#fff;">` : `<span class="thumbico">${ic(icoKey)}</span>`}
         <span class="fav" style="z-index:3;">${ic('heart')}</span>
+        <button type="button" class="cardshare" title="Share" aria-label="Share this service"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
         ${videoBadge}
         ${sponsoredTag}
         <span class="avatarchip" style="background:#0d9488; z-index:3;">${l.name.charAt(0)}</span>
@@ -4033,6 +4041,11 @@ function renderListingCards(lang){
         openShorts([l], 0, lang);
       });
     }
+
+    div.querySelector('.cardshare').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      shareService(l);
+    });
 
     const cbtn = div.querySelector('.contactbtn');
     cbtn.addEventListener('click', (e)=>{
