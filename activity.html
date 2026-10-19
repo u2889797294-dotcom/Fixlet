@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="no">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Fixvice Brukeraktivitet</title>
+<title>Fixvice User Activity</title>
 <style>
   :root{ --teal:#0d9488; --ink:#111827; --ink-soft:#6b7280; --line:#e5e7eb; --mist:#f3f4f6; --bad:#dc2626; --good-bg:#e6f7ed; --good:#0a6b33; }
   *{ box-sizing:border-box; }
@@ -42,35 +42,35 @@
 <body>
 
 <div id="gate">
-  <h2>Fixvice Brukeraktivitet</h2>
-  <p>Her ser du hva brukerne gjør på Fixvice (kun de som har sagt ja til sporing). Skriv inn admin-passordet for å fortsette.</p>
-  <input type="password" id="gatePassword" placeholder="Admin-passord" autocomplete="off">
-  <button class="primary" id="gateSubmit">Logg inn</button>
-  <p id="gateError" style="color:var(--bad); display:none;">Feil passord.</p>
+  <h2>Fixvice User Activity</h2>
+  <p>See what users do on Fixvice (only those who agreed to tracking). Enter the password to continue.</p>
+  <input type="password" id="gatePassword" placeholder="Password" autocomplete="off">
+  <button class="primary" id="gateSubmit">Log in</button>
+  <p id="gateError" style="color:var(--bad); display:none;">Wrong password.</p>
 </div>
 
 <div id="app" style="display:none;">
   <header>
-    <h1>📊 Fixvice Brukeraktivitet</h1>
-    <a href="admin.html">← Til adminpanelet</a>
+    <h1>📊 Fixvice User Activity</h1>
+    
   </header>
   <main>
     <div class="warn">
-      Viser kun aktivitet fra brukere som har sagt ja til aktivitetssporing (cookie-varselet eller profilen). Innholdet i meldinger, adresser og bilder lagres aldri. Brukeren kan slå sporingen av når som helst. Passordet er kun en enkel sperre i nettleseren, ikke ekte sikkerhet.
+      Only shows activity from users who agreed to activity tracking (cookie banner or profile). The content of messages, addresses and images is never stored. Users can turn tracking off at any time. The password is only a simple browser gate, not real security.
     </div>
 
     <div class="stat-row" id="statRow"></div>
     <div class="overview" id="overview"></div>
 
     <div class="toolbar">
-      <button id="reloadActivity">Oppdater</button>
-      <input type="text" id="activitySearch" placeholder="Søk brukernavn…" maxlength="20">
+      <button id="reloadActivity">Refresh</button>
+      <input type="text" id="activitySearch" placeholder="Search username…" maxlength="20">
       <select id="activitySort">
-        <option value="recent">Sist aktive først</option>
-        <option value="events">Flest hendelser først</option>
-        <option value="name">Navn A–Å</option>
+        <option value="recent">Most recently active first</option>
+        <option value="events">Most events first</option>
+        <option value="name">Name A–Z</option>
       </select>
-      <button id="downloadCsv">Last ned CSV</button>
+      <button id="downloadCsv">Download CSV</button>
     </div>
     <div id="msg" class="meta" style="margin-bottom:8px;"></div>
     <div id="activityList"></div>
@@ -81,7 +81,7 @@
 const SUPABASE_URL = "https://upqntfrjjkmlrguhwgut.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_4gbfqCFJaOqhUC-Bp_Hg3A_d0K-l4Kc";
 const SUPABASE_TABLE = "Jelp-services";
-const ADMIN_PASSWORD = "GaisRik908070"; // same simple browser gate as admin.html
+const ADMIN_PASSWORD = "GaisRik908070"; // simple browser gate (this page is fully separate from admin.html)
 
 let activityRows = [];
 let registeredCodes = [];
@@ -107,21 +107,22 @@ function identityKey(a){
 function topN(map, n){
   return Object.entries(map).sort((a,b)=> b[1]-a[1]).slice(0, n).map(([k,v]) => `${escapeHtml(k)} (${v})`).join(', ') || '—';
 }
-function fmtTime(t){ return new Date(t).toLocaleString('nb-NO', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
+function fmtTime(t){ return new Date(t).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
 function describeEvent(e){
   switch(e.type){
-    case 'screen': return 'Åpnet skjerm: ' + e.name;
-    case 'view_listing': return 'Åpnet tjeneste ' + (e.id || '') + (e.cat ? ' ('+e.cat+')' : '');
-    case 'open_chat': return 'Åpnet chat på tjeneste ' + (e.id || '');
-    case 'chat_send': return 'Sendte melding (' + e.kind + ')';
-    case 'browse_city': return 'Valgte by: ' + e.city + ', ' + e.country;
-    case 'plans_view': return 'Så boost-valgene';
-    case 'plan_select': return 'Valgte plan: ' + e.plan;
-    case 'plans_skip': return 'Hoppet over boost';
-    case 'publish': return 'Publiserte tjeneste' + (e.cat ? ' ('+e.cat+')' : '') + (e.countries ? ' i ' + e.countries.join(', ') : '');
-    case 'login': return 'Logget inn (' + e.mode + ')';
-    case 'session_start': return 'Startet økt';
-    case 'consent_on': return 'Sa ja til aktivitetssporing';
+    case 'screen': return 'Opened screen: ' + e.name;
+    case 'view_listing': return 'Opened listing ' + (e.id || '') + (e.cat ? ' ('+e.cat+')' : '');
+    case 'open_chat': return 'Opened chat on listing ' + (e.id || '');
+    case 'chat_send': return 'Sent message (' + e.kind + ')';
+    case 'browse_city': return 'Chose city: ' + e.city + ', ' + e.country;
+    case 'plans_view': return 'Viewed boost options';
+    case 'plan_select': return 'Chose plan: ' + e.plan;
+    case 'plans_skip': return 'Skipped boost';
+    case 'publish': return 'Published listing' + (e.cat ? ' ('+e.cat+')' : '') + (e.countries ? ' in ' + e.countries.join(', ') : '');
+    case 'login': return 'Logged in (' + e.mode + ')';
+    case 'session_start': return 'Started session';
+    case 'consent_on': return 'Agreed to activity tracking';
+    case 'edit_service': return 'Edited listing' + (e.cat ? ' ('+e.cat+')' : '');
     default: return e.type;
   }
 }
@@ -146,7 +147,7 @@ function summarize(d){
 async function loadActivity(){
   const list = document.getElementById('activityList');
   const msg = document.getElementById('msg');
-  list.innerHTML = '<div class="empty">Laster…</div>';
+  list.innerHTML = '<div class="empty">Loading…</div>';
   msg.textContent = '';
   try{
     const [actRes, users] = await Promise.all([
@@ -157,10 +158,10 @@ async function loadActivity(){
     const rows = await actRes.json();
     activityRows = (rows || []).map(r => r.data).filter(d => d && Array.isArray(d.events) && d.events.length > 0);
     if(users) registeredCodes = users;
-    else msg.textContent = '⚠️ Kunne ikke hente brukerlisten — viser bare brukere med aktivitet.';
+    else msg.textContent = '⚠️ Could not load the user list — only showing users with activity.';
     render();
   }catch(e){
-    list.innerHTML = '<div class="empty">Klarte ikke å hente aktivitet: ' + escapeHtml(e.message) + '</div>';
+    list.innerHTML = '<div class="empty">Could not load activity: ' + escapeHtml(e.message) + '</div>';
   }
 }
 
@@ -180,14 +181,14 @@ function renderOverview(){
   const day = Date.now() - 24*3600*1000;
   const activeToday = activityRows.filter(d => summarize(d).last > day).length;
   document.getElementById('statRow').innerHTML = [
-    [total || '—', 'Registrerte brukere'], [tracked, 'Med aktivitetsdata'], [activeToday, 'Aktive siste 24t'], [allEvents, 'Hendelser totalt']
+    [total || '—', 'Registered users'], [tracked, 'With activity data'], [activeToday, 'Active last 24h'], [allEvents, 'Total events']
   ].map(([n,l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
   document.getElementById('overview').innerHTML = tracked === 0
-    ? 'Ingen aktivitet registrert ennå. Sporingen starter først når en bruker har trykket «Accept all» i cookie-varselet (eller slått det på i profilen).'
-    : `<b>Mest besøkte skjermer:</b> ${topN(screens, 5)}<br>
-       <b>Mest valgte byer:</b> ${topN(cities, 5)}<br>
-       <b>Tjenester åpnet:</b> ${listings} · <b>Meldinger sendt:</b> ${msgs} · <b>Publisert:</b> ${publishes}<br>
-       <b>Sett boost-valg:</b> ${planViews} · <b>Valgte planer:</b> ${topN(plans, 3)}`;
+    ? 'No activity recorded yet. Tracking only starts once a user has pressed “Accept all” in the cookie banner (or turned it on in their profile).'
+    : `<b>Most visited screens:</b> ${topN(screens, 5)}<br>
+       <b>Most chosen cities:</b> ${topN(cities, 5)}<br>
+       <b>Listings opened:</b> ${listings} · <b>Messages sent:</b> ${msgs} · <b>Published:</b> ${publishes}<br>
+       <b>Seen boost options:</b> ${planViews} · <b>Chosen plans:</b> ${topN(plans, 3)}`;
 }
 
 function render(){
@@ -202,7 +203,7 @@ function render(){
   const withData = new Set(activityRows.map(d => d.user));
   const silent = registeredCodes.map(identityKey).filter(k => k && !withData.has(k) && (!q || k.includes(q))).sort();
   list.innerHTML = '';
-  if(rows.length === 0 && silent.length === 0){ list.innerHTML = '<div class="empty">Ingen brukere funnet.</div>'; return; }
+  if(rows.length === 0 && silent.length === 0){ list.innerHTML = '<div class="empty">No users found.</div>'; return; }
   rows.forEach(d=>{
     const sm = summarize(d);
     const card = document.createElement('div');
@@ -210,16 +211,16 @@ function render(){
     card.innerHTML = `
       <div class="row">
         <div>
-          <h3>@${escapeHtml(d.user)} <span class="meta">sist aktiv ${fmtTime(sm.last)}</span></h3>
+          <h3>@${escapeHtml(d.user)} <span class="meta">last active ${fmtTime(sm.last)}</span></h3>
           <div class="meta">
-            <span class="pill ok">${d.events.length} hendelser</span> <span class="pill">${sm.sessions} økt(er)</span>
-            <br>Skjermer: ${topN(sm.screens, 4)}
-            <br>Byer: ${topN(sm.cities, 3)}
-            <br>Tjenester åpnet: ${sm.listings} · Meldinger sendt: ${sm.msgs} · Publisert: ${sm.publishes}
-            <br>Sett boost-valg: ${sm.planViews} · Valgt plan: ${topN(sm.plans, 3)}
+            <span class="pill ok">${d.events.length} events</span> <span class="pill">${sm.sessions} session(s)</span>
+            <br>Screens: ${topN(sm.screens, 4)}
+            <br>Cities: ${topN(sm.cities, 3)}
+            <br>Listings opened: ${sm.listings} · Messages sent: ${sm.msgs} · Published: ${sm.publishes}
+            <br>Seen boost options: ${sm.planViews} · Chosen plan: ${topN(sm.plans, 3)}
           </div>
         </div>
-        <div><button data-act="tl">Tidslinje</button></div>
+        <div><button data-act="tl">Timeline</button></div>
       </div>
       <div class="meta tl"></div>`;
     const tl = card.querySelector('.tl');
@@ -233,7 +234,7 @@ function render(){
   silent.forEach(k=>{
     const card = document.createElement('div');
     card.className = 'card';
-    card.innerHTML = `<div class="row"><div><h3>@${escapeHtml(k)}</h3><div class="meta"><span class="pill">Ingen aktivitet</span> Har ikke sagt ja til sporing, eller har ikke vært aktiv ennå.</div></div></div>`;
+    card.innerHTML = `<div class="row"><div><h3>@${escapeHtml(k)}</h3><div class="meta"><span class="pill">No activity</span> Has not agreed to tracking, or has not been active yet.</div></div></div>`;
     list.appendChild(card);
   });
 }
@@ -242,18 +243,18 @@ document.getElementById('reloadActivity').addEventListener('click', loadActivity
 document.getElementById('activitySearch').addEventListener('input', render);
 document.getElementById('activitySort').addEventListener('change', render);
 document.getElementById('downloadCsv').addEventListener('click', ()=>{
-  const lines = ['bruker,tid,type,detalj'];
+  const lines = ['user,time,type,detail'];
   activityRows.forEach(d => d.events.forEach(e => {
     const detail = describeEvent(e).replace(/"/g, '""');
     lines.push(`${d.user},${new Date(e.t).toISOString()},${e.type},"${detail}"`);
   }));
   const blob = new Blob([lines.join('\n')], { type:'text/csv;charset=utf-8' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = 'fixvice-aktivitet.csv'; a.click();
+  a.href = URL.createObjectURL(blob); a.download = 'fixvice-activity.csv'; a.click();
   setTimeout(()=> URL.revokeObjectURL(a.href), 2000);
 });
 
-/* ---------------- Password gate (shares the unlock with admin.html) ---------------- */
+/* ---------------- Password gate (separate from admin.html — its own unlock) ---------------- */
 function unlock(){
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -261,7 +262,7 @@ function unlock(){
 }
 document.getElementById('gateSubmit').addEventListener('click', ()=>{
   if(document.getElementById('gatePassword').value === ADMIN_PASSWORD){
-    try{ sessionStorage.setItem('fixletAdminUnlocked', '1'); } catch(e){}
+    try{ sessionStorage.setItem('fixviceActivityUnlocked', '1'); } catch(e){}
     unlock();
   } else {
     document.getElementById('gateError').style.display = 'block';
@@ -271,7 +272,7 @@ document.getElementById('gatePassword').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter') document.getElementById('gateSubmit').click();
 });
 try{
-  if(sessionStorage.getItem('fixletAdminUnlocked') === '1') unlock();
+  if(sessionStorage.getItem('fixviceActivityUnlocked') === '1') unlock();
 } catch(e){}
 </script>
 </body>

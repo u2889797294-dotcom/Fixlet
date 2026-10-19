@@ -1209,6 +1209,13 @@
     transition:border-color .12s ease, color .12s ease, background .12s ease;
   }
   .mysvc-delete svg{ width:14px; height:14px; }
+  .mysvc-edit{
+    position:absolute; top:14px; right:52px; width:30px; height:30px; border-radius:50%;
+    border:1.5px solid var(--line); background:#fff; display:flex; align-items:center; justify-content:center;
+    color:var(--ink-soft); cursor:pointer; transition:border-color .12s ease, color .12s ease, background .12s ease;
+  }
+  .mysvc-edit svg{ width:14px; height:14px; }
+  .mysvc-edit:hover{ border-color:#0d9488; color:#0d9488; background:#f0faf8; }
   .mysvc-delete:hover{ border-color:#e35555; color:#e35555; background:#fdf2f2; }
   .sponsorbtn{
     display:flex;
@@ -2598,6 +2605,7 @@
     .mysvc-card{ flex-direction:column; padding:14px; }
     .mysvc-thumb{ width:100%; height:160px; }
     .mysvc-delete{ top:10px; right:10px; }
+    .mysvc-edit{ top:10px; right:48px; }
 
     #serviceDetailScreen{ padding:0 16px 60px; }
     .detailwrap{ flex-direction:column; gap:22px; }
@@ -2916,7 +2924,7 @@
         <p><strong>5. Cancelling.</strong> You may cancel Premium at any time, which stops future weekly charges. Cancelling does not refund amounts already charged. A one-time boost simply ends after its 30 days and does not renew.</p>
         <p><strong>6. Refund policy.</strong> Boost and Premium charges are non-refundable once billed. If you believe you were charged in error (for example, a charge occurred after you cancelled), contact us through the messaging feature or our helpline within 14 days and we will review it.</p>
         <p><strong>7. Listings, prices and categories.</strong> A Listing contains a business name, description, category, photo (and optionally a video), the countries and cities where you work, and a price. The price must be a whole number of at most 6 digits, shown in US dollars (USD), British pounds (GBP) or euros (EUR), and you may add a short note of up to 40 characters under it (for example "per hour" or "+ materials"). Prices are what you state and are shown as a "from" price; they are not a binding offer by Fixvice, and the final price is agreed between you and the customer. Choose the category that fits your service; the category "Other" is available if none fits. If your service is a regulated profession (for example legal or financial services), you are responsible for holding any licence or authorisation required.</p>
-        <p><strong>8. Your content.</strong> You are responsible for the accuracy of the information, images, video, profile photo and text you upload. You must not publish content that is illegal, misleading, or that you do not have the rights to use. Fixvice may remove any Listing at its discretion. By submitting a Listing you confirm the content is your own or that you have permission to use it, and that the information provided is accurate to the best of your knowledge. You can delete your own Listings at any time.</p>
+        <p><strong>8. Your content.</strong> You are responsible for the accuracy of the information, images, video, profile photo and text you upload. You must not publish content that is illegal, misleading, or that you do not have the rights to use. Fixvice may remove any Listing at its discretion. You can edit or delete your own Listings at any time from your profile. Usernames, names, descriptions and notes must not contain profanity, slurs, hate symbols, offers of prohibited services or names that imitate Fixvice or its staff; Fixvice automatically refuses such text and may remove content or accounts that try to get around the filter. By submitting a Listing you confirm the content is your own or that you have permission to use it, and that the information provided is accurate to the best of your knowledge. You can delete your own Listings at any time.</p>
         <p><strong>9. Messaging.</strong> Users can contact a Listing through Fixvice's messaging feature. Each customer has their own separate conversation with the Listing's owner, which is visible to those two accounts (and to Fixvice administrators where needed to enforce these Terms or respond to a report). Messages are stored in our database. Do not share anything through messages that you would not want stored, and never send payment details or passwords.</p>
         <p><strong>10. Conduct.</strong> Users must communicate respectfully through the messaging feature. Harassment, fraud, or attempts to circumvent these Terms may result in removal of your Listings or account. If you use Fixvice to offer, advertise, or facilitate anything illegal under the laws that apply to you, or otherwise misuse the platform, Fixvice may remove the relevant Listings, suspend your access, and permanently ban your account (identified by your unique username) from the platform, without prior notice and without refund of any amounts already paid. Whether to ban, unban, suspend or delete an account is decided solely and entirely at the discretion of the Fixvice administrators, who are not required to give a reason or to follow any particular procedure, and whose decision is final.</p>
         <p><strong>11. Administrator actions.</strong> Fixvice administrators may, at their discretion and for the reasons in section 10, delete any Listing, delete an account, ban or unban a username, and immediately and remotely sign your account out of every device where it is currently logged in (a "forced logout"), in each case without prior notice. Banning is entirely up to the administrators. A forced logout does not by itself delete your account or your Listings, and you can normally sign back in unless your account has also been banned.</p>
@@ -4996,6 +5004,10 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   errEl.classList.add('hidden');
   if(!isValidUsername(username, loginMode !== 'register') || !/^\d{6}$/.test(code)) return;
   if(loginMode === 'register' && !isValidPhone(phone)) return;
+  if(loginMode === 'register'){
+    const prob = contentProblem(username, {strict:true, reserved:true});
+    if(prob){ errEl.textContent = 'Username: ' + prob; errEl.classList.remove('hidden'); return; }
+  }
 
   // Re-check the ban list right before letting someone in, so a ban made
   // from the admin page takes effect immediately, not just at page load.
@@ -5269,6 +5281,15 @@ document.getElementById('profileSaveBtn').addEventListener('click', async ()=>{
   const displayName = document.getElementById('profileNameInput').value.trim();
   if(!isValidUsername(newUsername, newUsername === currentUser.username) || !/^\d{6}$/.test(newCode)) return;
 
+  {
+    const acct = findAccountByUsername(currentUser.username) || currentUser;
+    const probs = [
+      contentProblem(newUsername, {strict:true, reserved: newUsername.toLowerCase() !== String(currentUser.username).toLowerCase()}),
+      contentProblem(displayName, {strict:true, reserved: displayName !== (acct.displayName || '')}),
+      contentProblem(bio, {})
+    ].filter(Boolean);
+    if(probs.length){ errEl.textContent = probs[0]; errEl.classList.remove('hidden'); return; }
+  }
   const oldKey = currentUser.username.trim().toLowerCase();
   const newKey = newUsername.trim().toLowerCase();
 
@@ -5614,6 +5635,8 @@ let svcImageData = null;
 let svcVideoData = null;
 
 function showPostForm(c){
+  editingServiceId = null;
+  if(typeof showFormError === 'function') showFormError('');
   document.getElementById('formConsentCheckbox').checked = false;
   document.getElementById('postFormLede').textContent = t(c.lang,'postFormLede');
   document.getElementById('backFromPostFormLabel').textContent = t(c.lang,'changeCity');
@@ -5809,9 +5832,79 @@ document.getElementById('videoChangeChip').addEventListener('click', (e)=>{
 });
 
 document.getElementById('backFromPostForm').addEventListener('click', ()=>{
+  if(editingServiceId){
+    editingServiceId = null;
+    renderMyServices(currentLang);
+    show('myServices');
+    return;
+  }
   renderPostCityGrid(postCountry);
   show('postCities');
 });
+
+
+/* ---------------- Content filter (bad language, slurs, prohibited offers, impersonating names) ----------------
+   Text is normalised first (lowercase, accents/leet-speak/repeated letters removed) so "f.u.c.k", "fuuuck"
+   and "sh1t" are caught too. Words are matched whole (EXACT), by their start (PREFIX, so Nordic compound
+   words like "drittsekk" are caught) or — for a few unambiguous ones — anywhere in a name (STRICT). */
+const BAD_EXACT = ('dick cock prick twat cum tits fag fags coon spic kike gook chink paki dyke jizz sluts cunt cunts wank wanker tranny retard retarded spastic pussy bollocks arse ' +
+  'kuk pikk pik fitte fitta fisse hore hora hure luder subba knulle knull knulla knepp kneppe pule piss pisse skit lort røv röv neger negr svarting blatte bög bøsserøv mongo idiot homo ' +
+  'ryssa paska pillu kyrpä runkkari vitun jumalauta neekeri faen fanden kjerring kælling bitte ' +
+  'nazi nazis nazism nazist neonazi kkk lsd weed xxx').split(' ');
+const BAD_PREFIX = ('fuck fvck fuk shit bitch bastard asshole arsehole motherf nigg faggot whore porn cocksuck dickhead jackass dumbass dipshit bullshit horseshit ' +
+  'dritt jævl jævel jævla jävl jävel helvete satan perkele vittu saatana paskiai kusipää kusipaa huora mulkku haistapaska pedo paedo rapist hitler ' +
+  'kokain cocaine heroin fentanyl mdma amfetamin amphetamin methamph crystalmeth marijuana marihuana hitman leiemorder escort prostitu onlyfans sexshop sexclub sexklubb sexservice ' +
+  'slutty fakeid falskid counterfeit').split(' ');
+const BAD_STRICT = ('fuck nigger nigga faggot whore bitch vittu perkele saatana jävla jævla porn asshole').split(' ');
+const FILTER_SAFE = ['shiitake','shitake'];
+const RESERVED_CONTAINS = ['fixvice','fixlet','fixle','admin','moderator','transform4future'];
+const RESERVED_EXACT = ['support','staff','official','owner','ceo','system','root','mod','help','helpline','team','security','null','undefined','owneradmin'];
+function _collapse(w){ return w.replace(/(.)\1+/g,'$1'); }
+function _stripAccents(str){
+  // remove accents but keep the Nordic letters å ä ö æ ø intact
+  return String(str||'').toLowerCase().replace(/[^\u0000-\u007f]/g, ch=>{
+    if('åäöæøü'.includes(ch)) return ch;
+    return ch.normalize('NFD').replace(/[̀-ͯ]/g,'');
+  });
+}
+function _leet(str){ return str.replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e').replace(/4/g,'a').replace(/5/g,'s').replace(/7/g,'t').replace(/@/g,'a').replace(/\$/g,'s').replace(/!/g,'i').replace(/€/g,'e'); }
+function _words(str){ return str.split(/[^a-zæøåäöü]+/).filter(Boolean); }
+const _EX = new Set(BAD_EXACT.map(_collapse)), _PF = BAD_PREFIX.map(_collapse), _ST = BAD_STRICT.map(_collapse);
+function findBadWord(text, strict){
+  const base = _stripAccents(text);
+  const variants = [base, _leet(base)];
+  for(const v of variants){
+    const words = _words(v);
+    for(const w of words){
+      const c = _collapse(w);
+      if(FILTER_SAFE.includes(w)) continue;
+      if(_EX.has(c)) return w;
+      for(const p of _PF){ if(c.startsWith(p)) return w; }
+    }
+    // single letters/syllables split up with spaces, dots or dashes ("f u c k", "f.u.c.k")
+    const joined = _collapse(v.replace(/[^a-zæøåäöü]+/g,''));
+    if(strict || words.length > 1){
+      for(const p of _ST){ if(joined.includes(p)) return p; }
+    }
+  }
+  return null;
+}
+function findReservedName(text){
+  const joined = _leet(_stripAccents(text)).replace(/[^a-z0-9]+/g,'');
+  for(const r of RESERVED_CONTAINS){ if(joined.includes(r)) return r; }
+  const words = _words(_leet(_stripAccents(text)));
+  const j2 = joined.replace(/[0-9]/g,'');
+  if(RESERVED_EXACT.includes(j2) || words.some(w=>RESERVED_EXACT.includes(w) && words.length===1)) return j2;
+  return null;
+}
+// Returns an error message when the text isn't allowed, otherwise null.
+function contentProblem(text, opts){
+  opts = opts || {};
+  if(!text) return null;
+  if(findBadWord(text, opts.strict)) return 'This contains language or content that isn\'t allowed on Fixvice (bad language, hate speech or prohibited services). Please change it.';
+  if(opts.reserved && findReservedName(text)) return 'That name is reserved (it looks like Fixvice staff or the Fixvice brand). Please pick another one.';
+  return null;
+}
 
 /* ---------------- Publish + My Services dashboard ---------------- */
 let myServices = [];
@@ -6335,7 +6428,142 @@ Promise.allSettled([window.__initServicesP, window.__initUserP]).then(hideLoadin
 setTimeout(hideLoadingScreen, 8000);
 
 
+function formContentProblem(){
+  return contentProblem(document.getElementById('svcName').value, {strict:true})
+      || contentProblem(document.getElementById('svcDesc').value, {})
+      || contentProblem(document.getElementById('svcPriceNote').value, {});
+}
+function showFormError(msg){
+  let el = document.getElementById('formErrorMsg');
+  if(!el){
+    el = document.createElement('p');
+    el.id = 'formErrorMsg';
+    el.style.cssText = 'color:#c0392b;font-size:13px;font-weight:600;margin:8px 0 0;';
+    document.getElementById('publishBtn').insertAdjacentElement('beforebegin', el);
+  }
+  el.textContent = msg || '';
+  el.style.display = msg ? '' : 'none';
+}
+['svcName','svcDesc','svcPriceNote'].forEach(id=> document.getElementById(id).addEventListener('input', ()=> showFormError('')));
+
+let editingServiceId = null;
+
+// Edit mode: same form as publishing, pre-filled; saving updates the listing in place.
+function openEditService(s){
+  requireLogin(()=>{
+    const c = { lang: s.lang };
+    showPostForm(c);                       // builds the form (and resets edit mode)
+    editingServiceId = s.id;
+    document.getElementById('postFormLede').textContent = 'Edit your service';
+    document.getElementById('backFromPostFormLabel').textContent = 'Back to your services';
+    document.getElementById('svcCategory').value = s.cat || '';
+    document.getElementById('svcName').value = s.name || '';
+    document.getElementById('svcDesc').value = s.desc || '';
+    document.getElementById('svcPrice').value = String(s.price || '');
+    document.getElementById('svcCurrency').value = s.currency || '';
+    document.getElementById('svcPriceNote').value = s.priceNote || '';
+    document.getElementById('formConsentCheckbox').checked = true;
+    // existing photo / video
+    svcImageData = s.image || null;
+    const ibox = document.getElementById('imageUploadBox');
+    resetUploadBox('imageUploadBox');
+    if(svcImageData){
+      ibox.classList.add('has-preview');
+      document.getElementById('imageUploadIcon').style.display = 'none';
+      document.getElementById('imageUploadText').style.display = 'none';
+      const img = document.createElement('img'); img.className = 'preview'; img.src = svcImageData;
+      ibox.insertBefore(img, ibox.firstChild);
+    }
+    svcVideoData = s.video || null;
+    resetUploadBox('videoUploadBox');
+    if(svcVideoData){
+      const vbox = document.getElementById('videoUploadBox');
+      vbox.classList.add('has-preview');
+      document.getElementById('videoUploadIcon').style.display = 'none';
+      document.getElementById('videoUploadText').style.display = 'none';
+      const vid = document.createElement('video'); vid.className = 'preview'; vid.muted = true; vid.autoplay = true; vid.loop = true; vid.playsInline = true; vid.src = svcVideoData;
+      vbox.insertBefore(vid, vbox.firstChild);
+      vid.play().catch(()=>{});
+    }
+    document.getElementById('publishBtn').textContent = 'Save changes';
+    showFormError('');
+    checkPublishEnabled();
+  });
+}
+
+// Saves ONE edited listing without overwriting other people's newer data: re-fetch the shared list,
+// replace only this listing's own fields (keeping the latest messages/boost state), then write back.
+async function saveServiceEdit(updated){
+  if(supabaseConfigured()){
+    try {
+      const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, {
+        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      let latest = myServices.slice();
+      if(getRes.ok){
+        const rows = await getRes.json();
+        if(rows && rows[0] && Array.isArray(rows[0].data)) latest = rows[0].data;
+      }
+      let found = false;
+      latest = latest.map(x=>{
+        if(x.id !== updated.id) return x;
+        found = true;
+        return Object.assign({}, x, {
+          name: updated.name, desc: updated.desc, cat: updated.cat, price: updated.price,
+          currency: updated.currency, priceNote: updated.priceNote, image: updated.image,
+          video: updated.video, editedAt: updated.editedAt
+        });
+      });
+      if(!found) latest.unshift(updated);
+      const putRes = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+        method: "POST",
+        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+        body: JSON.stringify({ id: "global", data: latest })
+      });
+      if(putRes.ok){ myServices = latest; return true; }
+      const bodyText = await putRes.text().catch(()=> '');
+      lastSaveErrorDetail = `Supabase HTTP ${putRes.status}: ${bodyText.slice(0,300)}`;
+    } catch(e){
+      lastSaveErrorDetail = `Supabase request failed: ${e && e.message ? e.message : e}`;
+    }
+  }
+  return await saveServices();
+}
+
+async function publishEditedService(){
+  const s = myServices.find(x => x.id === editingServiceId);
+  if(!s || !currentUser || s.ownerCode !== currentUser.username){ editingServiceId = null; return; }
+  const name = limitWords(document.getElementById('svcName').value, 20).trim();
+  const desc = document.getElementById('svcDesc').value.slice(0, 400).trim();
+  const cat = document.getElementById('svcCategory').value;
+  const priceVal = parseFloat(document.getElementById('svcPrice').value);
+  const currencyVal = document.getElementById('svcCurrency').value;
+  if(!name || !desc || !cat || !svcImageData || isNaN(priceVal) || priceVal <= 0 || !currencyVal) return;
+  const updated = Object.assign({}, s, {
+    name, desc, cat, price: priceVal, currency: currencyVal,
+    priceNote: document.getElementById('svcPriceNote').value.trim().slice(0,40) || null,
+    image: svcImageData, video: svcVideoData, editedAt: Date.now()
+  });
+  Object.assign(s, updated);
+  const btn = document.getElementById('publishBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const ok = await saveServiceEdit(updated);
+  editingServiceId = null;
+  track('edit_service', { cat });
+  if(!ok){
+    const detail = lastSaveErrorDetail ? (' [' + lastSaveErrorDetail + ']') : '';
+    showToast(t(s.lang,'saveFailedWarning') + detail, null, s.lang, 20000);
+  } else {
+    showToast('Service updated', null, s.lang, 3500);
+  }
+  renderMyServices(currentLang);
+  show('myServices');
+}
+
 document.getElementById('publishBtn').addEventListener('click', async ()=>{
+  const problem = formContentProblem();
+  if(problem){ showFormError(problem); return; }
+  if(editingServiceId){ await publishEditedService(); return; }
   const countries = [...postSelectedCountries];
   if(countries[0]) recordAccountCountry(countries[0].name);
   const totalSelected = Object.values(postSelectedCitiesByCountry).reduce((sum,set)=> sum + set.size, 0);
@@ -6483,6 +6711,7 @@ function renderMyServices(lang){
       ? `<div class="sponsoredbadge">${ic('star')} Sponsored — boosted to the top</div>`
       : `<button class="sponsorbtn">${ic('star')} Boost this service — from €7.90 (Coming soon)</button>`;
     card.innerHTML = `
+      <button class="mysvc-edit" title="Edit service" aria-label="Edit service"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
       <button class="mysvc-delete" title="${t(lang,'deleteBtn')}">${ic('trash')}</button>
       <div class="mysvc-thumb${s.video ? ' has-video' : ''}">
         ${s.image ? `<img src="${s.image}" class="lazyfade" onload="this.classList.add('loaded')">` : ic('camera')}
@@ -6506,6 +6735,10 @@ function renderMyServices(lang){
         openPlansScreen(s, s.lang, 'myServices');
       });
     }
+    card.querySelector('.mysvc-edit').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openEditService(s);
+    });
     card.querySelector('.mysvc-delete').addEventListener('click', async (e)=>{
       e.stopPropagation();
       const ok = await askConfirm({
