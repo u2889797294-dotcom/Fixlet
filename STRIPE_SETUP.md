@@ -4,6 +4,7 @@ Koden er ferdig (`api/checkout.js`, `api/stripe-webhook.js`). Ingen hemmelige n�
 Betaling er **av** til du setter `const PAYMENTS_LIVE = true;` i `index.html`.
 
 ## 1. Opprett produkter i Stripe (Dashboard → Product catalogue)
+Du kan bruke enten pris-ID (`price_...` i miljøvariabel) ELLER produkt-ID (`prod_...`). Med produkt-ID setter koden prisen selv (7,90 / 9,90 / 9 €). Boost +50 % bruker allerede `prod_VTAQDDQ5ULsLaX`; sett `STRIPE_PRODUCT_BOOST100` og `STRIPE_PRODUCT_PREMIUM` for de to andre (eller legg dem inn i `api/checkout.js`).
 | Produkt | Pris | Type | Miljøvariabel |
 |---|---|---|---|
 | Boost +50 % | 7,90 € | Engangs | `STRIPE_PRICE_BOOST50` (price_...) |
