@@ -3205,7 +3205,7 @@
           <div class="dside-cat" id="detailSideCat"></div>
           <div class="dside-statsrow" id="detailSideStats"></div>
           <button class="dcontactbtn" id="detailContactBtn">Contact helper</button>
-          <button class="dsharebtn" id="detailShareBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> <span>Share</span></button>
+          <button class="dsharebtn" id="detailShareBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6"/><path d="M12 15V3"/><path d="M7.5 7.5L12 3l4.5 4.5"/></svg> <span>Share</span></button>
         </div>
       </div>
     </div>
@@ -4016,7 +4016,7 @@ function renderListingCards(lang){
       <div class="thumb" style="background:linear-gradient(135deg,#0d9488,#7ac943)">
         ${l.image ? `<img src="${l.image}" class="lazyfade" onload="this.classList.add('loaded')" style="width:100%;height:100%;object-fit:contain;position:absolute;inset:0;background:#fff;">` : `<span class="thumbico">${ic(icoKey)}</span>`}
         <span class="fav" style="z-index:3;">${ic('heart')}</span>
-        <button type="button" class="cardshare" title="Share" aria-label="Share this service"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+        <button type="button" class="cardshare" title="Share" aria-label="Share this service"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6"/><path d="M12 15V3"/><path d="M7.5 7.5L12 3l4.5 4.5"/></svg></button>
         ${videoBadge}
         ${sponsoredTag}
         <span class="avatarchip" style="background:#0d9488; z-index:3;">${l.name.charAt(0)}</span>
