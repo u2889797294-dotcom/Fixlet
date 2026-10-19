@@ -278,6 +278,11 @@
   #loginFormWrap.locked{ opacity:.4; pointer-events:none; filter:grayscale(.4); user-select:none; }
   .loginack{ display:flex; gap:10px; align-items:flex-start; text-align:left; margin:2px 0 10px; padding:10px 12px; border:1.5px solid #2a2a2a; background:#000; color:#fff; border-radius:0; font-size:12.5px; line-height:1.4; font-weight:600; cursor:pointer; }
   .loginack.hidden{ display:none; }
+  #loginScreen.registering .loginfeatures-row,
+  #loginScreen.registering #loginSubText,
+  #loginScreen.registering #loginCCNote{ display:none; }
+  #loginScreen.registering .limithint{ display:none; }
+  #loginScreen.registering .loginack{ font-size:12.5px; padding:8px 10px; }
   .loginack input{ margin-top:2px; width:18px; height:18px; flex:none; accent-color:#0d9488; }
   .loginack strong{ color:#fff; }
   .phonerow{ display:flex; gap:8px; }
@@ -316,6 +321,8 @@
   #tosPopup{ z-index:100000; }
   #tosPopup .modal-card{ max-width:520px; width:100%; max-height:88vh; display:flex; flex-direction:column; padding:22px 20px 18px; text-align:left; }
   #tosPopup h3{ margin:0 0 4px; font-size:21px; font-weight:800; text-align:center; }
+  #tosPopup .tos-track{ margin:12px 0 0; font-size:12.5px; line-height:1.5; color:var(--ink-soft); }
+  #tosPopup .tos-agree-alt{ margin-top:8px; background:#fff; color:var(--ink); border:1.5px solid var(--line); font-size:14.5px; font-weight:700; }
   #tosPopup .tos-sub{ margin:0 0 10px; text-align:center; font-size:13px; color:var(--ink-soft); }
   #tosPopup .tos-scroll{ overflow-y:auto; border:1px solid var(--line); border-radius:14px; padding:12px 14px; font-size:13px; line-height:1.5; color:var(--ink-soft); background:#fafcfb; -webkit-overflow-scrolling:touch; }
   #tosPopup .tos-scroll p{ margin:0 0 10px; }
@@ -2366,6 +2373,13 @@
     cursor:pointer;
   }
   .dcontactbtn:hover{ filter:brightness(1.05); }
+  .dsharebtn{
+    width:100%; margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px;
+    border:1.5px solid var(--line); background:#fff; color:var(--ink); font-weight:700; font-size:14.5px;
+    padding:12px; border-radius:10px; cursor:pointer;
+  }
+  .dsharebtn svg{ width:16px; height:16px; }
+  .dsharebtn:hover{ border-color:#0d9488; color:#0d9488; }
   @media(max-width:800px){
     .detailwrap{ flex-direction:column; }
     .detailside{ width:100%; }
@@ -2698,12 +2712,12 @@
             <input type="tel" maxlength="14" class="loginusernameinput" id="loginPhoneInput" placeholder="Mobile number" autocomplete="off">
           </div>
           <p class="lockednote" id="loginCCNote">Choose your country code (+47, +46, +45 or +358) before the number.</p>
-          <input type="email" maxlength="60" class="loginusernameinput" id="loginEmailInput" placeholder="Gmail / email (optional)" autocomplete="off">
+          <input type="email" maxlength="60" class="loginusernameinput" id="loginEmailInput" placeholder="Email (optional)" autocomplete="off">
         </div>
         <p class="loginerror hidden" id="loginErrorMsg"></p>
         <label class="loginack hidden" id="loginAckLabel">
           <input type="checkbox" id="loginAckCheckbox">
-          <span><strong>⚠️ Check your username and number.</strong> If you type any of them wrong, you risk losing your account.</span>
+          <span><strong>Double-check your username and number</strong> — a typo can lock you out.</span>
         </label>
         <button class="continuebtn" id="loginSubmitBtn" style="width:100%;" disabled>Log in</button>
         <p class="loginnote" id="loginHintText">Don't have an account? Tap "Create new account" above.</p>
@@ -3181,6 +3195,7 @@
           <div class="dside-cat" id="detailSideCat"></div>
           <div class="dside-statsrow" id="detailSideStats"></div>
           <button class="dcontactbtn" id="detailContactBtn">Contact helper</button>
+          <button class="dsharebtn" id="detailShareBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> <span>Share</span></button>
         </div>
       </div>
     </div>
@@ -3268,7 +3283,9 @@
       <h3 id="tosPopupTitle">Terms of Service</h3>
       <p class="tos-sub">Please read and accept to continue using Fixvice.</p>
       <div class="tos-scroll" id="tosPopupBody"></div>
-      <button type="button" class="tos-agree" id="tosAgreeBtn">I agree — continue</button>
+      <p class="tos-track">Fixvice can also record which pages you visit and which listings you click while you're signed in, to improve the service — never your messages, address or photos, and no advertising trackers. You can change this any time in your profile.</p>
+      <button type="button" class="tos-agree" id="tosAgreeBtn">I agree — accept all (incl. activity tracking)</button>
+      <button type="button" class="tos-agree tos-agree-alt" id="tosAgreeNecessaryBtn">I agree — necessary only (no tracking)</button>
       <div class="tos-links"><a href="#" id="tosPopupPrivacy">Privacy Policy</a> · <a href="#" id="tosPopupCookies">Cookies Policy</a></div>
     </div>
   </div>
@@ -4093,7 +4110,33 @@ function showToast(text, service, lang, duration, customerCode){
 }
 
 /* ---------------- Service detail page ---------------- */
+let detailServiceNow = null;
+function serviceShareUrl(service){
+  return location.origin + location.pathname + '?s=' + encodeURIComponent(service.id);
+}
+async function shareService(service){
+  if(!service) return;
+  const url = serviceShareUrl(service);
+  const title = service.name + ' – Fixvice';
+  const text = (service.name || '') + ' (' + (service.cities || []).slice(0,3).join(', ') + ') on Fixvice';
+  try{
+    if(navigator.share){ await navigator.share({ title, text, url }); track('share', { id: service.id, how:'native' }); return; }
+  }catch(e){ if(e && e.name === 'AbortError') return; }
+  let copied = false;
+  try{ await navigator.clipboard.writeText(url); copied = true; }catch(e){}
+  if(!copied){
+    const ta = document.createElement('textarea'); ta.value = url; ta.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(ta); ta.select();
+    try{ copied = document.execCommand('copy'); }catch(e){}
+    ta.remove();
+  }
+  track('share', { id: service.id, how:'copy' });
+  showToast(copied ? 'Link copied — paste it anywhere to share this service' : url, null, 'en', copied ? 3500 : 15000);
+}
+document.getElementById('detailShareBtn').addEventListener('click', ()=> shareService(detailServiceNow));
+
 function openServiceDetail(service, lang){
+  detailServiceNow = service;
   if(!service.conversations) service.conversations = {};
   const catDef = CATS.find(c=>c.key === service.cat);
   const icoKey = catDef ? catDef.icoKey : 'briefcase';
@@ -4154,7 +4197,22 @@ function openServiceDetail(service, lang){
 
   show('serviceDetail');
 }
-document.getElementById('backFromDetail').addEventListener('click', ()=> show('services'));
+let openedViaShareLink = false;
+document.getElementById('backFromDetail').addEventListener('click', ()=>{
+  if(openedViaShareLink){ openedViaShareLink = false; show('home'); return; }
+  show('services');
+});
+// Opening a shared link (?s=<id>) jumps straight to that service.
+function openSharedServiceFromUrl(){
+  let id = null;
+  try{ id = new URLSearchParams(location.search).get('s'); }catch(e){}
+  if(!id) return;
+  const svc = myServices.find(x => String(x.id) === id);
+  try{ history.replaceState(null, '', location.pathname); }catch(e){}
+  if(!svc) { showToast('This service is no longer available.', null, 'en', 4000); return; }
+  openedViaShareLink = true;
+  openServiceDetail(svc, svc.lang || 'en');
+}
 
 /* ---------------- Chat ----------------
    Each listing keeps a `conversations` object keyed by the account code of
@@ -4946,9 +5004,10 @@ function setLoginMode(mode){
   document.getElementById('loginExtraFieldsWrap').classList.toggle('hidden', mode !== 'register');
   document.getElementById('loginAckLabel').classList.toggle('hidden', mode !== 'register');
   document.getElementById('loginSubmitBtn').textContent = mode === 'login' ? 'Log in' : 'Create account';
+  document.getElementById('loginScreen').classList.toggle('registering', mode === 'register');
   document.getElementById('loginHintText').textContent = mode === 'login'
     ? 'Don\'t have an account? Tap "Create new account" above.'
-    : 'Pick a username (max 10 characters) nobody else has used, and add your mobile number (Gmail/email is optional). You\'ll only need to do this once — after that you\'ll be signed in automatically.';
+    : 'Username: max 10 characters. Email is optional. You only do this once.';
   document.getElementById('loginUsernameInput').maxLength = mode === 'register' ? 10 : 20; // new usernames max 10; older accounts may still have up to 20
   document.getElementById('loginErrorMsg').classList.add('hidden');
   updateLoginSubmitState();
@@ -5507,7 +5566,7 @@ document.getElementById('cookieBannerDecline').addEventListener('click', ()=> cl
 document.getElementById('cookieBannerLearnMore').addEventListener('click', ()=>{
   show('cookies');
 });
-setTimeout(showCookieBannerIfNeeded, 1200);
+// (The separate cookie banner is retired: the tracking choice is now part of the start-up popup.)
 
 /* Payments aren't live yet — this button is disabled (see renderStripeUpgrade),
    so this handler is a no-op safety net and never actually runs. */
@@ -6401,7 +6460,7 @@ document.getElementById('plansSkipBtn').addEventListener('click', ()=> track('pl
 const TOS_ACCEPTED_KEY = 'fixvice_tos_accepted_v1';
 function showTosPopupIfNeeded(){
   let accepted = false;
-  try { accepted = localStorage.getItem(TOS_ACCEPTED_KEY) === '1'; } catch(e){}
+  try { accepted = localStorage.getItem(TOS_ACCEPTED_KEY) === '1' && localStorage.getItem(AN_KEY) !== null; } catch(e){}
   if(accepted) return;
   const src = document.querySelector('#termsScreen .termsbody');
   const dest = document.getElementById('tosPopupBody');
@@ -6411,10 +6470,13 @@ function showTosPopupIfNeeded(){
   dest.scrollTop = 0;
 }
 function closeTosPopup(){ document.getElementById('tosPopup').classList.add('hidden'); }
-document.getElementById('tosAgreeBtn').addEventListener('click', ()=>{
-  try { localStorage.setItem(TOS_ACCEPTED_KEY, '1'); } catch(e){}
+function acceptTos(analytics){
+  try { localStorage.setItem(TOS_ACCEPTED_KEY, '1'); localStorage.setItem(COOKIE_CONSENT_KEY, '1'); } catch(e){}
+  setAnalyticsConsent(analytics);
   closeTosPopup();
-});
+}
+document.getElementById('tosAgreeBtn').addEventListener('click', ()=> acceptTos(true));
+document.getElementById('tosAgreeNecessaryBtn').addEventListener('click', ()=> acceptTos(false));
 document.getElementById('tosPopupPrivacy').addEventListener('click', (e)=>{ e.preventDefault(); closeTosPopup(); show('privacy'); });
 document.getElementById('tosPopupCookies').addEventListener('click', (e)=>{ e.preventDefault(); closeTosPopup(); show('cookies'); });
 
@@ -6422,7 +6484,7 @@ let __loadingHidden = false;
 function hideLoadingScreen(){
   const el = document.getElementById('loadingScreen');
   if(el) el.classList.add('done');
-  if(!__loadingHidden){ __loadingHidden = true; setTimeout(showTosPopupIfNeeded, 350); }
+  if(!__loadingHidden){ __loadingHidden = true; setTimeout(()=>{ showTosPopupIfNeeded(); try{ openSharedServiceFromUrl(); }catch(e){ console.error(e); } }, 350); }
 }
 Promise.allSettled([window.__initServicesP, window.__initUserP]).then(hideLoadingScreen);
 setTimeout(hideLoadingScreen, 8000);
