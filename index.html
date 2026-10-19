@@ -315,6 +315,8 @@
   .plans-explain strong{ color:var(--ink); }
   .plans-skip{ display:inline-block; margin-top:18px; padding:10px 18px; border:none; background:none; color:var(--ink-soft); font:inherit; font-size:14px; font-weight:700; text-decoration:underline; cursor:pointer; }
   .plans-skip:hover{ color:var(--ink); }
+  .plans-topskip{ display:block; margin:0 auto 14px; padding:7px 14px; border:1.5px solid var(--line); background:#fff; color:var(--ink); font:inherit; font-size:11.5px; font-weight:800; letter-spacing:.6px; border-radius:8px; cursor:pointer; }
+  .plans-topskip:hover{ border-color:#0d9488; color:#0d9488; }
   @media (max-width:760px){ .plans-grid{ grid-template-columns:1fr; gap:22px; } .plans-wrap h2{ font-size:23px; } }
 
   /* ---------- Terms popup on open ---------- */
@@ -2841,6 +2843,7 @@
   <!-- ===================== SPONSOR A SERVICE (one-time boosts) / PREMIUM (€9/week) ===================== -->
   <div class="screen hidden" id="plansScreen">
     <div class="plans-wrap">
+      <button type="button" class="plans-topskip" id="plansTopSkipBtn">PUBLISH WITHOUT BOOST</button>
       <h2>🎉 Your service is published!</h2>
       <p class="plans-sub">Want more people to see it? Pick a boost — or skip it, it's totally optional.</p>
       <div class="plans-grid">
@@ -4203,7 +4206,21 @@ document.getElementById('backFromDetail').addEventListener('click', ()=>{
   show('services');
 });
 // Opening a shared link (?s=<id>) jumps straight to that service.
+function handlePaymentReturn(){
+  let paid = null;
+  try{ paid = new URLSearchParams(location.search).get('paid'); }catch(e){}
+  if(paid === null) return false;
+  try{ history.replaceState(null, '', location.pathname); }catch(e){}
+  if(paid === '1'){
+    showToast('Thank you! Payment received — your boost is activated as soon as Stripe confirms it (usually within seconds).', null, 'en', 9000);
+    setTimeout(async ()=>{ await loadServices(); await applyPaidBoosts(); }, 4000);
+  } else {
+    showToast('Payment cancelled — nothing was charged.', null, 'en', 4000);
+  }
+  return true;
+}
 function openSharedServiceFromUrl(){
+  if(handlePaymentReturn()) return;
   let id = null;
   try{ id = new URLSearchParams(location.search).get('s'); }catch(e){}
   if(!id) return;
@@ -4770,6 +4787,8 @@ function premiumStorageKey(){
 }
 
 async function loadPremium(){
+  await applyPaidBoosts();
+  if(premiumActive) return;
   const key = premiumStorageKey();
   try {
     if(window.storage){
@@ -4789,8 +4808,31 @@ async function savePremium(){
   } catch(e){ /* fall through to localStorage */ }
   try { localStorage.setItem(key, '1'); } catch(e){ /* in-memory only for this session */ }
 }
+let premiumUsers = {}; // { username: {until} } — written only by the Stripe webhook (row "premium")
 function isServiceSponsored(s){
-  return premiumActive || !!(s && s.sponsored);
+  if(!s) return false;
+  if(s.sponsored) return true;
+  const p = s.ownerCode && premiumUsers[String(s.ownerCode).toLowerCase()];
+  return !!(p && p.until > Date.now());
+}
+// Reads the rows the Stripe webhook maintains and applies them to the loaded listings.
+async function applyPaidBoosts(){
+  if(typeof supabaseConfigured === 'function' && !supabaseConfigured()) return;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=in.(boosts,premium)&select=id,data`, {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    if(!res.ok) return;
+    const rows = await res.json();
+    const boosts = (rows.find(r=>r.id==='boosts')||{}).data || {};
+    premiumUsers = (rows.find(r=>r.id==='premium')||{}).data || {};
+    myServices.forEach(sv=>{
+      const b = boosts[String(sv.id)];
+      sv.sponsored = !!(b && b.until > Date.now());
+    });
+    const me = currentUser && premiumUsers[String(currentUser.username).toLowerCase()];
+    premiumActive = !!(me && me.until > Date.now());
+  }catch(e){ /* offline: keep what we have */ }
 }
 /* ---------------- Login (username + 6-digit number) + account-scoped storage ----------------
    There's no traditional password/email behind this. Each account has a
@@ -5458,6 +5500,7 @@ function renderSponsorScreenContent(){
     b4.textContent = "No recurring charges — pay once, boost once";
     note.textContent = "Payments aren't live yet — this is a preview. Once launched, a one-time €" + sponsorPlan.price + " charge boosts your listing for 30 days.";
   }
+  if(PAYMENTS_LIVE) note.textContent = "Secure payment by Stripe — we never see or store your card details. Your boost is activated automatically when the payment goes through.";
 }
 
 function openPlansScreen(service, lang, returnTo){
@@ -5476,6 +5519,7 @@ document.getElementById('plan50').addEventListener('click', ()=>{ sponsorPlan = 
 document.getElementById('plan100').addEventListener('click', ()=>{ sponsorPlan = { pct:100, price:'9.90' }; paywallFromPlans = true; openSponsorScreen(sponsorTargetService, sponsorReturnLang, sponsorReturnScreen); });
 document.getElementById('planPremium').addEventListener('click', ()=>{ paywallFromPlans = true; openPremiumScreen(sponsorReturnLang, sponsorReturnScreen); });
 document.getElementById('plansSkipBtn').addEventListener('click', leavePlansScreen);
+document.getElementById('plansTopSkipBtn').addEventListener('click', ()=>{ track('plans_skip', {}); leavePlansScreen(); });
 
 function openSponsorScreen(service, lang, returnTo){
   sponsorMode = 'single';
@@ -5570,7 +5614,7 @@ document.getElementById('cookieBannerLearnMore').addEventListener('click', ()=>{
 
 /* Payments aren't live yet — this button is disabled (see renderStripeUpgrade),
    so this handler is a no-op safety net and never actually runs. */
-document.getElementById('paywallSimulateBtn').addEventListener('click', ()=>{});
+document.getElementById('paywallSimulateBtn').addEventListener('click', ()=>{ if(PAYMENTS_LIVE) startCheckout(); });
 
 document.getElementById('backFromPostCountry').addEventListener('click', ()=> show('home'));
 
@@ -5994,7 +6038,10 @@ const SUPABASE_TABLE = "Jelp-services";
    NOT restricted to "after 7 days" — that rule is only enforced by this
    app's own UI (the Cancel button on the profile page).
 ------------------------------------------------------- */
-const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/test_cNiaEY9DO4GVcOgfKi4Ni00"; // Stripe SANDBOX payment link
+/* STRIPE: the backend is ready (api/checkout.js + api/stripe-webhook.js, see STRIPE_SETUP.md).
+   Keep PAYMENTS_LIVE = false until the Vercel environment variables are set and a test payment
+   has worked. Only then flip it to true. No secret key is ever placed in this file. */
+const PAYMENTS_LIVE = false;
 
 /* Payments are not live yet — the buy button always shows "Coming soon"
    and is disabled, so sharing this app publicly can't trigger any real
@@ -6005,9 +6052,29 @@ function renderStripeUpgrade(){
   const cardFields = document.getElementById('cardFieldsWrap');
   mount.innerHTML = "";
   cardFields.classList.add('hidden');
-  simulateBtn.disabled = true;
-  simulateBtn.textContent = "Coming soon";
+  simulateBtn.disabled = !PAYMENTS_LIVE;
+  simulateBtn.textContent = PAYMENTS_LIVE ? "Pay securely with Stripe" : "Coming soon";
   simulateBtn.classList.remove('hidden');
+}
+// Starts a Stripe Checkout session through our own backend and sends the customer to Stripe's page.
+async function startCheckout(){
+  if(!PAYMENTS_LIVE || !currentUser) return;
+  const btn = document.getElementById('paywallSimulateBtn');
+  const plan = sponsorMode === 'premium' ? 'premium' : (sponsorPlan.pct === 50 ? 'boost50' : 'boost100');
+  btn.disabled = true; btn.textContent = 'Opening Stripe…';
+  try{
+    const res = await fetch('/api/checkout', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, serviceId: sponsorTargetService ? sponsorTargetService.id : null, username: currentUser.username })
+    });
+    const data = await res.json().catch(()=> ({}));
+    if(!res.ok || !data.url) throw new Error(data.error || ('HTTP ' + res.status));
+    track('checkout_start', { plan });
+    location.href = data.url;
+  }catch(e){
+    showToast('Could not start the payment: ' + (e && e.message ? e.message : e), null, 'en', 6000);
+    renderStripeUpgrade();
+  }
 }
 const STORAGE_KEY = 'jelp_myServices_v2'; // bumped to ignore any old saved data (e.g. leftover demo services)
 
@@ -6268,6 +6335,7 @@ function seedDemoServices(){
 
 window.__initServicesP = (async function initMyServices(){
   await loadServices();
+  await applyPaidBoosts();
   refreshCountryGrids();
   // Demo seed data disabled — the marketplace starts empty until real services are published.
 })();
