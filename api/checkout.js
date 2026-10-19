@@ -6,8 +6,8 @@ const { sbGetRow, stripe } = require('./_shared');
 // (prod_..., not secret) plus the amount below, in which case the price is created inline at checkout.
 const PLANS = {
   boost50:  { price: () => process.env.STRIPE_PRICE_BOOST50,  product: process.env.STRIPE_PRODUCT_BOOST50  || 'prod_VTAQDDQ5ULsLaX', cents: 790, mode: 'payment',      needsService: true },
-  boost100: { price: () => process.env.STRIPE_PRICE_BOOST100, product: process.env.STRIPE_PRODUCT_BOOST100 || '',                    cents: 990, mode: 'payment',      needsService: true },
-  premium:  { price: () => process.env.STRIPE_PRICE_PREMIUM,  product: process.env.STRIPE_PRODUCT_PREMIUM  || '',                    cents: 900, mode: 'subscription', needsService: false }
+  boost100: { price: () => process.env.STRIPE_PRICE_BOOST100, product: process.env.STRIPE_PRODUCT_BOOST100 || 'prod_VTAX12msnRgA0p',                    cents: 990, mode: 'payment',      needsService: true },
+  premium:  { price: () => process.env.STRIPE_PRICE_PREMIUM,  product: process.env.STRIPE_PRODUCT_PREMIUM  || 'prod_VTASUNsqX0YREE',                    cents: 900, mode: 'subscription', needsService: false }
 };
 
 module.exports = async (req, res) => {
