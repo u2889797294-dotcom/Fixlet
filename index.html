@@ -6054,7 +6054,7 @@ const SUPABASE_TABLE = "Jelp-services";
 /* STRIPE: the backend is ready (api/checkout.js + api/stripe-webhook.js, see STRIPE_SETUP.md).
    Keep PAYMENTS_LIVE = false until the Vercel environment variables are set and a test payment
    has worked. Only then flip it to true. No secret key is ever placed in this file. */
-const PAYMENTS_LIVE = false;
+const PAYMENTS_LIVE = true;
 
 /* Payments are not live yet — the buy button always shows "Coming soon"
    and is disabled, so sharing this app publicly can't trigger any real
