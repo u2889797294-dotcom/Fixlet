@@ -6066,7 +6066,7 @@ function renderStripeUpgrade(){
   mount.innerHTML = "";
   cardFields.classList.add('hidden');
   simulateBtn.disabled = !PAYMENTS_LIVE;
-  simulateBtn.textContent = PAYMENTS_LIVE ? "Pay securely with Stripe" : "Coming soon";
+  simulateBtn.textContent = PAYMENTS_LIVE ? "PURCHASE" : "Coming soon";
   simulateBtn.classList.remove('hidden');
 }
 // Starts a Stripe Checkout session through our own backend and sends the customer to Stripe's page.
