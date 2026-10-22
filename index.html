@@ -2881,7 +2881,7 @@
           <span class="plan-pct">Premium</span>
           <span class="plan-label">all your services</span>
           <span class="plan-price">€9<small>/week</small></span>
-          <span class="plan-kind">weekly · €9 fee to end it</span>
+          <span class="plan-kind">weekly · cancel anytime</span>
           <ul><li>Every service boosted</li><li>New services included</li><li>Top spot in every city</li></ul>
           <span class="plan-cta">Go Premium</span>
         </button>
@@ -2889,7 +2889,7 @@
       <div class="plans-explain">
         <p><strong>+50% more clicks (€7.90):</strong> a one-time boost for this service only. It is shown higher up in the marketplace in your cities and gets a "Sponsored" badge for 30 days.</p>
         <p><strong>+100% more clicks (€9.90):</strong> our most popular one-time boost for this service. It goes right to the top, before regular listings and the +50% boost, for 30 days.</p>
-        <p><strong>Premium (€9 per week):</strong> instead of paying per service, every service on your account is boosted — including all the ones you publish later. Best value if you have more than one service. Ending Premium early costs a one-time fee of €9 (shown again before you confirm). One-time boosts cannot be stopped; they simply run for 30 days.</p>
+        <p><strong>Premium (€9 per week):</strong> instead of paying per service, every service on your account is boosted — including all the ones you publish later. Best value if you have more than one service. You can cancel Premium yourself at any time in your profile. One-time boosts cannot be stopped; they simply run for 30 days.</p>
         <p>Payments aren't live yet — this is a preview of the prices. Nothing is charged today.</p>
       </div>
       <button type="button" class="plans-skip" id="plansSkipBtn">Skip — publish without a boost</button>
@@ -3004,7 +3004,7 @@
         <p><strong>10. Prices, Boosts and Premium.</strong></p>
         <p>10.1 Fixvice offers three paid promotion products: (a) a one-time +50% Boost for one Listing for €7.90; (b) a one-time +100% Boost for one Listing for €9.90; and (c) Premium for €9 per week, which promotes all Listings on one Account for as long as the subscription is active. All prices are in euros.</p>
         <p>10.2 A Boost lasts 30 days from the moment we have received confirmation of your payment. It is not renewed automatically. A Boost is attached to the Listing for which it was bought and cannot be moved to another Listing, to another Account or to a later date.</p>
-        <p>10.3 Premium is a subscription that renews automatically every week and is charged at the start of each week until you end it. Ending Premium costs a one-time cancellation fee of €9, which is shown to you before you subscribe and again before you confirm the cancellation (see clause 12). While Premium is active, all Listings on your Account are promoted, including Listings you publish later. If a renewal payment fails, Premium may be switched off.</p>
+        <p>10.3 Premium is a subscription that renews automatically every week and is charged at the start of each week until you cancel it. You can cancel Premium yourself at any time and free of charge (see clause 12). While Premium is active, all Listings on your Account are promoted, including Listings you publish later. If a renewal payment fails, Premium may be switched off.</p>
         <p>10.4 The percentages stated for Boosts describe the intended increase in visibility compared with an unpromoted Listing. They are not a guarantee of any number of views, clicks, messages, customers or revenue. "Sponsored" Listings are shown ahead of other Listings and carry a "Sponsored" label. How Listings are ranked is decided by Fixvice and may change at any time.</p>
         <p>10.5 The price, the duration, the renewal terms and the total amount are shown to you before you pay. You are charged only when you press the purchase button and complete the payment on the payment page. Nothing is ever charged without an action from you.</p>
         <p>10.6 A purchase is complete when Stripe has confirmed the payment to us. The Boost or Premium is then activated automatically, normally within a few seconds and in some cases after a few minutes. If you have been charged and the promotion has not been activated within one hour, you must contact us and we will correct it or refund you.</p>
@@ -3016,7 +3016,7 @@
         <p>11.4 You are responsible for any fees that your bank or card issuer charges you, including currency conversion fees. Where a payment is declined, reversed or charged back, Fixvice may remove the Boost or Premium that was based on it.</p>
         <p>11.5 You must not use a payment method that does not belong to you or that you are not authorised to use. A fraudulent or abusive payment, or a chargeback made in bad faith, may lead to a ban under clause 14 and to a claim for the amount and for our costs.</p>
         <p><strong>12. Cancelling, refunds and your right of withdrawal.</strong></p>
-        <p>12.1 You may end Premium yourself at any time in your profile ("Cancel Premium"). Ending Premium requires payment of a one-time cancellation fee of €9, paid on Stripe's payment page. The fee is stated before you subscribe and again before you confirm. When the fee has been paid and confirmed by Stripe, no further weekly charges are made, and Premium remains active until the end of the week that has already been paid for. The cancellation fee is not refunded, except where it was charged in error or where mandatory consumer law gives you a right to a refund or prohibits the fee. If you do not pay the fee, Premium continues and renews every week.</p>
+        <p>12.1 You may end Premium yourself at any time in your profile ("Cancel Premium"). Cancelling is free. After you cancel, no further weekly charges are made, and Premium remains active until the end of the week that has already been paid for. The week that has already been paid for is not refunded unless mandatory consumer law gives you that right. If you do not cancel, Premium continues and renews every week.</p>
         <p>12.2 A one-time Boost (+50% or +100%) cannot be stopped, cancelled or refunded once it has been activated. It ends by itself after 30 days and is not renewed.</p>
         <p>12.3 As a general rule, charges for Boosts and Premium are non-refundable once the service has been activated. This does not limit any right that you have under mandatory consumer law, which is not affected by these Terms.</p>
         <p>12.4 If you are a consumer in the European Economic Area, you may have a statutory right to withdraw from a distance purchase within 14 days. Boosts and Premium are digital services that start immediately after payment. By completing the purchase you expressly request that the service starts immediately, and you acknowledge that where the service has been fully provided you lose your right of withdrawal, and that where you withdraw from a service that has been partly provided you must pay for what has already been provided in proportion to the full price.</p>
@@ -3242,7 +3242,7 @@
     </div>
     <div class="premiummanage hidden" id="premiumManage">
       <span id="premiumManageText"></span>
-      <button type="button" id="cancelPremiumBtn">Cancel Premium (€9 fee)</button>
+      <button type="button" id="cancelPremiumBtn">Cancel Premium</button>
     </div>
     <div class="premiumactivebanner hidden" id="premiumActiveBanner"><span id="premiumActiveIcon"></span> Premium active — every listing you publish is sponsored automatically</div>
 
@@ -4368,26 +4368,29 @@ function renderPremiumManage(){
 async function startCancelPremium(){
   if(!currentUser) return;
   const ok = await askConfirm({
-    title: 'End Premium?',
-    text: 'Ending Premium costs a one-time fee of €9, paid on Stripe. After the fee is paid, no more weekly charges are made and Premium stays active until the end of the week you have already paid for. One-time boosts cannot be stopped.',
-    yes: 'Pay €9 and end Premium', no: 'Keep Premium'
+    title: 'Cancel Premium?',
+    text: 'No more weekly charges will be made. Premium stays active until the end of the week you have already paid for. One-time boosts are not affected.',
+    yes: 'Yes, cancel Premium', no: 'Keep Premium'
   });
   if(!ok) return;
   const btn = document.getElementById('cancelPremiumBtn');
-  btn.disabled = true; btn.textContent = 'Opening Stripe…';
+  btn.disabled = true; btn.textContent = 'Cancelling…';
   try{
-    const res = await fetch('/api/checkout', {
+    const res = await fetch('/api/cancel-premium', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: 'cancelpremium', username: currentUser.username })
+      body: JSON.stringify({ username: currentUser.username, code: String(currentUser.code || '') })
     });
     const data = await res.json().catch(()=> ({}));
-    if(!res.ok || !data.url) throw new Error(data.error || ('HTTP ' + res.status));
-    track('checkout_start', { plan: 'cancelpremium' });
-    location.href = data.url;
+    if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    track('premium_cancel', {});
+    const key = String(currentUser.username).toLowerCase();
+    premiumUsers[key] = Object.assign({}, premiumUsers[key], { until: data.until, cancelling: true });
+    showToast('Premium cancelled — no more weekly charges. It stays active until the end of the paid week.', null, 'en', 7000);
   }catch(e){
-    showToast('Could not start the payment: ' + (e && e.message ? e.message : e), null, 'en', 6000);
-    btn.disabled = false; btn.textContent = 'Cancel Premium (€9 fee)';
+    showToast('Could not cancel Premium: ' + (e && e.message ? e.message : e), null, 'en', 7000);
   }
+  btn.disabled = false; btn.textContent = 'Cancel Premium';
+  renderPremiumManage();
 }
 document.getElementById('cancelPremiumBtn').addEventListener('click', startCancelPremium);
 
@@ -4395,13 +4398,8 @@ function handlePaymentReturn(){
   let paid = null;
   try{ paid = new URLSearchParams(location.search).get('paid'); }catch(e){}
   if(paid === null) return false;
-  let planParam = null;
-  try{ planParam = new URLSearchParams(location.search).get('plan'); }catch(e){}
   try{ history.replaceState(null, '', location.pathname); }catch(e){}
-  if(paid === '1' && planParam === 'cancelpremium'){
-    showToast('Payment received — Premium is being ended. No more weekly charges; it stays active until the end of the paid week.', null, 'en', 9000);
-    setTimeout(async ()=>{ await applyPaidBoosts(); }, 5000);
-  } else if(paid === '1'){
+  if(paid === '1'){
     showToast('Thank you! Payment received — your boost is activated as soon as Stripe confirms it (usually within seconds).', null, 'en', 9000);
     setTimeout(async ()=>{ await loadServices(); await applyPaidBoosts(); }, 4000);
   } else {
@@ -5674,7 +5672,7 @@ function renderSponsorScreenContent(){
     b1.textContent = "All your listings jump to the top, in every city";
     b2.textContent = "A \"Sponsored\" badge on every listing, automatically";
     b3.textContent = "New services you publish later are sponsored too";
-    b4.textContent = "Ending Premium costs a one-time €9 fee — you can end it yourself in your profile";
+    b4.textContent = "Cancel the weekly payment anytime, yourself, in your profile";
     note.textContent = "Payments aren't live yet — this is a preview. Once launched, €9/week will cover every service on your account.";
   } else {
     bannerBig.textContent = "+" + sponsorPlan.pct + "% MORE CLICKS";

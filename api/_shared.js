@@ -34,4 +34,24 @@ async function stripe(path, { method = 'GET', form } = {}){
   if(!r.ok) throw new Error('Stripe: ' + (json && json.error && json.error.message || r.status));
   return json;
 }
-module.exports = { sbGetRow, sbPutRow, stripe, serviceKey };
+const DAY = 24 * 3600 * 1000;
+async function setPremium(username, until, extra){
+  const row = (await sbGetRow('premium')) || {};
+  if(until) row[username] = Object.assign({}, row[username], { until }, extra || {}); else delete row[username];
+  await sbPutRow('premium', row);
+}
+// Ends a user's Premium subscription at the end of the week that is already paid for (no refund, no further charges).
+async function cancelPremiumFor(username){
+  const row = (await sbGetRow('premium')) || {};
+  let subId = row[username] && row[username].sub;
+  if(!subId){
+    const found = await stripe('subscriptions/search?query=' + encodeURIComponent("metadata['username']:'" + username + "' AND status:'active'"));
+    subId = found && found.data && found.data[0] && found.data[0].id;
+  }
+  if(!subId) throw new Error('No active subscription found for ' + username);
+  const sub = await stripe('subscriptions/' + subId, { method: 'POST', form: { cancel_at_period_end: 'true' } });
+  const until = sub.current_period_end * 1000 + DAY;
+  await setPremium(username, until, { sub: subId, cancelling: true });
+  return until;
+}
+module.exports = { sbGetRow, sbPutRow, stripe, serviceKey, setPremium, cancelPremiumFor, DAY };

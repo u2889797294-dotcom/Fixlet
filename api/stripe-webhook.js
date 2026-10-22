@@ -4,9 +4,8 @@
 //   "premium" : { "<username>":  { until } }
 // They are separate rows on purpose so the website's own saves can never overwrite them.
 const crypto = require('crypto');
-const { sbGetRow, sbPutRow, stripe } = require('./_shared');
+const { sbGetRow, sbPutRow, stripe, setPremium, DAY } = require('./_shared');
 
-const DAY = 24 * 3600 * 1000;
 
 function readRaw(req){
   return new Promise((resolve, reject) => {
@@ -26,24 +25,6 @@ function verify(raw, header, secret){
   const a = Buffer.from(expected), b = Buffer.from(sig);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
-async function setPremium(username, until, extra){
-  const row = (await sbGetRow('premium')) || {};
-  if(until) row[username] = Object.assign({}, row[username], { until }, extra || {}); else delete row[username];
-  await sbPutRow('premium', row);
-}
-// Ends a user's Premium subscription at the end of the week that is already paid for.
-async function cancelPremiumFor(username){
-  const row = (await sbGetRow('premium')) || {};
-  let subId = row[username] && row[username].sub;
-  if(!subId){
-    const found = await stripe('subscriptions/search?query=' + encodeURIComponent("metadata['username']:'" + username + "' AND status:'active'"));
-    subId = found && found.data && found.data[0] && found.data[0].id;
-  }
-  if(!subId) throw new Error('No active subscription found for ' + username);
-  const sub = await stripe('subscriptions/' + subId, { method: 'POST', form: { cancel_at_period_end: 'true' } });
-  await setPremium(username, sub.current_period_end * 1000 + DAY, { sub: subId, cancelling: true });
-}
-
 module.exports = async (req, res) => {
   if(req.method !== 'POST') return res.status(405).end();
   const raw = await readRaw(req);
@@ -61,8 +42,6 @@ module.exports = async (req, res) => {
         }
       } else if(m.plan === 'premium'){
         await setPremium(m.username, Date.now() + 8 * DAY, { sub: obj.subscription, cancelling: false }); // renewed by invoice.paid each week
-      } else if(m.plan === 'cancelpremium'){
-        await cancelPremiumFor(m.username);
       }
     } else if(event.type === 'invoice.paid' && obj.subscription){
       const sub = await stripe('subscriptions/' + obj.subscription);
