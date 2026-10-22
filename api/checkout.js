@@ -2,11 +2,15 @@
 // Creates a Stripe Checkout Session and returns { url }. Nothing is charged until the customer pays on Stripe's page.
 const { sbGetRow, stripe } = require('./_shared');
 
+// "cancelpremium" = the one-time €9 fee for ending Premium. It is a normal one-time Stripe payment; the webhook
+// ends the subscription (at the end of the paid week) once Stripe confirms the fee was paid.
+
 // Each plan can use either a ready-made Stripe price (env STRIPE_PRICE_*) or a Stripe PRODUCT id
 // (prod_..., not secret) plus the amount below, in which case the price is created inline at checkout.
 const PLANS = {
   boost50:  { price: () => process.env.STRIPE_PRICE_BOOST50,  product: process.env.STRIPE_PRODUCT_BOOST50  || 'prod_VTAQDDQ5ULsLaX', cents: 790, mode: 'payment',      needsService: true },
   boost100: { price: () => process.env.STRIPE_PRICE_BOOST100, product: process.env.STRIPE_PRODUCT_BOOST100 || 'prod_VTAX12msnRgA0p',                    cents: 990, mode: 'payment',      needsService: true },
+  cancelpremium: { price: () => null, product: '', fee: 'Fixvice Premium cancellation fee', cents: 900, mode: 'payment', needsService: false, needsPremium: true },
   premium:  { price: () => process.env.STRIPE_PRICE_PREMIUM,  product: process.env.STRIPE_PRODUCT_PREMIUM  || 'prod_VTASUNsqX0YREE',                    cents: 900, mode: 'subscription', needsService: false }
 };
 
@@ -17,7 +21,7 @@ module.exports = async (req, res) => {
     if(!process.env.STRIPE_SECRET_KEY) return res.status(503).json({ error: 'Payments are not configured yet.' });
     const { plan, serviceId, username } = req.body || {};
     const def = PLANS[plan];
-    if(!def || !(def.price() || def.product)) return res.status(400).json({ error: 'Unknown plan.' });
+    if(!def || !(def.price() || def.product || def.fee)) return res.status(400).json({ error: 'Unknown plan.' });
     if(!username || typeof username !== 'string' || username.length > 20) return res.status(400).json({ error: 'Missing username.' });
 
     if(def.needsService){
@@ -25,6 +29,14 @@ module.exports = async (req, res) => {
       const svc = Array.isArray(services) ? services.find(s => String(s.id) === String(serviceId)) : null;
       if(!svc) return res.status(404).json({ error: 'Service not found.' });
       if(String(svc.ownerCode).toLowerCase() !== username.toLowerCase()) return res.status(403).json({ error: 'You can only boost your own service.' });
+    }
+
+    if(plan === 'premium' || plan === 'cancelpremium'){
+      const prem = (await sbGetRow('premium')) || {};
+      const me = prem[username.toLowerCase()];
+      const active = !!(me && me.until > Date.now());
+      if(plan === 'premium' && active) return res.status(409).json({ error: 'Premium is already active on this account.' });
+      if(plan === 'cancelpremium' && (!active || me.cancelling)) return res.status(400).json({ error: 'There is no active Premium to cancel.' });
     }
 
     const origin = process.env.SITE_URL || ('https://' + req.headers.host);
@@ -41,7 +53,8 @@ module.exports = async (req, res) => {
       form['line_items[0][price]'] = def.price();
     } else {
       form['line_items[0][price_data][currency]'] = 'eur';
-      form['line_items[0][price_data][product]'] = def.product;
+      if(def.fee) form['line_items[0][price_data][product_data][name]'] = def.fee;
+      else form['line_items[0][price_data][product]'] = def.product;
       form['line_items[0][price_data][unit_amount]'] = String(def.cents);
       if(def.mode === 'subscription'){
         form['line_items[0][price_data][recurring][interval]'] = 'week';
