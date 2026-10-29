@@ -2671,6 +2671,110 @@
     .countrygrid, .citygrid, .citycheckgrid{ grid-template-columns:1fr; }
     .finnnav{ gap:10px; }
   }
+/* ====================== GLASS / iPHONE THEME (copy only) ======================
+   Frosted, translucent surfaces over a soft colour field, big rounded corners,
+   a floating capsule tab bar and SF-style type. The login screen is left as it
+   was (black, square) on purpose. */
+:root{
+  --glass-bg: rgba(255,255,255,.48);
+  --glass-bg-strong: rgba(255,255,255,.72);
+  --glass-border: rgba(255,255,255,.75);
+  --glass-shadow: 0 8px 32px rgba(13,60,52,.12), 0 1px 0 rgba(255,255,255,.9) inset, 0 -1px 0 rgba(255,255,255,.25) inset;
+  --glass-blur: blur(26px) saturate(185%);
+  --r-lg: 26px; --r-md: 20px; --r-sm: 14px;
+  --line: rgba(15,38,32,.09);
+  --mist: rgba(255,255,255,.4);
+}
+html{ background:#dff3ee; }
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","Segoe UI",system-ui,sans-serif;
+  letter-spacing:-.005em;
+  background:
+    radial-gradient(60vmax 60vmax at 12% -8%, rgba(13,148,136,.38), transparent 60%),
+    radial-gradient(55vmax 55vmax at 105% 8%, rgba(122,201,67,.34), transparent 58%),
+    radial-gradient(70vmax 70vmax at 50% 112%, rgba(90,170,255,.28), transparent 60%),
+    linear-gradient(180deg,#eefaf6 0%,#e3f3ff 100%) !important;
+  background-attachment:fixed !important;
+  min-height:100vh;
+}
+/* --- reusable glass --- */
+.countrycard,.citycard,.plcard,.mysvc-card,.inboxrow,.shortcard,.iconcat,.profilecard,.premiummanage,.dsidecard,
+.formwrap,.formcard,.plancard,.paywallcard,.logincard-NOT,.termswrap,.notifpanel,.subcard,.myservwrap .emptymarket,
+.ddetail-item,.dstat,.topcontinue-row,.plain-search,.filterchip,.chattool,.contactslist,.detailmain{
+  background:var(--glass-bg) !important;
+  -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border) !important;
+  box-shadow:var(--glass-shadow) !important;
+}
+.countrycard,.citycard,.plcard,.mysvc-card,.profilecard,.dsidecard,.formwrap,.plancard,.termswrap,.paywallcard,.detailmain{ border-radius:var(--r-lg) !important; }
+.inboxrow,.shortcard,.iconcat,.premiummanage,.ddetail-item,.dstat,.subcard,.contactslist{ border-radius:var(--r-md) !important; }
+.countrycard:hover,.citycard:hover,.plcard:hover,.plancard:hover{ transform:translateY(-3px); background:var(--glass-bg-strong) !important; }
+.countrycard.selected,.citycard.selected{ background:linear-gradient(135deg,rgba(13,148,136,.28),rgba(122,201,67,.28)) !important; border-color:rgba(255,255,255,.95) !important; }
+.countrycard .flag{ filter:drop-shadow(0 4px 8px rgba(0,0,0,.18)); }
+.bigcountries .countrycard .csub{ background:rgba(255,255,255,.7) !important; border:1px solid rgba(255,255,255,.9); }
+/* --- header / floating tab bar --- */
+.finnheader,.toprow{ background:transparent !important; }
+.finnheader{ -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur); background:rgba(255,255,255,.42) !important; border-bottom:1px solid rgba(255,255,255,.7) !important; }
+.bottomtabbar{
+  left:14px !important; right:14px !important; bottom:calc(14px + env(safe-area-inset-bottom)) !important; height:66px !important;
+  border-radius:34px !important; background:rgba(255,255,255,.55) !important;
+  -webkit-backdrop-filter:blur(30px) saturate(200%); backdrop-filter:blur(30px) saturate(200%);
+  border:1px solid rgba(255,255,255,.85) !important; border-top:1px solid rgba(255,255,255,.85) !important;
+  box-shadow:0 14px 40px rgba(13,60,52,.22), 0 1px 0 rgba(255,255,255,.95) inset !important;
+  max-width:560px; margin:0 auto;
+}
+#servicesScreen{ padding-bottom:120px !important; }
+/* --- inputs --- */
+.finnsearch,.finnsearch input,.formfield input[type=text],.formfield input[type=email],.formfield input[type=number],.formfield select,.formfield textarea,
+.formcard input,.formcard textarea,.cardinput,.chatinputrow input,.phonerow select,.plain-search{
+  background:rgba(255,255,255,.62) !important; border:1px solid rgba(255,255,255,.85) !important;
+  border-radius:var(--r-sm) !important; box-shadow:0 1px 3px rgba(13,60,52,.08) inset;
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+}
+.finnsearch{ border-radius:22px !important; }
+/* --- buttons: glossy capsule-ish gradient --- */
+.publishbtn,.continuebtn,.dcontactbtn,.contactbtn,.tos-agree,.premiumbanner-btn,.listbtn,.plan-cta,.topcontinue-row button{
+  border-radius:18px !important; border:1px solid rgba(255,255,255,.55) !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 55%), linear-gradient(90deg,#0d9488,#6fc13f) !important;
+  color:#fff !important; font-weight:700; box-shadow:0 8px 22px rgba(13,148,136,.32), 0 1px 0 rgba(255,255,255,.55) inset !important;
+}
+.contactbtn{ background:rgba(255,255,255,.55) !important; color:var(--teal) !important; box-shadow:0 2px 8px rgba(13,60,52,.1) !important; }
+.dsharebtn,.mysvc-delete,.mysvc-edit,.premiummanage button,.plans-topskip,#confirmOverlay .confirm-no,#formComposeOverlay .fcbtns button{
+  background:rgba(255,255,255,.6) !important; border:1px solid rgba(255,255,255,.85) !important; border-radius:16px !important;
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); color:#0b6b62 !important; font-weight:600;
+}
+.bigredbtn{ border-radius:18px !important; }
+/* --- modals / sheets --- */
+.modal-overlay{ background:rgba(20,50,45,.28) !important; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+.modal-card{
+  background:rgba(255,255,255,.7) !important; -webkit-backdrop-filter:blur(34px) saturate(190%); backdrop-filter:blur(34px) saturate(190%);
+  border:1px solid rgba(255,255,255,.9) !important; border-radius:30px !important; box-shadow:0 30px 80px rgba(13,60,52,.3) !important;
+}
+.notifpanel,.notif-toast{ border-radius:22px !important; -webkit-backdrop-filter:blur(26px) saturate(180%); backdrop-filter:blur(26px) saturate(180%); background:rgba(255,255,255,.7) !important; }
+/* --- images and chips --- */
+.plcard .thumb,.mysvc-thumb,.dimg,.dimgwrap{ border-radius:var(--r-md) !important; overflow:hidden; }
+.plcard .thumb{ border-radius:var(--r-lg) var(--r-lg) 0 0 !important; }
+.sponsoredtag,.sponsoredbadge{ backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-radius:12px !important; }
+.mysvc-citychip,.filterchip{ border-radius:12px !important; }
+.plcard .fav,.plcard .cardshare,.plcard .avatarchip{ background:rgba(255,255,255,.6) !important; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.85); }
+/* --- text over glass needs a touch more contrast --- */
+h1,h2,h3{ letter-spacing:-.02em; }
+.lede,.multihint,.lockednote{ color:#41605a; }
+.termsbody p{ color:#1d3a34; }
+#siteFooter{ color:#3d5c55; }
+#loginScreen .continuebtn{ border:none !important; background:var(--grad) !important; box-shadow:none !important; border-radius:var(--login-r,10px) !important; }
+/* --- the login screen stays exactly as designed: black and square --- */
+#loginScreen, #loginScreen *{ -webkit-backdrop-filter:none; backdrop-filter:none; }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .countrycard,.citycard,.plcard,.mysvc-card,.dsidecard,.formwrap,.modal-card,.bottomtabbar,.finnheader{ background:rgba(255,255,255,.92) !important; }
+}
+@media (prefers-reduced-transparency: reduce){
+  .countrycard,.citycard,.plcard,.mysvc-card,.dsidecard,.formwrap,.modal-card,.bottomtabbar,.finnheader,.profilecard,.plancard{ background:#fff !important; -webkit-backdrop-filter:none; backdrop-filter:none; }
+}
+
+#tosPopup .tos-agree-alt{ background:rgba(255,255,255,.7) !important; color:#0b6b62 !important; border:1px solid rgba(255,255,255,.9) !important; box-shadow:0 2px 8px rgba(13,60,52,.1) !important; }
+
+
 </style>
 </head>
 <body>
