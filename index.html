@@ -24,7 +24,7 @@
     --teal:#0d9488;
     --green:#7ac943;
     --ink:#0f2620;
-    --ink-soft:#6b8079;
+    --ink-soft:#4d635c;
     --line:#e7f0ec;
     --mist:#f2f8f5;
     --grad: linear-gradient(90deg, var(--teal) 0%, var(--green) 100%);
@@ -324,7 +324,7 @@
   #tosPopup .modal-card{ max-width:520px; width:100%; max-height:88vh; display:flex; flex-direction:column; padding:22px 20px 18px; text-align:left; }
   #tosPopup h3{ margin:0 0 4px; font-size:21px; font-weight:800; text-align:center; }
   #tosPopup .tos-track{ margin:12px 0 0; font-size:12.5px; line-height:1.5; color:var(--ink-soft); }
-  #tosPopup .tos-agree-alt{ margin-top:8px; background:#fff; color:var(--ink); border:1.5px solid var(--line); font-size:14.5px; font-weight:700; }
+  #tosPopup .tos-agree-alt{ margin-top:8px; background:var(--grad); color:#fff; border:none; font-size:16px; font-weight:800; }
   #tosPopup .tos-sub{ margin:0 0 10px; text-align:center; font-size:13px; color:var(--ink-soft); }
   #tosPopup .tos-scroll{ overflow-y:auto; border:1px solid var(--line); border-radius:14px; padding:12px 14px; font-size:13px; line-height:1.5; color:var(--ink-soft); background:#fafcfb; -webkit-overflow-scrolling:touch; }
   #tosPopup .tos-scroll p{ margin:0 0 10px; }
@@ -1022,6 +1022,17 @@
     font-size:14px;
   }
 
+  /* ---------- Accessibility ---------- */
+  :focus-visible{ outline:3px solid #0d9488; outline-offset:2px; border-radius:6px; }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+  }
+  /* ---------- Site footer ---------- */
+  #siteFooter{ max-width:960px; margin:24px auto 110px; padding:16px; text-align:center; font-size:12.5px; line-height:1.8; color:var(--ink-soft); }
+  #siteFooter a{ color:var(--ink-soft); text-decoration:underline; padding:0 4px; cursor:pointer; }
+  #siteFooter a:hover{ color:#0d9488; }
+  .deleteacctbtn{ display:block; width:100%; margin-top:10px; border:none; background:none; color:#b3261e; font:inherit; font-size:13.5px; text-decoration:underline; cursor:pointer; padding:10px; }
+  .loginack a{ color:inherit; text-decoration:underline; }
   /* ---------- Bottom tab bar (Vyrti-style) ---------- */
   #servicesScreen{ padding-bottom:90px !important; }
   .bottomtabbar{
@@ -2745,7 +2756,7 @@
         <p class="loginerror hidden" id="loginErrorMsg"></p>
         <label class="loginack hidden" id="loginAckLabel">
           <input type="checkbox" id="loginAckCheckbox">
-          <span><strong>Double-check your username and number</strong> — a typo can lock you out.</span>
+          <span><strong>Double-check your username and number</strong> — a typo can lock you out. By creating an account I confirm that I am at least 18 years old and accept the <a href="#" class="tosinlink">Terms</a> and the <a href="#" class="privinlink">Privacy Policy</a>.</span>
         </label>
         <button class="continuebtn" id="loginSubmitBtn" style="width:100%;" disabled>Log in</button>
         <p class="loginnote" id="loginHintText">Don't have an account? Tap "Create new account" above.</p>
@@ -2777,7 +2788,7 @@
       </div>
     </div>
     <div class="herotext">
-      <h1 id="heroTitle">Find trusted local help</h1>
+      <h1 id="heroTitle">Find local help</h1>
       <p id="heroSub">Pick your country to browse services near you — or list your own.</p>
     </div>
     <p class="lede" id="countryLede">Choose the country you live in</p>
@@ -2876,36 +2887,36 @@
         <button type="button" class="plancard" id="plan50">
           <span class="plan-badge">Good start</span>
           <span class="plan-pct">+50%</span>
-          <span class="plan-label">more clicks</span>
+          <span class="plan-label">more visibility</span>
           <span class="plan-price">€7.90</span>
           <span class="plan-kind">one-time · this service</span>
           <ul><li>Shown higher in your city</li><li>"Sponsored" badge</li><li>Boosted for 30 days</li></ul>
           <span class="plan-cta">Choose +50%</span>
         </button>
         <button type="button" class="plancard popular" id="plan100">
-          <span class="plan-badge">⭐ Most popular</span>
+          <span class="plan-badge">Biggest boost</span>
           <span class="plan-pct">+100%</span>
-          <span class="plan-label">more clicks</span>
+          <span class="plan-label">more visibility</span>
           <span class="plan-price">€9.90</span>
           <span class="plan-kind">one-time · this service</span>
-          <ul><li>Jumps to the very top</li><li>"Sponsored" badge</li><li>Boosted for 30 days</li></ul>
+          <ul><li>Shown above regular listings</li><li>"Sponsored" badge</li><li>Boosted for 30 days</li></ul>
           <span class="plan-cta">Choose +100%</span>
         </button>
         <button type="button" class="plancard best" id="planPremium">
-          <span class="plan-badge">💎 Best value</span>
+          <span class="plan-badge">All services</span>
           <span class="plan-pct">Premium</span>
           <span class="plan-label">all your services</span>
           <span class="plan-price">€9<small>/week</small></span>
           <span class="plan-kind">weekly · cancel anytime</span>
-          <ul><li>Every service boosted</li><li>New services included</li><li>Top spot in every city</li></ul>
+          <ul><li>Every service boosted</li><li>New services included</li><li>Shown above regular listings</li></ul>
           <span class="plan-cta">Go Premium</span>
         </button>
       </div>
       <div class="plans-explain">
-        <p><strong>+50% more clicks (€7.90):</strong> a one-time boost for this service only. It is shown higher up in the marketplace in your cities and gets a "Sponsored" badge for 30 days.</p>
-        <p><strong>+100% more clicks (€9.90):</strong> our most popular one-time boost for this service. It goes right to the top, before regular listings and the +50% boost, for 30 days.</p>
-        <p><strong>Premium (€9 per week):</strong> instead of paying per service, every service on your account is boosted — including all the ones you publish later. Best value if you have more than one service. You can cancel Premium yourself at any time in your profile. One-time boosts cannot be stopped; they simply run for 30 days.</p>
-        <p>Payments aren't live yet — this is a preview of the prices. Nothing is charged today.</p>
+        <p><strong>+50% more visibility (€7.90):</strong> a one-time boost for this service only. It is shown higher up in the marketplace in your cities and gets a "Sponsored" badge for 30 days.</p>
+        <p><strong>+100% more visibility (€9.90):</strong> our largest one-time boost for this service. It is shown above regular listings and the +50% boost for 30 days. Boosts raise visibility; they do not guarantee a number of clicks, messages or sales.</p>
+        <p><strong>Premium (€9 per week):</strong> instead of paying per service, every service on your account is boosted — including all the ones you publish later. Useful if you have more than one service. You can cancel Premium yourself at any time in your profile. One-time boosts cannot be stopped; they simply run for 30 days.</p>
+        <p>The price shown is the full price you pay at checkout, in euro. Premium renews every week until you cancel. Fixvice adds no other fees. Payment is handled by Stripe. Read our <a href="#" class="refundlink">refund and cancellation policy</a> before you buy.</p>
       </div>
       <button type="button" class="plans-skip" id="plansSkipBtn">Skip — publish without a boost</button>
       <p class="plans-explain" style="text-align:center;margin-top:4px;">No problem! Your service is already live. You can boost it any time later from "Your services".</p>
@@ -3122,9 +3133,31 @@
         <p><strong>6. Data retention.</strong> We keep your Listing and message data for as long as your account is active, or until you delete it.</p>
         <p><strong>7. Administrative account actions.</strong> To keep the platform safe and enforce these Terms, Fixvice administrators can see basic account and session information (such as your username and whether you are currently signed in) and can remotely sign an account out of all of its active sessions ("forced logout"), in addition to banning or unbanning an account. This is an administrative security measure, not a form of tracking, and is used for moderation and enforcement purposes only.</p>
         <p><strong>7b. Activity data.</strong> If you allow it (the start-up notice or your profile), we collect activity data tied to your username: screens opened, countries, cities and listings viewed or clicked, boost/Premium plans viewed or chosen, listings published, number and type of chat messages sent (never their content, addresses or photos), and time stamps. The legal basis is your consent, which you can withdraw at any time in your profile. It is stored in our database (Supabase), visible to Fixvice administrators, kept while your account exists, and deleted with it.</p>
+        <p><strong>7c. Messages and unsubscribing.</strong> Fixvice does not send marketing email, SMS or push messages, and it does not share your contact details with advertisers. If we ever send marketing, every message will contain a link or instruction to unsubscribe, and you can opt out at any time by contacting us. You can switch off activity tracking at any time in your profile.</p>
+        <p><strong>7d. Deleting your data.</strong> You can delete your account yourself: open your profile and tap "Delete my account". This removes your account, all your listings, your conversations and your activity data from Fixvice. Payment records are kept by us and Stripe for as long as bookkeeping law requires. You can also ask us to delete your data by contacting us.</p>
+        <p><strong>7e. Children.</strong> Fixvice is only for people who are at least 18 years old. We do not knowingly collect data about anyone under 18. If you believe a child has created an account, contact us and we will delete it.</p>
         <p><strong>8. Changes.</strong> We may update this Privacy Policy from time to time; continued use of Fixvice after changes are posted means you accept the updated policy.</p>
         <p><strong>9. Contact.</strong> Questions about your data can be directed through the app's messaging feature, or by calling our helpline at +47 413 74 773.</p>
         <p class="bizdetails"><strong>Data controller:</strong> Transform4Future Anna Madeleine Nordlund · Harriet Backers vei 14E, 1415 Oppegård, Norway · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== REFUND & CANCELLATION POLICY ===================== -->
+  <div class="screen hidden" id="refundScreen">
+    <div class="backrow"><button class="backbtn" id="backFromRefund">&larr; Back</button></div>
+    <div class="termswrap">
+      <h2>Refund and Cancellation Policy</h2>
+      <div class="termsbody">
+        <p><strong>1. What you can buy.</strong> Fixvice sells three paid products: a one-time Boost of +50% (€7.90) for one service, a one-time Boost of +100% (€9.90) for one service, and Premium (€9 per week) for all services on your account. The price shown before you pay is the full price. Fixvice adds no other fees. Posting a service is free.</p>
+        <p><strong>2. One-time Boosts.</strong> A Boost is active for 30 days from the moment Stripe confirms your payment. It does not renew. Once a Boost has been activated it cannot be cancelled or refunded, because the service has then been provided.</p>
+        <p><strong>3. Premium.</strong> Premium renews every week until you cancel. You can cancel yourself at any time in your profile ("Cancel Premium"). Cancelling is free. No further weekly charges are made after you cancel, and Premium stays active until the end of the week you have already paid for. The week already paid is not refunded.</p>
+        <p><strong>4. Charged by mistake.</strong> If you were charged twice, charged after you cancelled, or charged an amount different from the price shown, contact us and we will correct it and refund the amount that was wrongly charged.</p>
+        <p><strong>5. Right of withdrawal.</strong> If you are a consumer and have a statutory right to withdraw from a digital purchase, this policy does not limit that right. When you buy a Boost or Premium you ask us to activate it immediately. By law, the right of withdrawal can end once a digital service has been fully provided, and for Premium it can end for a period that has already started.</p>
+        <p><strong>6. Removed listings and closed accounts.</strong> If we remove a listing or close an account because the Terms were broken, there is no refund of a Boost or Premium connected to it.</p>
+        <p><strong>7. How to ask for a refund.</strong> Call our helpline +47 413 74 773 or write to the address below, and tell us your username, the date and the amount. Refunds are paid back to the card or payment method you used, normally within 14 days after we approve it.</p>
+        <p><strong>8. Your payment details.</strong> Payments are made on a page hosted by Stripe. Fixvice never sees or stores your card number.</p>
+        <p class="bizdetails"><strong>Seller:</strong> Transform4Future Anna Madeleine Nordlund · Org.nr 924 590 734 · Harriet Backers vei 14E, 1415 Oppegård, Norway · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a> · +47 413 74 773</p>
       </div>
     </div>
   </div>
@@ -3323,6 +3356,7 @@
       <p class="loggedinas hidden" id="profileSuccessMsg"></p>
       <button class="publishbtn" id="profileSaveBtn" disabled>Save changes</button>
       <button class="bigredbtn" id="profileLogoutBtn">Log out</button>
+    <button type="button" class="deleteacctbtn" id="deleteAccountBtn">Delete my account and data</button>
     </div>
   </div>
 
@@ -3458,6 +3492,12 @@
       </div>
     </div>
   </div>
+
+<footer id="siteFooter">
+  <div><a href="#" id="ftPrivacy">Privacy Policy</a> · <a href="#" id="ftTerms">Terms of Service</a> · <a href="#" id="ftRefund">Refunds and cancellation</a> · <a href="#" id="ftCookies">Cookies</a></div>
+  <div>Fixvice is run by Transform4Future Anna Madeleine Nordlund · Org.nr 924 590 734 · Harriet Backers vei 14E, 1415 Oppegård, Norway</div>
+  <div>Helpline <a href="tel:+4741374773">+47 413 74 773</a> · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a></div>
+</footer>
 
 <script>
 /* ---------------- Bot / AI-agent gate ----------------
@@ -3624,7 +3664,7 @@ const T = {
     searchPlaceholder:"What do you need help with?", searchBtn:"Search",
     forBusiness:"For business", alerts:"Alerts", newListing:"New listing", messages:"Messages", myAccount:"My Fixvice",
     popularListings:"Popular listings", from:"From",
-    popularSub:"Handpicked providers near you", filterPlaceholder:"Search listings…", all:"All",
+    popularSub:"Listings near you", filterPlaceholder:"Search listings…", all:"All",
     kmAway:"km away", verified:"Verified", video:"Video", availableToday:"Available today", topRated:"Top rated",
     noResults:"No listings match your search",
     contactHelper:"Contact helper", sentMsg:"Message sent", repliedSuffix:"replied to your message",
@@ -3687,7 +3727,7 @@ const T = {
     searchPlaceholder:"Hva trenger du hjelp med?", searchBtn:"Søk",
     forBusiness:"For bedrifter", alerts:"Varslinger", newListing:"Ny annonse", messages:"Meldinger", myAccount:"Min Fixvice",
     popularListings:"Populære annonser", from:"Fra",
-    popularSub:"Utvalgte tilbydere nær deg", filterPlaceholder:"Søk i annonser…", all:"Alle",
+    popularSub:"Annonser nær deg", filterPlaceholder:"Søk i annonser…", all:"Alle",
     kmAway:"km unna", verified:"Verifisert", video:"Video", availableToday:"Ledig i dag", topRated:"Toppvurdert",
     noResults:"Ingen annonser matcher søket ditt",
     contactHelper:"Kontakt hjelper", sentMsg:"Melding sendt", repliedSuffix:"svarte på meldingen din",
@@ -3734,7 +3774,7 @@ const T = {
     searchPlaceholder:"Vad behöver du hjälp med?", searchBtn:"Sök",
     forBusiness:"För företag", alerts:"Aviseringar", newListing:"Ny annons", messages:"Meddelanden", myAccount:"Mitt Fixvice",
     popularListings:"Populära annonser", from:"Från",
-    popularSub:"Utvalda leverantörer nära dig", filterPlaceholder:"Sök annonser…", all:"Alla",
+    popularSub:"Annonser nära dig", filterPlaceholder:"Sök annonser…", all:"Alla",
     kmAway:"km bort", verified:"Verifierad", video:"Video", availableToday:"Ledig idag", topRated:"Toppbetyg",
     noResults:"Inga annonser matchar din sökning",
     contactHelper:"Kontakta hjälpare", sentMsg:"Meddelande skickat", repliedSuffix:"svarade på ditt meddelande",
@@ -3781,7 +3821,7 @@ const T = {
     searchPlaceholder:"Hvad har du brug for hjælp til?", searchBtn:"Søg",
     forBusiness:"For virksomheder", alerts:"Underretninger", newListing:"Ny annonce", messages:"Beskeder", myAccount:"Min Fixvice",
     popularListings:"Populære annoncer", from:"Fra",
-    popularSub:"Udvalgte udbydere tæt på dig", filterPlaceholder:"Søg i annoncer…", all:"Alle",
+    popularSub:"Annoncer tæt på dig", filterPlaceholder:"Søg i annoncer…", all:"Alle",
     kmAway:"km væk", verified:"Verificeret", video:"Video", availableToday:"Ledig i dag", topRated:"Topbedømt",
     noResults:"Ingen annoncer matcher din søgning",
     contactHelper:"Kontakt hjælper", sentMsg:"Besked sendt", repliedSuffix:"svarede på din besked",
@@ -3882,6 +3922,7 @@ const screens = {
   terms: document.getElementById('termsScreen'),
   privacy: document.getElementById('privacyScreen'),
   cookies: document.getElementById('cookiesScreen'),
+  refund: document.getElementById('refundScreen'),
   paywall: document.getElementById('paywallScreen'),
   plans: document.getElementById('plansScreen'),
   city: document.getElementById('cityScreen'),
@@ -4163,7 +4204,7 @@ function renderListingCards(lang){
     const sponsoredTag = isServiceSponsored(l) ? `<span class="sponsoredtag">${ic('star')} Sponsored</span>` : '';
     div.innerHTML = `
       <div class="thumb" style="background:linear-gradient(135deg,#0d9488,#7ac943)">
-        ${l.image ? `<img src="${l.image}" class="lazyfade" onload="this.classList.add('loaded')" style="width:100%;height:100%;object-fit:contain;position:absolute;inset:0;background:#fff;">` : `<span class="thumbico">${ic(icoKey)}</span>`}
+        ${l.image ? `<img src="${l.image}" alt="${escapeHtml(l.name)}" class="lazyfade" onload="this.classList.add('loaded')" style="width:100%;height:100%;object-fit:contain;position:absolute;inset:0;background:#fff;">` : `<span class="thumbico">${ic(icoKey)}</span>`}
         <span class="fav" style="z-index:3;">${ic('heart')}</span>
         <button type="button" class="cardshare" title="Share" aria-label="Share this service"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6"/><path d="M12 15V3"/><path d="M7.5 7.5L12 3l4.5 4.5"/></svg></button>
         ${videoBadge}
@@ -4172,7 +4213,7 @@ function renderListingCards(lang){
       </div>
       <div class="info">
         <h3>${escapeHtml(l.name)}</h3>
-        <p class="provider">${t(lang, l.cat)} <span class="verified">${ic('check')}</span></p>
+        <p class="provider">${t(lang, l.cat)}</p>
         <p class="desc">${escapeHtml(l.desc)}</p>
         ${typeof l.price === 'number' && l.price > 0 ? `<p class="price">${t(lang,'from')} ${l.price.toLocaleString()}${l.currency ? ' '+l.currency : ''}${l.priceNote ? ' · '+escapeHtml(l.priceNote) : ''}</p>` : ''}
         <div class="tagrow"></div>
@@ -4309,6 +4350,7 @@ function openServiceDetail(service, lang){
 
   document.getElementById('backFromDetailLabel').textContent = t(lang,'changeCity');
   document.getElementById('detailImg').src = service.image || '';
+  document.getElementById('detailImg').alt = service.image ? ('Photo for ' + (service.name || 'listing')) : '';
   const dImg = document.getElementById('detailImg');
   dImg.classList.remove('loaded');
   dImg.onload = ()=> dImg.classList.add('loaded');
@@ -7125,6 +7167,78 @@ document.getElementById('profileNavItem').addEventListener('click', (e)=>{
     show('myServices');
   });
 });
+
+/* ---------------- Policy links, footer and account deletion ---------------- */
+document.getElementById('backFromRefund').addEventListener('click', ()=> show(currentUser ? 'home' : 'home'));
+document.getElementById('ftPrivacy').addEventListener('click', (e)=>{ e.preventDefault(); show('privacy'); });
+document.getElementById('ftTerms').addEventListener('click', (e)=>{ e.preventDefault(); show('terms'); });
+document.getElementById('ftRefund').addEventListener('click', (e)=>{ e.preventDefault(); show('refund'); });
+document.getElementById('ftCookies').addEventListener('click', (e)=>{ e.preventDefault(); show('cookies'); });
+document.querySelectorAll('.refundlink').forEach(a=> a.addEventListener('click', (e)=>{ e.preventDefault(); show('refund'); }));
+document.querySelectorAll('.tosinlink').forEach(a=> a.addEventListener('click', (e)=>{ e.preventDefault(); show('terms'); }));
+document.querySelectorAll('.privinlink').forEach(a=> a.addEventListener('click', (e)=>{ e.preventDefault(); show('privacy'); }));
+
+/* Deletes everything tied to the signed-in account: its listings, its conversations on other
+   people's listings, its entry in the users list and its activity row. An active Premium is
+   cancelled first so that no further weekly charges are made. */
+async function deleteMyAccount(){
+  if(!currentUser) return;
+  const me = currentUser.username;
+  const meKey = String(me || '').trim().toLowerCase();
+  const ok = await askConfirm({
+    title: 'Delete your account?',
+    text: 'This permanently deletes your account, all your listings, your conversations and your activity data. An active Premium is cancelled. Boosts and Premium already paid are not refunded. This cannot be undone.',
+    yes: 'Delete everything', no: 'Keep my account'
+  });
+  if(!ok) return;
+  const btn = document.getElementById('deleteAccountBtn');
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  try{
+    const pr = premiumUsers[meKey];
+    if(pr && pr.until > Date.now() && !pr.cancelling){
+      const r = await fetch('/api/cancel-premium', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: me, code: String(currentUser.code || '') })
+      });
+      if(!r.ok) throw new Error('Could not cancel your Premium first. Nothing was deleted.');
+    }
+    const headers = { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": "application/json" };
+    if(supabaseConfigured()){
+      const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, { headers });
+      let latest = Array.isArray(myServices) ? myServices.slice() : [];
+      if(getRes.ok){ const rows = await getRes.json(); if(rows && rows[0] && Array.isArray(rows[0].data)) latest = rows[0].data; }
+      latest = latest.filter(x => x && x.ownerCode !== me).map(x=>{
+        if(x.conversations && Object.prototype.hasOwnProperty.call(x.conversations, me)){
+          const c = Object.assign({}, x.conversations); delete c[me]; return Object.assign({}, x, { conversations: c });
+        }
+        return x;
+      });
+      const put = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
+        method: "POST", headers: Object.assign({ "Prefer": "resolution=merge-duplicates" }, headers),
+        body: JSON.stringify({ id: "global", data: latest })
+      });
+      if(!put.ok) throw new Error('Could not delete your listings. Nothing else was deleted.');
+      myServices = latest;
+    }
+    await loadRegisteredCodes();
+    registeredCodes = registeredCodes.filter(a => {
+      if(typeof a === 'string') return a !== String(currentUser.code);
+      return !a || String(a.username || '').trim().toLowerCase() !== meKey;
+    });
+    await saveRegisteredCodes();
+    if(supabaseConfigured()){
+      try{ await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${encodeURIComponent('an_' + meKey)}`, { method: 'DELETE', headers }); }catch(e){}
+    }
+    await clearUser();
+    ['jelp_myServices_v2','jelp_premium_v1','jelp_lastLocation_v1'].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+    showToast('Your account and data have been deleted.', null, 'en', 6000);
+    setTimeout(()=> location.reload(), 1800);
+  }catch(e){
+    showToast((e && e.message) ? e.message : 'Could not delete the account. Try again.', null, 'en', 7000);
+    btn.disabled = false; btn.textContent = 'Delete my account and data';
+  }
+}
+document.getElementById('deleteAccountBtn').addEventListener('click', deleteMyAccount);
 </script>
 </body>
 </html>
