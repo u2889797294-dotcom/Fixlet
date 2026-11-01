@@ -1,7 +1,7 @@
 // POST /api/cancel-premium  { username, code }
 // Free self-service cancellation of Premium. The sign-in pair (username + 6-digit number) is checked against the
 // users row first. The subscription is set to end at the end of the week that is already paid for.
-const { sbGetRow, cancelPremiumFor } = require('./_shared');
+const { sbGetRow, cancelPremiumFor, rateLimit, clientIp } = require('./_shared');
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -11,6 +11,14 @@ module.exports = async (req, res) => {
     const { username, code } = req.body || {};
     if(typeof username !== 'string' || typeof code !== 'string' || !/^\d{6}$/.test(code)) return res.status(400).json({ error: 'Missing sign-in details.' });
     const key = username.trim().toLowerCase();
+    // Every attempt counts: max 5 per hour per username and 20 per hour per IP address (stops guessing of the 6-digit number).
+    const a = await rateLimit('cancel-user:' + key, 5, 3600 * 1000);
+    const b = await rateLimit('cancel-ip:' + clientIp(req), 20, 3600 * 1000);
+    if(!a.ok || !b.ok){
+      const wait = Math.max(a.retryAfterSec || 0, b.retryAfterSec || 0);
+      res.setHeader('Retry-After', String(wait));
+      return res.status(429).json({ error: 'Too many attempts. Try again in ' + Math.ceil(wait / 60) + ' minutes.' });
+    }
     const users = (await sbGetRow('users')) || [];
     const account = Array.isArray(users) ? users.find(a => a && a.username && String(a.username).toLowerCase() === key) : null;
     if(!account || String(account.code) !== code) return res.status(403).json({ error: 'Sign-in details did not match.' });

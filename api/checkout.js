@@ -1,6 +1,6 @@
 // POST /api/checkout  { plan: "boost50" | "boost100" | "premium", serviceId?: number, username: string }
 // Creates a Stripe Checkout Session and returns { url }. Nothing is charged until the customer pays on Stripe's page.
-const { sbGetRow, stripe } = require('./_shared');
+const { sbGetRow, stripe, rateLimit, clientIp } = require('./_shared');
 
 
 // Each plan can use either a ready-made Stripe price (env STRIPE_PRICE_*) or a Stripe PRODUCT id
@@ -18,6 +18,8 @@ module.exports = async (req, res) => {
     if(!process.env.STRIPE_SECRET_KEY) return res.status(503).json({ error: 'Payments are not configured yet.' });
     const { plan, serviceId, username } = req.body || {};
     const def = PLANS[plan];
+    const lim = await rateLimit('checkout-ip:' + clientIp(req), 20, 3600 * 1000); // max 20 checkout sessions per hour per IP
+    if(!lim.ok){ res.setHeader('Retry-After', String(lim.retryAfterSec)); return res.status(429).json({ error: 'Too many attempts. Try again later.' }); }
     if(!def || !(def.price() || def.product)) return res.status(400).json({ error: 'Unknown plan.' });
     if(!username || typeof username !== 'string' || username.length > 20) return res.status(400).json({ error: 'Missing username.' });
 

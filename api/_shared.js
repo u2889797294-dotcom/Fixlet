@@ -54,4 +54,26 @@ async function cancelPremiumFor(username){
   await setPremium(username, until, { sub: subId, cancelling: true });
   return until;
 }
-module.exports = { sbGetRow, sbPutRow, stripe, serviceKey, setPremium, cancelPremiumFor, DAY };
+
+// Simple rate limiter kept in one Supabase row ("ratelimit"). Keys are hashed so no raw IP address or username is stored.
+// Returns { ok, retryAfterSec }. Reads are best-effort: if the store is unavailable the request is allowed.
+const crypto = require('crypto');
+async function rateLimit(rawKey, max, windowMs){
+  try{
+    const key = crypto.createHash('sha256').update(String(rawKey)).digest('hex').slice(0, 24);
+    const now = Date.now();
+    const row = (await sbGetRow('ratelimit')) || {};
+    // drop old entries everywhere so the row stays small
+    for(const k of Object.keys(row)){ row[k] = (row[k] || []).filter(t => now - t < 24 * 3600 * 1000); if(!row[k].length) delete row[k]; }
+    const hits = (row[key] || []).filter(t => now - t < windowMs);
+    if(hits.length >= max) return { ok: false, retryAfterSec: Math.ceil((windowMs - (now - hits[0])) / 1000) };
+    hits.push(now); row[key] = hits;
+    await sbPutRow('ratelimit', row);
+    return { ok: true };
+  }catch(e){ console.error('rateLimit unavailable', e && e.message); return { ok: true }; }
+}
+function clientIp(req){
+  const f = req.headers && req.headers['x-forwarded-for'];
+  return (f ? String(f).split(',')[0].trim() : (req.socket && req.socket.remoteAddress)) || 'unknown';
+}
+module.exports = { sbGetRow, sbPutRow, stripe, serviceKey, setPremium, cancelPremiumFor, rateLimit, clientIp, DAY };

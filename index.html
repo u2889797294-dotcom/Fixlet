@@ -5373,6 +5373,26 @@ document.getElementById('loginCodeInput').addEventListener('input', (e)=>{
   e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
   updateLoginSubmitState();
 });
+/* Limits wrong sign-in attempts: max 5 per hour per username on this device. The same limit is enforced on the
+   server for the payment endpoints. */
+const LOGIN_FAIL_KEY = 'fixvice_login_fails_v1';
+function loginFailsFor(user){
+  try{
+    const all = JSON.parse(localStorage.getItem(LOGIN_FAIL_KEY) || '{}');
+    return (all[user] || []).filter(t => Date.now() - t < 3600 * 1000);
+  }catch(e){ return []; }
+}
+function recordLoginFail(user){
+  try{
+    const all = JSON.parse(localStorage.getItem(LOGIN_FAIL_KEY) || '{}');
+    all[user] = loginFailsFor(user).concat(Date.now());
+    localStorage.setItem(LOGIN_FAIL_KEY, JSON.stringify(all));
+  }catch(e){}
+}
+function loginLockedMinutes(user){
+  const f = loginFailsFor(user);
+  return f.length >= 5 ? Math.ceil((3600 * 1000 - (Date.now() - f[0])) / 60000) : 0;
+}
 document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
@@ -5384,6 +5404,10 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   if(loginMode === 'register' && !cc){ errEl.textContent = 'Velg landkoden din (+47, +46, +45, +358, +44 eller +354).'; errEl.classList.remove('hidden'); return; }
   errEl.classList.add('hidden');
   if(!isValidUsername(username, loginMode !== 'register') || !/^\d{6}$/.test(code)) return;
+  if(loginMode === 'login'){
+    const wait = loginLockedMinutes(username.toLowerCase());
+    if(wait){ errEl.textContent = 'For mange mislykkede forsøk. Prøv igjen om ' + wait + ' minutter.'; errEl.classList.remove('hidden'); return; }
+  }
   if(loginMode === 'register' && !isValidPhone(phone)) return;
   if(loginMode === 'register'){
     const prob = contentProblem(username, {strict:true, reserved:true});
@@ -5431,11 +5455,13 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
       }
     }
     if(!account){
+      recordLoginFail(username.toLowerCase());
       errEl.textContent = 'Fant ingen konto med dette brukernavnet. Trykk «Opprett ny konto» for å lage en.';
       errEl.classList.remove('hidden');
       return;
     }
     if(account.code !== code){
+      recordLoginFail(username.toLowerCase());
       errEl.textContent = 'Nummeret stemmer ikke med dette brukernavnet.';
       errEl.classList.remove('hidden');
       return;

@@ -1,0 +1,8 @@
+# Secrets and local config must never be committed. Real keys live in Vercel environment variables.
+.env
+.env.*
+!.env.example
+node_modules/
+.vercel/
+*.pem
+*.key
