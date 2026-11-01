@@ -2789,10 +2789,11 @@
     </div>
     <div class="herotext">
       <h1 id="heroTitle">Find local help</h1>
-      <p id="heroSub">Pick your country to browse services near you — or list your own.</p>
+      <p id="heroSub">Pick your city to browse services near you — or list your own.</p>
     </div>
-    <p class="lede" id="countryLede">Choose the country you live in</p>
-    <div class="countrygrid bigcountries" id="countryGrid"></div>
+    <p class="lede" id="countryLede">Choose your city</p>
+    <input type="text" class="plain-search" id="homeCitySearch" maxlength="150" placeholder="Search city…" aria-label="Search city" autocomplete="off">
+    <div class="citygrid" id="homeCityGrid"></div>
   </div>
 
   <!-- ===================== CITY SELECT (browsing, single choice) ===================== -->
@@ -3623,7 +3624,11 @@ const COUNTRIES = [
   {name:"Sweden", flag:"🇸🇪", lang:"sv"},
 ].sort((a,b)=>a.name.localeCompare(b.name));
 
-const ENABLED_COUNTRIES = COUNTRIES.map(c => c.name);
+/* Fixvice is currently open for Norway only. The other countries stay in COUNTRIES so that old
+   listings and lookups keep working, but they are not offered anywhere in the interface. */
+const ACTIVE_COUNTRY = "Norway";
+const ENABLED_COUNTRIES = [ACTIVE_COUNTRY];
+const VISIBLE_COUNTRIES = COUNTRIES.filter(c => c.name === ACTIVE_COUNTRY);
 
 const CITIES = {
   "Denmark": ["København", "Aarhus", "Odense", "Aalborg", "Esbjerg", "Randers", "Kolding", "Horsens", "Vejle", "Roskilde", "Aabenraa", "Aalestrup", "Aars", "Albertslund", "Allerød", "Allinge", "Amager", "Assens", "Augustenborg", "Aulum", "Avedøre", "Ballerup", "Billund", "Birkerød", "Bjerringbro", "Bogense", "Bording", "Bornholm", "Brabrand", "Brande", "Broager", "Brædstrup", "Brøndby", "Brønderslev", "Brønshøj", "Børkop", "Charlottenlund", "Christiansfeld", "Dalum", "Dianalund", "Dragør", "Ebeltoft", "Egedal", "Egtved", "Ejstrupholm", "Faaborg", "Faaborg-Midtfyn", "Fanø", "Farum", "Favrskov", "Faxe", "Fjerritslev", "Fredensborg", "Fredericia", "Frederiksberg", "Frederikshavn", "Frederikssund", "Frederiksværk", "Furesø", "Fåborg", "Fårup", "Galten", "Gentofte", "Gilleleje", "Give", "Gladsaxe", "Glamsbjerg", "Glostrup", "Gram", "Grenaa", "Greve", "Gribskov", "Grindsted", "Gråsten", "Gudhjem", "Guldborgsund", "Haarby", "Haderslev", "Hadsten", "Hadsund", "Halsnæs", "Hammel", "Hanstholm", "Harboøre", "Hasle", "Haslev", "Hedehusene", "Hedensted", "Hellerup", "Helsingør", "Herlev", "Herning", "Hillerød", "Hinnerup", "Hjerting", "Hjørring", "Hobro", "Holbæk", "Holstebro", "Holte", "Hornbæk", "Hornslet", "Humlebæk", "Hundested", "Hundige", "Hurup", "Hvide Sande", "Hvidovre", "Højby", "Høje-Taastrup", "Hørning", "Hørsholm", "Ikast", "Ikast-Brande", "Ishøj", "Jammerbugt", "Jelling", "Juelsminde", "Jyllinge", "Kalundborg", "Karlslunde", "Kastrup", "Kerteminde", "Klampenborg", "Kokkedal", "Korsør", "Køge", "Langeland", "Langå", "Lejre", "Lemvig", "Lolland", "Lunderskov", "Lyngby", "Lyngby-Taarbæk", "Lystrup", "Læsø", "Løgstør", "Løgumkloster", "Løkken", "Mariager", "Mariagerfjord", "Maribo", "Marstal", "Middelfart", "Morsø", "Munkebo", "Måløv", "Nakskov", "Nexø", "Nibe", "Nivå", "Nordborg", "Nordby", "Norddjurs", "Nordfyn", "Nyborg", "Nykøbing Falster", "Nykøbing M", "Nykøbing Mors", "Nykøbing Sjælland", "Næstved", "Nørresundby", "Odder", "Odsherred", "Ordrup", "Otterup", "Padborg", "Pandrup", "Portalen", "Præstø", "Rebild", "Ribe", "Ringe", "Ringkøbing", "Ringkøbing-Skjern", "Ringsted", "Risskov", "Roslev", "Rudersdal", "Rudkøbing", "Ry", "Rødby", "Rødding", "Rødekro", "Rødovre", "Rømø", "Rønne", "Samsø", "Silkeborg", "Skagen", "Skanderborg", "Skive", "Skjern", "Skodsborg", "Skælskør", "Skærbæk", "Skødstrup", "Skørping", "Slagelse", "Smørum", "Solrød", "Solrød Strand", "Sorø", "Spjald", "Spøttrup", "Stege", "Stenløse", "Stevns", "Stilling", "Struer", "Støvring", "Sunds", "Sundsøre", "Svaneke", "Svendborg", "Sydals", "Syddjurs", "Sæby", "Sønderborg", "Sønderho", "Taastrup", "Tarm", "Them", "Thisted", "Thorsø", "Thyborøn", "Tilst", "Tjele", "Toftlund", "Tårnby", "Tårs", "Tølløse", "Tønder", "Tørring", "Ulfborg", "Ullerslev", "Valby", "Vallensbæk", "Vamdrup", "Vanløse", "Varde", "Vedbæk", "Vejen", "Vemb", "Vemmelev", "Vestervig", "Vesthimmerland", "Viborg", "Viby", "Videbæk", "Vinderup", "Vissenbjerg", "Vojens", "Vordingborg", "Værløse", "Årslev", "Ærø", "Ærøskøbing", "Ølgod", "Ølstykke"],
@@ -3973,7 +3978,7 @@ function countryStatsHTML(name){
 }
 function refreshCountryGrids(){
   try{
-    if(typeof countryGrid !== 'undefined' && countryGrid) renderCountryGrid(countryGrid, "", onBrowseCountrySelected);
+    if(document.getElementById('homeCityGrid')) renderHomeCities();
     const pg = document.getElementById('postCountryGrid');
     if(pg && pg.children.length) renderPostCountryGrid();
   }catch(e){}
@@ -3999,8 +4004,35 @@ function renderCountryGrid(container, filter, onSelect){
     });
 }
 
-const countryGrid = document.getElementById('countryGrid');
-renderCountryGrid(countryGrid, "", onBrowseCountrySelected);
+/* The start page lists every Norwegian city straight away (no country step). */
+function renderHomeCities(filter){
+  const grid = document.getElementById('homeCityGrid');
+  if(!grid) return;
+  const norway = withEffLang(COUNTRIES.find(c => c.name === ACTIVE_COUNTRY));
+  const f = (filter || '').trim().toLowerCase();
+  grid.innerHTML = "";
+  CITIES[ACTIVE_COUNTRY].filter(city => !f || city.toLowerCase().includes(f)).forEach((city, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'citycard cardPop';
+    div.style.animationDelay = Math.min(idx,20) * 0.03 + 's';
+    div.textContent = city;
+    div.addEventListener('click', ()=>{
+      requireLogin(()=>{
+        const cc = withEffLang(COUNTRIES.find(c => c.name === ACTIVE_COUNTRY));
+        browseCountry = cc;
+        browseCity = city;
+        document.getElementById('htmlRoot').setAttribute('lang', cc.lang);
+        renderSiteScreen(cc, city);
+        show('services');
+        saveLastLocation();
+      });
+    });
+    makeKeyboardClickable(div, city);
+    grid.appendChild(div);
+  });
+}
+renderHomeCities();
+document.getElementById('homeCitySearch').addEventListener('input', e=> renderHomeCities(e.target.value));
 
 
 function onBrowseCountrySelected(c){
@@ -4042,10 +4074,7 @@ document.getElementById('citySearch').addEventListener('input', e=>{
   if(browseCountry) renderCityGrid(browseCountry, e.target.value);
 });
 document.getElementById('backFromCity').addEventListener('click', ()=> show('home'));
-document.getElementById('backFromServices').addEventListener('click', ()=>{
-  if(browseCountry) renderCityGrid(browseCountry);
-  show('city');
-});
+document.getElementById('backFromServices').addEventListener('click', ()=> show('home'));
 
 function renderSiteScreen(c, city){
   document.getElementById('locLabel').textContent = city;
@@ -5876,7 +5905,7 @@ function renderPostCountryGrid(){
     const n = postSelectedCountries.size;
     countLabel.textContent = n + (n === 1 ? " country selected" : " countries selected");
   }
-  COUNTRIES.forEach((c, idx)=>{
+  VISIBLE_COUNTRIES.forEach((c, idx)=>{
     const div = document.createElement('div');
     div.className = 'countrycard cardPop';
     div.style.animationDelay = Math.min(idx * 0.015, 0.35) + 's';
