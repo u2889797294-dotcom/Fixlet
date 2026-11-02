@@ -1,6 +1,6 @@
 // POST /api/checkout  { plan: "boost50" | "boost100" | "premium", serviceId?: number, username: string }
 // Creates a Stripe Checkout Session and returns { url }. Nothing is charged until the customer pays on Stripe's page.
-const { sbGetRow, stripe, rateLimit, clientIp } = require('./_shared');
+const { sbGetRow, stripe, rateLimit, clientIp, readSession } = require('./_shared');
 
 
 // Each plan can use either a ready-made Stripe price (env STRIPE_PRICE_*) or a Stripe PRODUCT id
@@ -16,7 +16,9 @@ module.exports = async (req, res) => {
   if(req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   try {
     if(!process.env.STRIPE_SECRET_KEY) return res.status(503).json({ error: 'Payments are not configured yet.' });
-    const { plan, serviceId, username } = req.body || {};
+    let { plan, serviceId, username } = req.body || {};
+    const sess = await readSession(req); // signed-in session (new login): the buyer is always the session's user
+    if(sess) username = sess.username;
     const def = PLANS[plan];
     const lim = await rateLimit('checkout-ip:' + clientIp(req), 20, 3600 * 1000); // max 20 checkout sessions per hour per IP
     if(!lim.ok){ res.setHeader('Retry-After', String(lim.retryAfterSec)); return res.status(429).json({ error: 'Too many attempts. Try again later.' }); }
@@ -24,8 +26,8 @@ module.exports = async (req, res) => {
     if(!username || typeof username !== 'string' || username.length > 20) return res.status(400).json({ error: 'Missing username.' });
 
     if(def.needsService){
-      const services = await sbGetRow('global', process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_KEY);
-      const svc = Array.isArray(services) ? services.find(s => String(s.id) === String(serviceId)) : null;
+      const lists = [await sbGetRow('svc2'), await sbGetRow('global')];
+      const svc = lists.map(l => Array.isArray(l) ? l.find(s => s && String(s.id) === String(serviceId)) : null).find(Boolean) || null;
       if(!svc) return res.status(404).json({ error: 'Service not found.' });
       if(String(svc.ownerCode).toLowerCase() !== username.toLowerCase()) return res.status(403).json({ error: 'You can only boost your own service.' });
     }

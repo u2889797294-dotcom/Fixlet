@@ -6,18 +6,37 @@
 - Prisene sjekkes på serveren (`api/checkout.js`). Nettleseren sender bare hvilken plan, ikke pris.
 - Maks 5 innloggingsforsøk per time per brukernavn (på enheten), og maks 5 forsøk per time per brukernavn og 20 per IP på serveren for å avslutte Premium. Maks 20 betalingsøkter per time per IP.
 
+## Ny sikker innlogging (testes i `kopi.html`)
+- Passord lagres aldri i klartekst: serveren lagrer en scrypt-hash i raden `accounts`. Nettleseren får bare en signert innloggingsnøkkel (30 dager).
+- Alt som endrer data går via `/api/auth` og `/api/data`: registrering, innlogging, profil, annonser, meldinger, sletting av konto.
+- Serveren sjekker eier: ingen kan redigere eller slette andres annonser, og samtaler ligger i egne rader (`chat_<id>`) som bare serveren leser.
+- Begrensning mot gjetting: 5 feil per time per brukernavn, 30 per IP. Maks 5 nye kontoer per time per IP.
+
+### Miljøvariabler i Vercel (Settings → Environment Variables)
+- `SUPABASE_SERVICE_KEY` (finnes fra før)
+- `SESSION_SECRET` (valgfri, lang tilfeldig tekst; hvis den mangler brukes service key)
+- `ADMIN_KEY` (lang tilfeldig tekst, brukes bare til å nullstille glemt passord)
+
+### Glemt passord (du nullstiller manuelt)
+```bash
+curl -X POST https://DITT-DOMENE/api/auth \
+  -H "Content-Type: application/json" \
+  -d '{"action":"adminResetPassword","adminKey":"DIN_ADMIN_KEY","username":"Brukernavn","newPassword":"nyttPassord123"}'
+```
+Gi brukeren det nye passordet, og be dem bytte det under Profil.
+
 ## Du må gjøre selv: databaseregler (RLS) i Supabase
-Supabase → SQL Editor → kjør dette. Det hindrer at hvem som helst kan skrive seg selv gratis Boost eller Premium (webhooken bruker service key og påvirkes ikke).
+Kjør dette ETTER at `kopi.html` er byttet inn som `index.html`. Nettleseren trenger da bare å LESE offentlige rader. Alle skrivinger går via serveren (service key omgår RLS).
 
 ```sql
 alter table "Jelp-services" enable row level security;
 
--- Fjern gamle åpne regler først (se Authentication → Policies), ellers gjelder de fortsatt.
-create policy "anon read"   on "Jelp-services" for select to anon using (id <> 'ratelimit');
-create policy "anon insert" on "Jelp-services" for insert to anon with check (id not in ('boosts','premium','ratelimit'));
-create policy "anon update" on "Jelp-services" for update to anon using (id not in ('boosts','premium','ratelimit')) with check (id not in ('boosts','premium','ratelimit'));
-create policy "anon delete" on "Jelp-services" for delete to anon using (id like 'an\_%');
+-- Fjern gamle åpne regler først (Authentication → Policies), ellers gjelder de fortsatt.
+create policy "anon read public" on "Jelp-services" for select to anon
+  using (id in ('svc2','boosts','premium','banned','forceLogout'));
+-- Ingen insert/update/delete for anon.
 ```
+Rader som `accounts`, `av_*`, `chat_*`, `chatidx` og `ratelimit` kan da ikke leses utenfra.
 
-## Det som fortsatt er svakt (krever større ombygging)
-Innloggingen skjer i nettleseren mot raden `users`, som alle med den offentlige nøkkelen kan lese. Da kan 6-sifrede numre leses ut. Ekte "brukere leser bare sine egne rader" krever at innlogging og alle skrivinger går via serveren. Det er ikke bygget ennå.
+## Det som fortsatt er svakt
+`admin.html` bruker fortsatt gammel passordsjekk i filen og skriver direkte til `banned`/`users`. Hvis du låser skriving med reglene over, slutter admin-siden å fungere til den flyttes til serveren (avtalt som neste steg).
