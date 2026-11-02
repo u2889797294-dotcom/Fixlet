@@ -349,6 +349,10 @@
   #loadingScreen .ls-spinner{ width:54px; height:54px; border-radius:50%; border:5px solid rgba(13,148,136,.18); border-top-color:#0d9488; border-right-color:#7ac943; animation:lsspin .8s linear infinite; }
   #loadingScreen .ls-text{ font-size:15px; font-weight:700; color:#0f2620; letter-spacing:.01em; }
   @keyframes lsspin{ to{ transform:rotate(360deg); } }
+  #busyOverlay{ position:fixed; inset:0; z-index:99998; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:rgba(255,255,255,.88); transition:opacity .2s ease, visibility .2s ease; }
+  #busyOverlay.hidden{ display:flex !important; opacity:0; visibility:hidden; pointer-events:none; }
+  #busyOverlay .ls-spinner{ width:54px; height:54px; border-radius:50%; border:5px solid rgba(13,148,136,.18); border-top-color:#0d9488; border-right-color:#7ac943; animation:lsspin .8s linear infinite; }
+  #busyOverlay .ls-text{ font-size:15px; font-weight:700; color:#0f2620; }
 
   /* ---------- redesigned start page: big country cards ---------- */
   .herotext{ text-align:center; max-width:640px; padding:0 24px; margin:0 auto 18px; }
@@ -2698,6 +2702,7 @@
 </style>
 </head>
 <body>
+<div id="busyOverlay" class="hidden" role="status" aria-live="polite"><div class="ls-spinner"></div><div class="ls-text" id="busyText">Vent litt …</div></div>
 <div id="loadingScreen" role="status" aria-live="polite" aria-label="Loading">
   <div class="ls-spinner"></div>
   <div class="ls-text">Laster Fixvice …</div>
@@ -2757,7 +2762,7 @@
         <p class="loginerror hidden" id="loginErrorMsg"></p>
         <label class="loginack hidden" id="loginAckLabel">
           <input type="checkbox" id="loginAckCheckbox">
-          <span><strong>Husk passordet ditt</strong> – vi kan ikke se det, og et glemt passord må nullstilles av oss. Ved å opprette en konto bekrefter jeg at jeg er minst 18 år og godtar <a href="#" class="tosinlink">vilkårene</a> og <a href="#" class="privinlink">personvernerklæringen</a>.</span>
+          <span><strong>Husk passordet ditt</strong> – vi kan ikke se det, og et glemt passord må nullstilles av oss. Ved å opprette en konto godtar jeg <a href="#" class="tosinlink">vilkårene</a> og <a href="#" class="privinlink">personvernerklæringen</a>.</span>
         </label>
         <button class="continuebtn" id="loginSubmitBtn" style="width:100%;" disabled>Logg inn</button>
         <p class="loginnote" id="loginHintText">Har du ikke konto? Trykk «Opprett ny konto» ovenfor.</p>
@@ -2986,7 +2991,7 @@
         <p>2.3 Enhver avtale om å utføre arbeid, prisen, omfanget, tidsplanen, betalingen for selve arbeidet og enhver tvist om arbeidet er utelukkende et forhold mellom eieren og kunden. Fixvice krever inn eller håndterer ikke betaling for tjenestene som annonseres på plattformen. Kun betalinger for Boost og Premium skjer via Fixvice.</p>
         <p>2.4 Ingenting på Fixvice, herunder merkelapper som «Sponset», kategorinavn eller tekster skrevet av en bruker, er råd, anbefaling, støtte eller løfte om kvalitet.</p>
         <p><strong>3. Krav til brukere og retten til å inngå denne avtalen.</strong></p>
-        <p>3.1 Du må være minst 18 år og ha rettslig handleevne til å inngå en bindende avtale for å opprette en konto, publisere en annonse eller kjøpe en Boost eller Premium. Hvis du bruker Fixvice på vegne av en virksomhet, bekrefter du at du har fullmakt til å binde virksomheten, og «du» omfatter da også virksomheten.</p>
+        <p>3.1 Du må kunne inngå en bindende avtale for å opprette en konto, publisere en annonse eller kjøpe en Boost eller Premium. Hvis du bruker Fixvice på vegne av en virksomhet, bekrefter du at du har fullmakt til å binde virksomheten, og «du» omfatter da også virksomheten.</p>
         <p>3.2 Du kan bare bla i Fixvice dersom du ikke er forbudt å gjøre det etter lover som gjelder for deg.</p>
         <p>3.3 Du kan ikke bruke Fixvice dersom du tidligere har blitt utestengt fra Fixvice, med mindre en administrator uttrykkelig har opphevet utestengingen. Å opprette en ny konto for å omgå en utestenging er et brudd på disse vilkårene.</p>
         <p><strong>4. Kontoer, brukernavn og innlogging.</strong></p>
@@ -3138,7 +3143,7 @@
         <p><strong>7b. Aktivitetsdata.</strong> Hvis du tillater det (i oppstartsmeldingen eller i profilen din), samler vi inn aktivitetsdata knyttet til brukernavnet ditt: skjermbilder du åpner, land, byer og annonser du ser på eller klikker på, Boost-/Premium-abonnementer du ser på eller velger, annonser du publiserer, antall og type chatmeldinger du sender (aldri innholdet, adresser eller bilder) og tidsstempler. Det rettslige grunnlaget er samtykket ditt, som du når som helst kan trekke tilbake i profilen din. Dataene lagres i databasen vår (Supabase), er synlige for Fixvice-administratorer, oppbevares så lenge kontoen din finnes og slettes sammen med den.</p>
         <p><strong>7c. Meldinger og avmelding.</strong> Fixvice sender ikke markedsføring via e-post, SMS eller push-meldinger, og deler ikke kontaktopplysningene dine med annonsører. Hvis vi noen gang sender markedsføring, vil hver melding inneholde en lenke eller instruksjon for å melde seg av, og du kan når som helst reservere deg ved å kontakte oss. Du kan når som helst slå av aktivitetssporing i profilen din.</p>
         <p><strong>7d. Sletting av dataene dine.</strong> Du kan slette kontoen din selv: åpne profilen din og trykk på «Slett kontoen min». Dette fjerner kontoen din, alle annonsene dine, samtalene dine og aktivitetsdataene dine fra Fixvice. Betalingsopplysninger oppbevares av oss og Stripe så lenge regnskapslovgivningen krever det. Du kan også be oss om å slette dataene dine ved å kontakte oss.</p>
-        <p><strong>7e. Barn.</strong> Fixvice er kun for personer som er minst 18 år. Vi samler ikke bevisst inn data om noen under 18 år. Hvis du tror at et barn har opprettet en konto, kan du kontakte oss, så sletter vi den.</p>
+        <p><strong>7e. Barn.</strong> Fixvice har ingen fast aldersgrense. Vi samler bare inn det som er nødvendig for å drive tjenesten. Hvis du ønsker at en konto skal slettes, kan du kontakte oss, så sletter vi den.</p>
         <p><strong>8. Endringer.</strong> Vi kan oppdatere denne personvernerklæringen fra tid til annen; fortsatt bruk av Fixvice etter at endringer er publisert, betyr at du godtar den oppdaterte erklæringen.</p>
         <p><strong>9. Kontakt.</strong> Spørsmål om dataene dine kan rettes via meldingsfunksjonen i appen eller ved å ringe kundetelefonen vår på +47 413 74 773.</p>
         <p class="bizdetails"><strong>Behandlingsansvarlig:</strong> Transform4Future Anna Madeleine Nordlund · Harriet Backers vei 14E, 1415 Oppegård, Norge · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a></p>
@@ -3481,8 +3486,8 @@
       <p class="tos-sub">Les vilkårene (v2.0, oppdatert 22. oktober 2026) og godta dem for å fortsette å bruke Fixvice.</p>
       <div class="tos-scroll" id="tosPopupBody"></div>
       <p class="tos-track">Fixvice kan også registrere hvilke sider du besøker og hvilke annonser du klikker på mens du er innlogget, for å forbedre tjenesten – aldri meldingene, adressen eller bildene dine, og ingen reklamesporing. Du kan endre dette når som helst i profilen din.</p>
-      <button type="button" class="tos-agree" id="tosAgreeBtn">Jeg godtar – godta alle (inkl. aktivitetssporing)</button>
-      <button type="button" class="tos-agree tos-agree-alt" id="tosAgreeNecessaryBtn">Jeg godtar – kun nødvendige (ingen sporing)</button>
+      <button type="button" class="tos-agree" id="tosAgreeBtn">Godta alle</button>
+      <button type="button" class="tos-agree tos-agree-alt" id="tosAgreeNecessaryBtn">Kun nødvendige</button>
       <div class="tos-links"><a href="#" id="tosPopupPrivacy">Personvernerklæring</a> · <a href="#" id="tosPopupCookies">Retningslinjer for informasjonskapsler</a></div>
     </div>
   </div>
@@ -5138,7 +5143,34 @@ async function loadRegisteredCodes(){}
 async function saveRegisteredCodes(){}
 
 /* One place that calls the server. Returns { ok, status, data }. A 401 means the session is no longer valid. */
+let __busyCount = 0;
+function busyStart(text){
+  __busyCount++;
+  const t = document.getElementById('busyText'); if(t && text) t.textContent = text;
+  const o = document.getElementById('busyOverlay'); if(o) o.classList.remove('hidden');
+}
+function busyEnd(){
+  __busyCount = Math.max(0, __busyCount - 1);
+  if(__busyCount === 0){ const o = document.getElementById('busyOverlay'); if(o) o.classList.add('hidden'); }
+}
+function busyTextFor(path, body){
+  const a = body && body.action;
+  if(a === 'register') return 'Oppretter konto …';
+  if(a === 'login') return 'Logger inn …';
+  if(a === 'createService') return 'Publiserer tjenesten …';
+  if(a === 'editService' || a === 'updateProfile') return 'Lagrer …';
+  if(a === 'deleteService') return 'Sletter …';
+  if(a === 'deleteAccount') return 'Sletter kontoen …';
+  if(a === 'sendMessage' || a === 'me') return null; // chat stays instant
+  return 'Vent litt …';
+}
 async function api(path, body){
+  const bt = busyTextFor(path, body);
+  if(bt === null) return apiInner(path, body);
+  busyStart(bt);
+  try{ return await apiInner(path, body); } finally { busyEnd(); }
+}
+async function apiInner(path, body){
   const headers = { 'Content-Type': 'application/json' };
   if(currentUser && currentUser.token) headers.Authorization = 'Bearer ' + currentUser.token;
   let res, data = {};
@@ -5357,6 +5389,8 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   }
   const submitBtn = document.getElementById('loginSubmitBtn');
   submitBtn.disabled = true;
+  busyStart(loginMode === 'register' ? 'Oppretter konto …' : 'Logger inn …');
+  try{
   const r = await api('auth', loginMode === 'register'
     ? { action: 'register', username, password: code, phone, email }
     : { action: 'login', username, password: code });
@@ -5384,6 +5418,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   } else {
     show('home');
   }
+  } finally { busyEnd(); }
 });
 /* Reusable confirmation popup: askConfirm({title,text,yes,no}) -> Promise<boolean>. */
 function askConfirm(opts){
