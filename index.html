@@ -349,6 +349,10 @@
   #loadingScreen .ls-spinner{ width:54px; height:54px; border-radius:50%; border:5px solid rgba(13,148,136,.18); border-top-color:#0d9488; border-right-color:#7ac943; animation:lsspin .8s linear infinite; }
   #loadingScreen .ls-text{ font-size:15px; font-weight:700; color:#0f2620; letter-spacing:.01em; }
   @keyframes lsspin{ to{ transform:rotate(360deg); } }
+  #busyOverlay{ position:fixed; inset:0; z-index:99998; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:rgba(255,255,255,.88); transition:opacity .2s ease, visibility .2s ease; }
+  #busyOverlay.hidden{ display:flex !important; opacity:0; visibility:hidden; pointer-events:none; }
+  #busyOverlay .ls-spinner{ width:54px; height:54px; border-radius:50%; border:5px solid rgba(13,148,136,.18); border-top-color:#0d9488; border-right-color:#7ac943; animation:lsspin .8s linear infinite; }
+  #busyOverlay .ls-text{ font-size:15px; font-weight:700; color:#0f2620; }
 
   /* ---------- redesigned start page: big country cards ---------- */
   .herotext{ text-align:center; max-width:640px; padding:0 24px; margin:0 auto 18px; }
@@ -2698,6 +2702,7 @@
 </style>
 </head>
 <body>
+<div id="busyOverlay" class="hidden" role="status" aria-live="polite"><div class="ls-spinner"></div><div class="ls-text" id="busyText">Vent litt …</div></div>
 <div id="loadingScreen" role="status" aria-live="polite" aria-label="Loading">
   <div class="ls-spinner"></div>
   <div class="ls-text">Laster Fixvice …</div>
@@ -2729,7 +2734,7 @@
       <div class="logincard">
         <div class="loginbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg></div>
         <h2 class="loginheading">Logg inn på Fixvice</h2>
-        <p class="loginsub" id="loginSubText">Bruk ditt eget brukernavn og 6-sifrede nummer. Du lager dem første gang, og bruker de samme hver gang du kommer tilbake.</p>
+        <p class="loginsub" id="loginSubText">Logg inn med brukernavnet og passordet ditt. Du lager dem første gang, og bruker de samme hver gang du kommer tilbake.</p>
 
         <div class="logintabs">
           <button type="button" class="logintab active" id="loginTabLogin">Logg inn</button>
@@ -2737,7 +2742,7 @@
         </div>
 
         <input type="text" maxlength="20" class="loginusernameinput" id="loginUsernameInput" placeholder="Brukernavn" autocomplete="off" autocapitalize="none" spellcheck="false">
-        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="logincodeinput" id="loginCodeInput" placeholder="6-sifret nummer" autocomplete="off" autocorrect="off" spellcheck="false">
+        <input type="password" maxlength="72" class="loginusernameinput" id="loginCodeInput" placeholder="Passord (minst 8 tegn)" autocomplete="current-password" autocorrect="off" spellcheck="false">
         <div id="loginExtraFieldsWrap" class="hidden">
           <div class="phonerow">
             <select id="loginPhoneCC" aria-label="Landkode">
@@ -2757,7 +2762,7 @@
         <p class="loginerror hidden" id="loginErrorMsg"></p>
         <label class="loginack hidden" id="loginAckLabel">
           <input type="checkbox" id="loginAckCheckbox">
-          <span><strong>Dobbeltsjekk brukernavnet og nummeret ditt</strong> – en skrivefeil kan låse deg ute. Ved å opprette en konto bekrefter jeg at jeg er minst 18 år og godtar <a href="#" class="tosinlink">vilkårene</a> og <a href="#" class="privinlink">personvernerklæringen</a>.</span>
+          <span><strong>Husk passordet ditt</strong> – vi kan ikke se det, og et glemt passord må nullstilles av oss. Ved å opprette en konto godtar jeg <a href="#" class="tosinlink">vilkårene</a> og <a href="#" class="privinlink">personvernerklæringen</a>.</span>
         </label>
         <button class="continuebtn" id="loginSubmitBtn" style="width:100%;" disabled>Logg inn</button>
         <p class="loginnote" id="loginHintText">Har du ikke konto? Trykk «Opprett ny konto» ovenfor.</p>
@@ -2986,16 +2991,16 @@
         <p>2.3 Enhver avtale om å utføre arbeid, prisen, omfanget, tidsplanen, betalingen for selve arbeidet og enhver tvist om arbeidet er utelukkende et forhold mellom eieren og kunden. Fixvice krever inn eller håndterer ikke betaling for tjenestene som annonseres på plattformen. Kun betalinger for Boost og Premium skjer via Fixvice.</p>
         <p>2.4 Ingenting på Fixvice, herunder merkelapper som «Sponset», kategorinavn eller tekster skrevet av en bruker, er råd, anbefaling, støtte eller løfte om kvalitet.</p>
         <p><strong>3. Krav til brukere og retten til å inngå denne avtalen.</strong></p>
-        <p>3.1 Du må være minst 18 år og ha rettslig handleevne til å inngå en bindende avtale for å opprette en konto, publisere en annonse eller kjøpe en Boost eller Premium. Hvis du bruker Fixvice på vegne av en virksomhet, bekrefter du at du har fullmakt til å binde virksomheten, og «du» omfatter da også virksomheten.</p>
+        <p>3.1 Du må kunne inngå en bindende avtale for å opprette en konto, publisere en annonse eller kjøpe en Boost eller Premium. Hvis du bruker Fixvice på vegne av en virksomhet, bekrefter du at du har fullmakt til å binde virksomheten, og «du» omfatter da også virksomheten.</p>
         <p>3.2 Du kan bare bla i Fixvice dersom du ikke er forbudt å gjøre det etter lover som gjelder for deg.</p>
         <p>3.3 Du kan ikke bruke Fixvice dersom du tidligere har blitt utestengt fra Fixvice, med mindre en administrator uttrykkelig har opphevet utestengingen. Å opprette en ny konto for å omgå en utestenging er et brudd på disse vilkårene.</p>
         <p><strong>4. Kontoer, brukernavn og innlogging.</strong></p>
-        <p>4.1 For å publisere en annonse, sende meldinger til andre brukere eller bla i annonser etter land og by trenger du en konto. En konto består av et brukernavn og et 6-sifret nummer. Det finnes ikke noe eget passord.</p>
+        <p>4.1 For å publisere en annonse, sende meldinger til andre brukere eller bla i annonser etter land og by trenger du en konto. En konto består av et brukernavn og et passord på minst 8 tegn.</p>
         <p>4.2 Et brukernavn må være unikt. Det må være 3 til 10 tegn langt og kan inneholde bokstaver, sifre, understrek, punktum og bindestrek. Kontoer som ble opprettet før denne begrensningen ble innført, kan ha et brukernavn på inntil 20 tegn. Brukernavn sammenlignes uten hensyn til store og små bokstaver, slik at «Anna» og «anna» er det samme brukernavnet.</p>
-        <p>4.3 Det 6-sifrede nummeret er ikke unikt. Flere kontoer kan bruke samme nummer. Du logger inn ved å oppgi brukernavnet og nummeret ditt sammen.</p>
+        <p>4.3 Passordet lagres hos oss bare i kryptert (hashet) form, slik at ikke engang vi kan lese det. Du logger inn ved å oppgi brukernavnet og passordet ditt sammen. For mange feil forsøk på kort tid gir en midlertidig sperre.</p>
         <p>4.4 Når du oppretter en konto, må du oppgi et mobilnummer med landskode. Du kan også oppgi en e-postadresse. Du bekrefter at opplysningene du gir er riktige, og at du har rett til å bruke mobilnummeret og e-postadressen du oppgir.</p>
-        <p>4.5 Fordi det ikke finnes noe eget passord, er brukernavnet og det 6-sifrede nummeret dine eneste påloggingsopplysninger. Du må holde dem private og må ikke dele dem. Du er fullt ansvarlig for alt som gjøres via kontoen din, uavhengig av om du selv har gjort det. Alle som kjenner eller gjetter begge deler, kan logge inn som deg. Hvis du mistenker at noen andre har tilgang til kontoen din, må du umiddelbart endre det 6-sifrede nummeret i profilen din og gi oss beskjed.</p>
-        <p>4.6 Du er selv ansvarlig for å skrive brukernavnet og nummeret riktig når du oppretter kontoen. Hvis du skriver dem feil og senere ikke kan gjenskape dem, kan du miste tilgangen til kontoen, annonsene og samtalene dine, og Fixvice har ingen plikt til å gjenopprette tilgangen.</p>
+        <p>4.5 Brukernavnet og passordet er påloggingsopplysningene dine. Du må holde passordet privat og må ikke dele det. Bruk et passord du ikke bruker andre steder. Du er fullt ansvarlig for alt som gjøres via kontoen din, uavhengig av om du selv har gjort det. Hvis du mistenker at noen andre har tilgang til kontoen din, må du umiddelbart bytte passordet i profilen din og gi oss beskjed.</p>
+        <p>4.6 Hvis du glemmer passordet, kan du kontakte oss, og vi kan sette et midlertidig passord etter at vi har forsikret oss om at kontoen er din. Vi har ingen plikt til å gjenopprette tilgangen hvis vi ikke kan bekrefte at kontoen er din.</p>
         <p>4.7 Når du er logget inn, holder Fixvice deg innlogget på den enheten og tar deg tilbake til landet og byen du sist så på. Dette fortsetter til du logger ut, tømmer nettleserlagringen din eller en administrator logger deg ut etter punkt 14.</p>
         <p>4.8 Du kan bare ha én konto per person eller virksomhet, med mindre en administrator skriftlig har avtalt noe annet. Du kan ikke selge, overdra, leie ut eller låne ut kontoen din.</p>
         <p>4.9 Vi kan nekte å opprette en konto eller å godta et brukernavn uten å oppgi en grunn, herunder dersom brukernavnet ikke oppfyller innholdsreglene i punkt 9.</p>
@@ -3116,7 +3121,7 @@
         <p>25.3 Vi oppfordrer deg til å kontakte oss først, slik at vi kan forsøke å løse en uenighet i god tro. Hvis det ikke fører frem, skal en tvist avgjøres av de norske domstolene, som har eksklusiv jurisdiksjon, med mindre preseptorisk lovgivning gir deg rett til å bringe saken inn for domstolene i et annet land eller for et forbrukertvistorgan.</p>
         <p><strong>26. Kontakt.</strong></p>
         <p>26.1 Spørsmål om disse vilkårene, fakturering, refusjoner, avbestillinger, varsler, sletting av data eller kontoen din kan sendes til oss på e-postadressen nedenfor, via meldingsfunksjonen i appen eller ved å ringe kundetelefonen vår på +47 413 74 773.</p>
-        <p>26.2 Oppgi brukernavnet ditt (aldri det 6-sifrede nummeret ditt), slik at vi kan finne kontoen din.</p>
+        <p>26.2 Oppgi brukernavnet ditt (aldri passordet ditt), slik at vi kan finne kontoen din.</p>
         <p class="bizdetails"><strong>Virksomhetsopplysninger:</strong> Transform4Future Anna Madeleine Nordlund · Harriet Backers vei 14E, 1415 Oppegård, Norge · Org.nr. 924 590 734 · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a></p>
       </div>
       <p class="legallinks">Se også: <a href="#" id="termsToPrivacyLink">Personvernerklæring</a> · <a href="#" id="termsToCookiesLink">Retningslinjer for informasjonskapsler</a></p>
@@ -3128,9 +3133,9 @@
     <div class="termswrap">
       <h2>Personvernerklæring</h2>
       <div class="termsbody">
-        <p><strong>1. Hva vi samler inn.</strong> Når du oppretter en konto, lagrer vi brukernavnet du har valgt, ditt 6-sifrede kontonummer, mobilnummeret ditt og, hvis du velger å oppgi dem, en e-postadresse, et profilbilde og en kort «om deg»-tekst. Når du publiserer en annonse, lagrer vi virksomhetsnavnet, beskrivelsen, kategorien, byene/landene og eventuelle bilder eller videoer du laster opp. Når du sender en melding til en annen bruker, lagrer vi teksten i meldingen. Når du tegner et abonnement, håndteres betalingen direkte av Stripe – Fixvice ser eller lagrer ikke hele kortnummeret ditt.</p>
+        <p><strong>1. Hva vi samler inn.</strong> Når du oppretter en konto, lagrer vi brukernavnet du har valgt, et passord (som lagres bare i kryptert, hashet form), mobilnummeret ditt og, hvis du velger å oppgi dem, en e-postadresse, et profilbilde og en kort «om deg»-tekst. Når du publiserer en annonse, lagrer vi virksomhetsnavnet, beskrivelsen, kategorien, byene/landene og eventuelle bilder eller videoer du laster opp. Når du sender en melding til en annen bruker, lagrer vi teksten i meldingen. Når du tegner et abonnement, håndteres betalingen direkte av Stripe – Fixvice ser eller lagrer ikke hele kortnummeret ditt.</p>
         <p><strong>2. Hvorfor vi samler det inn.</strong> Vi samler bare inn det som er nødvendig for å drive markedsplassen: for å vise annonsen din, la andre brukere kontakte deg og administrere en eventuell Boost eller Premium du kjøper. Vi samler ikke inn flere personopplysninger enn det som er nødvendig til disse formålene, og vi selger ikke dataene dine til tredjeparter.</p>
-        <p><strong>3. Hvor det lagres.</strong> Annonse- og meldingsdata lagres i databasen vår (Supabase) slik at de kan deles på tvers av enheter. Noen innstillinger kan også lagres i nettleserens lokale lagring på din egen enhet.</p>
+        <p><strong>3. Hvor det lagres.</strong> Annonse- og meldingsdata lagres i databasen vår (Supabase) slik at de kan deles på tvers av enheter. Kontoer, passord og samtaler ligger i deler av databasen som bare serveren vår har tilgang til, og du får aldri se andres kontoopplysninger eller samtaler. Noen innstillinger kan også lagres i nettleserens lokale lagring på din egen enhet.</p>
         <p><strong>4. Tredjepartstjenester.</strong> Fixvice bruker Stripe til å behandle betalinger, Supabase til å lagre data og Vercel til å drifte nettstedet. Disse leverandørene behandler data på våre vegne eller i henhold til sine egne personvernerklæringer. Fixvice bruker ikke reklamesporere. Aktivitetsanalyse brukes bare hvis du tillater det (se 7b).</p>
         <p><strong>5. Dine rettigheter.</strong> Du kan når som helst slette dine egne annonser fra profilen din, noe som fjerner innholdet deres fra markedsplassen. For å be om en fullstendig kopi av eller sletting av dataene dine kan du kontakte oss via opplysningene nedenfor.</p>
         <p><strong>6. Lagringstid.</strong> Vi oppbevarer annonse- og meldingsdataene dine så lenge kontoen din er aktiv, eller til du sletter dem.</p>
@@ -3138,7 +3143,7 @@
         <p><strong>7b. Aktivitetsdata.</strong> Hvis du tillater det (i oppstartsmeldingen eller i profilen din), samler vi inn aktivitetsdata knyttet til brukernavnet ditt: skjermbilder du åpner, land, byer og annonser du ser på eller klikker på, Boost-/Premium-abonnementer du ser på eller velger, annonser du publiserer, antall og type chatmeldinger du sender (aldri innholdet, adresser eller bilder) og tidsstempler. Det rettslige grunnlaget er samtykket ditt, som du når som helst kan trekke tilbake i profilen din. Dataene lagres i databasen vår (Supabase), er synlige for Fixvice-administratorer, oppbevares så lenge kontoen din finnes og slettes sammen med den.</p>
         <p><strong>7c. Meldinger og avmelding.</strong> Fixvice sender ikke markedsføring via e-post, SMS eller push-meldinger, og deler ikke kontaktopplysningene dine med annonsører. Hvis vi noen gang sender markedsføring, vil hver melding inneholde en lenke eller instruksjon for å melde seg av, og du kan når som helst reservere deg ved å kontakte oss. Du kan når som helst slå av aktivitetssporing i profilen din.</p>
         <p><strong>7d. Sletting av dataene dine.</strong> Du kan slette kontoen din selv: åpne profilen din og trykk på «Slett kontoen min». Dette fjerner kontoen din, alle annonsene dine, samtalene dine og aktivitetsdataene dine fra Fixvice. Betalingsopplysninger oppbevares av oss og Stripe så lenge regnskapslovgivningen krever det. Du kan også be oss om å slette dataene dine ved å kontakte oss.</p>
-        <p><strong>7e. Barn.</strong> Fixvice er kun for personer som er minst 18 år. Vi samler ikke bevisst inn data om noen under 18 år. Hvis du tror at et barn har opprettet en konto, kan du kontakte oss, så sletter vi den.</p>
+        <p><strong>7e. Barn.</strong> Fixvice har ingen fast aldersgrense. Vi samler bare inn det som er nødvendig for å drive tjenesten. Hvis du ønsker at en konto skal slettes, kan du kontakte oss, så sletter vi den.</p>
         <p><strong>8. Endringer.</strong> Vi kan oppdatere denne personvernerklæringen fra tid til annen; fortsatt bruk av Fixvice etter at endringer er publisert, betyr at du godtar den oppdaterte erklæringen.</p>
         <p><strong>9. Kontakt.</strong> Spørsmål om dataene dine kan rettes via meldingsfunksjonen i appen eller ved å ringe kundetelefonen vår på +47 413 74 773.</p>
         <p class="bizdetails"><strong>Behandlingsansvarlig:</strong> Transform4Future Anna Madeleine Nordlund · Harriet Backers vei 14E, 1415 Oppegård, Norge · <a href="mailto:u2889797294@gmail.com">u2889797294@gmail.com</a></p>
@@ -3345,20 +3350,25 @@
           <label id="lblProfileUsername">Brukernavn</label>
           <input type="text" maxlength="20" id="profileUsernameInput" autocomplete="off" readonly tabindex="-1">
         </div>
-        <div class="formfield lockedfield">
-          <label id="lblProfileCode">6-sifret nummer</label>
-          <input type="text" inputmode="numeric" maxlength="6" id="profileCodeInput" autocomplete="off" readonly tabindex="-1">
+        <div class="formfield">
+          <label id="lblProfileCurPw">Nåværende passord (trengs bare for å bytte passord)</label>
+          <input type="password" maxlength="72" id="profileCurPwInput" autocomplete="current-password">
+        </div>
+        <div class="formfield">
+          <label id="lblProfileNewPw">Nytt passord (minst 8 tegn – la stå tomt for å beholde)</label>
+          <input type="password" maxlength="72" id="profileNewPwInput" autocomplete="new-password">
         </div>
         <div class="formfield lockedfield">
           <label id="lblProfilePhone">Mobilnummer</label>
           <input type="tel" maxlength="20" id="profilePhoneInput" autocomplete="off" readonly tabindex="-1">
         </div>
-        <p class="lockednote">🔒 Dette er det du logger inn med, og det kan ikke endres her.</p>
+        <p class="lockednote">🔒 Brukernavn og mobilnummer kan ikke endres her.</p>
       </details>
       <p class="loginerror hidden" id="profileErrorMsg"></p>
       <p class="loggedinas hidden" id="profileSuccessMsg"></p>
       <button class="publishbtn" id="profileSaveBtn" disabled>Lagre endringer</button>
       <button class="bigredbtn" id="profileLogoutBtn">Logg ut</button>
+    <input type="password" maxlength="72" id="deleteAccountPwInput" placeholder="Passord for å slette kontoen" autocomplete="current-password" style="width:100%;margin-top:14px;padding:12px;border:1.5px solid var(--line);border-radius:12px;font:inherit;">
     <button type="button" class="deleteacctbtn" id="deleteAccountBtn">Slett kontoen min</button>
     </div>
   </div>
@@ -3476,8 +3486,8 @@
       <p class="tos-sub">Les vilkårene (v2.0, oppdatert 22. oktober 2026) og godta dem for å fortsette å bruke Fixvice.</p>
       <div class="tos-scroll" id="tosPopupBody"></div>
       <p class="tos-track">Fixvice kan også registrere hvilke sider du besøker og hvilke annonser du klikker på mens du er innlogget, for å forbedre tjenesten – aldri meldingene, adressen eller bildene dine, og ingen reklamesporing. Du kan endre dette når som helst i profilen din.</p>
-      <button type="button" class="tos-agree" id="tosAgreeBtn">Jeg godtar – godta alle (inkl. aktivitetssporing)</button>
-      <button type="button" class="tos-agree tos-agree-alt" id="tosAgreeNecessaryBtn">Jeg godtar – kun nødvendige (ingen sporing)</button>
+      <button type="button" class="tos-agree" id="tosAgreeBtn">Godta alle</button>
+      <button type="button" class="tos-agree tos-agree-alt" id="tosAgreeNecessaryBtn">Kun nødvendige</button>
       <div class="tos-links"><a href="#" id="tosPopupPrivacy">Personvernerklæring</a> · <a href="#" id="tosPopupCookies">Retningslinjer for informasjonskapsler</a></div>
     </div>
   </div>
@@ -4469,8 +4479,8 @@ async function startCancelPremium(){
   btn.disabled = true; btn.textContent = 'Avslutter …';
   try{
     const res = await fetch('/api/cancel-premium', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: currentUser.username, code: String(currentUser.code || '') })
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + currentUser.token },
+      body: JSON.stringify({ username: currentUser.username })
     });
     const data = await res.json().catch(()=> ({}));
     if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
@@ -4626,12 +4636,16 @@ async function sendChatPayload(payload){
   const myRole = myRoleFor(activeChatService);
   if(!activeChatService.conversations) activeChatService.conversations = {};
   if(!activeChatService.conversations[customerCode]) activeChatService.conversations[customerCode] = [];
-  activeChatService.conversations[customerCode].push(Object.assign({ time: Date.now(), from: myRole }, payload));
+  const local = Object.assign({ time: Date.now(), from: myRole }, payload);
+  activeChatService.conversations[customerCode].push(local);
   renderChatMessages();
-  const saved = await saveChatMessage(serviceId, customerCode);
-  if(!saved){
-    const detail = lastSaveErrorDetail ? (' [' + lastSaveErrorDetail + ']') : '';
-    showToast(t(activeChatLang,'saveFailedWarning') + detail, null, activeChatLang, 20000);
+  const sr = await api('data', { action: 'sendMessage', serviceId, customer: customerCode, payload });
+  const saved = sr.ok;
+  if(saved){ Object.assign(local, sr.data.message); }
+  else {
+    const arr = activeChatService.conversations[customerCode]; const k = arr.indexOf(local); if(k !== -1) arr.splice(k, 1);
+    renderChatMessages();
+    showToast('Meldingen ble ikke sendt. ' + apiErrorText(sr), null, activeChatLang, 8000);
   }
   pushNotification(activeChatLang, t(activeChatLang,'newMessagePrefix') + " \"" + activeChatService.name + "\"", activeChatService, customerCode);
   if(!screens.myServices.classList.contains('hidden')) renderMyServices(activeChatLang);
@@ -5114,76 +5128,79 @@ async function applyPaidBoosts(){
     premiumActive = !!(me && me.until > Date.now());
   }catch(e){ /* offline: keep what we have */ }
 }
-/* ---------------- Login (username + 6-digit number) + account-scoped storage ----------------
-   There's no traditional password/email behind this. Each account has a
-   username, which must be unique, and a 6-digit number, which does NOT
-   have to be unique — several accounts can share the same number. Signing
-   in requires typing back the exact username + number pair you registered
-   with. The username is what actually identifies the account everywhere
-   else in the app (ownership of listings, chat identity, bans, force
-   logout) — the number is just a second thing you have to know.
-   Worth being upfront about: there's still no real password check, so
-   anyone who knows (or guesses) someone else's username *and* number could
-   sign in as them. Fine for a demo marketplace like this; not meant as
-   real account security.
-   registeredCodes / loadRegisteredCodes / saveRegisteredCodes are defined
-   here but only actually CALLED later (see initUser below), after the
-   Supabase constants further down in the file have been declared. */
-const USER_STORAGE_KEY = 'jelp_user_v2';
-const USERS_ROW_ID = 'users'; // a second row in the same Supabase table used for services
-let currentUser = null; // { code, username } once signed in
-let registeredCodes = []; // every registered account, kept in sync with the shared store.
-// Each entry is normally { code, username }. Older accounts created before
-// usernames existed may still be plain code strings in the stored data —
-// normalizedAccounts() below treats those the same as { code, username: null }.
-
-function normalizedAccounts(){
-  return registeredCodes.map(a => typeof a === 'string' ? { code: a, username: null } : a);
-}
-function findAccountByCode(code){
-  return normalizedAccounts().find(a => a.code === code) || null;
-}
+/* ---------------- Login (username + password) + account-scoped storage ----------------
+   Accounts live on the server (api/auth.js). Passwords are stored only as salted hashes there, and a successful
+   login returns a signed session token that this browser keeps and sends with every request. Nothing about other
+   people's accounts is ever sent to the browser. */
+const USER_STORAGE_KEY = 'fixvice_session_v1';
+let currentUser = null; // { username, displayName, bio, avatar, phone, email, token, loginTime } once signed in
+let registeredCodes = []; // kept only so old code paths keep working; accounts are no longer readable from the browser
 function findAccountByUsername(username){
-  const uname = (username || '').trim().toLowerCase();
-  if(!uname) return null;
-  return normalizedAccounts().find(a => (a.username || '').trim().toLowerCase() === uname) || null;
+  const u = (username || '').trim().toLowerCase();
+  return (currentUser && currentUser.username && currentUser.username.toLowerCase() === u) ? currentUser : null;
 }
+async function loadRegisteredCodes(){}
+async function saveRegisteredCodes(){}
 
-async function loadRegisteredCodes(){
-  if(supabaseConfigured()){
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${USERS_ROW_ID}&select=data`, {
-        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
-      });
-      if(res.ok){
-        const rows = await res.json();
-        if(rows && rows[0] && Array.isArray(rows[0].data)){ registeredCodes = rows[0].data; return; }
-      }
-    } catch(e){ /* network/config issue — fall through to local storage */ }
-  }
-  try {
-    const raw = localStorage.getItem('jelp_registeredCodes_v1');
-    if(raw){ const parsed = JSON.parse(raw); if(Array.isArray(parsed)) registeredCodes = parsed; }
-  } catch(e){ /* storage not available — stays empty for this session */ }
+/* One place that calls the server. Returns { ok, status, data }. A 401 means the session is no longer valid. */
+let __busyCount = 0;
+function busyStart(text){
+  __busyCount++;
+  const t = document.getElementById('busyText'); if(t && text) t.textContent = text;
+  const o = document.getElementById('busyOverlay'); if(o) o.classList.remove('hidden');
 }
-async function saveRegisteredCodes(){
-  if(supabaseConfigured()){
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          "Prefer": "resolution=merge-duplicates"
-        },
-        body: JSON.stringify({ id: USERS_ROW_ID, data: registeredCodes })
-      });
-      if(res.ok) return;
-    } catch(e){ /* network/config issue — fall through to local storage */ }
-  }
-  try { localStorage.setItem('jelp_registeredCodes_v1', JSON.stringify(registeredCodes)); } catch(e){}
+function busyEnd(){
+  __busyCount = Math.max(0, __busyCount - 1);
+  if(__busyCount === 0){ const o = document.getElementById('busyOverlay'); if(o) o.classList.add('hidden'); }
 }
+function busyTextFor(path, body){
+  const a = body && body.action;
+  if(a === 'register') return 'Oppretter konto …';
+  if(a === 'login') return 'Logger inn …';
+  if(a === 'createService') return 'Publiserer tjenesten …';
+  if(a === 'editService' || a === 'updateProfile') return 'Lagrer …';
+  if(a === 'deleteService') return 'Sletter …';
+  if(a === 'deleteAccount') return 'Sletter kontoen …';
+  if(a === 'sendMessage' || a === 'me') return null; // chat stays instant
+  return 'Vent litt …';
+}
+async function api(path, body){
+  const bt = busyTextFor(path, body);
+  if(bt === null) return apiInner(path, body);
+  busyStart(bt);
+  try{ return await apiInner(path, body); } finally { busyEnd(); }
+}
+async function apiInner(path, body){
+  const headers = { 'Content-Type': 'application/json' };
+  if(currentUser && currentUser.token) headers.Authorization = 'Bearer ' + currentUser.token;
+  let res, data = {};
+  try{
+    res = await fetch('/api/' + path, { method: 'POST', headers, body: JSON.stringify(body) });
+    data = await res.json().catch(()=> ({}));
+  }catch(e){ return { ok: false, status: 0, data: { error: 'network' } }; }
+  if(res.status === 401 && currentUser && body && body.action !== 'login'){
+    await clearUser(); show('home');
+    showToast('Du er logget ut. Logg inn på nytt.', null, 'no', 6000);
+  }
+  return { ok: res.ok && data.ok !== false, status: res.status, data };
+}
+const API_ERRORS = {
+  bad_credentials: 'Feil brukernavn eller passord.',
+  rate_limited: 'For mange forsøk. Vent en stund og prøv igjen.',
+  bad_username: 'Brukernavnet må være 3–10 tegn (bokstaver, tall, _ . -).',
+  bad_password: 'Passordet må være minst 8 tegn.',
+  bad_phone: 'Mobilnummeret er ikke gyldig.',
+  bad_email: 'E-postadressen er ikke gyldig.',
+  username_taken: 'Brukernavnet er allerede tatt – velg et annet.',
+  reserved_username: 'Dette navnet er reservert. Velg et annet.',
+  banned: 'Denne kontoen er utestengt fra Fixvice for brudd på vilkårene.',
+  not_signed_in: 'Du må logge inn.',
+  not_owner: 'Du kan bare endre dine egne annonser.',
+  too_many_services: 'Du har nådd grensen på 30 annonser.',
+  network: 'Fikk ikke kontakt med serveren. Sjekk nettet og prøv igjen.',
+  premium_cancel_failed: 'Kunne ikke avslutte Premium først. Ingenting ble slettet.'
+};
+function apiErrorText(r){ return API_ERRORS[r && r.data && r.data.error] || ('Noe gikk galt (' + ((r && r.data && r.data.error) || (r && r.status)) + '). Prøv igjen.'); }
 
 const BANNED_ROW_ID = 'banned'; // a third row in the same Supabase table; only the separate admin page writes to it
 let bannedCodes = []; // usernames banned from the admin page (despite the name) — checked at login, never written from here
@@ -5243,28 +5260,23 @@ function startForceLogoutWatcher(){
 }
 
 async function loadUser(){
-  try {
-    if(window.storage){
-      const result = await window.storage.get(USER_STORAGE_KEY, true);
-      if(result && result.value){ currentUser = JSON.parse(result.value); return; }
-    }
-  } catch(e){ /* fall through to localStorage */ }
-  try {
+  try{
     const raw = localStorage.getItem(USER_STORAGE_KEY);
-    if(raw) currentUser = JSON.parse(raw);
-  } catch(e){ /* storage not available — stays signed out for this session */ }
+    if(raw){ const u = JSON.parse(raw); if(u && u.token && u.username) currentUser = u; }
+  }catch(e){ /* storage not available — stays signed out for this session */ }
+  if(currentUser){ // make sure the session is still valid and refresh the profile
+    const r = await api('auth', { action: 'me' });
+    if(r.ok && r.data.profile) currentUser = Object.assign({}, currentUser, r.data.profile);
+    else if(r.status === 401) currentUser = null;
+    if(currentUser) await saveUser();
+  }
 }
 async function saveUser(){
-  const raw = JSON.stringify(currentUser);
-  try {
-    if(window.storage){ await window.storage.set(USER_STORAGE_KEY, raw, true); }
-  } catch(e){ /* fall through to localStorage */ }
-  try { localStorage.setItem(USER_STORAGE_KEY, raw); } catch(e){ /* in-memory only for this session */ }
+  try{ localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser)); }catch(e){ /* in-memory only for this session */ }
 }
 async function clearUser(){
   currentUser = null;
-  try { if(window.storage){ await window.storage.delete(USER_STORAGE_KEY, true); } } catch(e){}
-  try { localStorage.removeItem(USER_STORAGE_KEY); } catch(e){}
+  try{ localStorage.removeItem(USER_STORAGE_KEY); }catch(e){}
 }
 
 /* Remembers the last country + city someone browsed, so that a returning,
@@ -5272,18 +5284,7 @@ async function clearUser(){
    page instead of the home screen. Only meaningful once sign-in itself is
    also remembered (see loadUser() being called from initUser below). */
 const LAST_LOCATION_STORAGE_KEY = 'jelp_lastLocation_v1';
-async function recordAccountCountry(countryName){
-  try{
-    if(!currentUser || !currentUser.username || !countryName) return;
-    const key = currentUser.username.trim().toLowerCase();
-    await loadRegisteredCodes(); // merge, don't overwrite
-    const idx = registeredCodes.findIndex(a => a && typeof a === 'object' && a.username && a.username.trim().toLowerCase() === key);
-    if(idx === -1 || registeredCodes[idx].country === countryName) return;
-    registeredCodes[idx].country = countryName;
-    await saveRegisteredCodes();
-    refreshCountryGrids();
-  }catch(e){}
-}
+async function recordAccountCountry(countryName){ /* the server no longer keeps a per-account country list */ }
 async function saveLastLocation(){
   if(!browseCountry || !browseCity) return;
   recordAccountCountry(browseCountry.name);
@@ -5354,7 +5355,7 @@ document.getElementById('loginAckCheckbox').addEventListener('change', (e)=> set
 function updateLoginSubmitState(){
   const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
-  let ok = isValidUsername(username, loginMode !== 'register') && /^\d{6}$/.test(code);
+  let ok = isValidUsername(username, loginMode !== 'register') && (loginMode === 'register' ? code.length >= 8 : code.length >= 1);
   if(loginMode === 'register'){
     const phone = document.getElementById('loginPhoneInput').value.trim();
     ok = ok && isValidPhone(phone) && !!document.getElementById('loginPhoneCC').value;
@@ -5369,30 +5370,7 @@ document.getElementById('loginPhoneInput').addEventListener('input', (e)=>{
   updateLoginSubmitState();
 });
 document.getElementById('loginPhoneCC').addEventListener('change', updateLoginSubmitState);
-document.getElementById('loginCodeInput').addEventListener('input', (e)=>{
-  e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
-  updateLoginSubmitState();
-});
-/* Limits wrong sign-in attempts: max 5 per hour per username on this device. The same limit is enforced on the
-   server for the payment endpoints. */
-const LOGIN_FAIL_KEY = 'fixvice_login_fails_v1';
-function loginFailsFor(user){
-  try{
-    const all = JSON.parse(localStorage.getItem(LOGIN_FAIL_KEY) || '{}');
-    return (all[user] || []).filter(t => Date.now() - t < 3600 * 1000);
-  }catch(e){ return []; }
-}
-function recordLoginFail(user){
-  try{
-    const all = JSON.parse(localStorage.getItem(LOGIN_FAIL_KEY) || '{}');
-    all[user] = loginFailsFor(user).concat(Date.now());
-    localStorage.setItem(LOGIN_FAIL_KEY, JSON.stringify(all));
-  }catch(e){}
-}
-function loginLockedMinutes(user){
-  const f = loginFailsFor(user);
-  return f.length >= 5 ? Math.ceil((3600 * 1000 - (Date.now() - f[0])) / 60000) : 0;
-}
+document.getElementById('loginCodeInput').addEventListener('input', updateLoginSubmitState);
 document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
@@ -5400,75 +5378,31 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   const phone = cc ? (cc + ' ' + document.getElementById('loginPhoneInput').value.trim()) : document.getElementById('loginPhoneInput').value.trim();
   const email = document.getElementById('loginEmailInput').value.trim();
   const errEl = document.getElementById('loginErrorMsg');
-  if(loginMode === 'register' && !loginAcked){ errEl.textContent = 'Kryss av for å bekrefte at du har sjekket brukernavnet og nummeret ditt.'; errEl.classList.remove('hidden'); return; }
+  if(loginMode === 'register' && !loginAcked){ errEl.textContent = 'Kryss av for å bekrefte at du husker passordet ditt og godtar vilkårene.'; errEl.classList.remove('hidden'); return; }
   if(loginMode === 'register' && !cc){ errEl.textContent = 'Velg landkoden din (+47, +46, +45, +358, +44 eller +354).'; errEl.classList.remove('hidden'); return; }
   errEl.classList.add('hidden');
-  if(!isValidUsername(username, loginMode !== 'register') || !/^\d{6}$/.test(code)) return;
-  if(loginMode === 'login'){
-    const wait = loginLockedMinutes(username.toLowerCase());
-    if(wait){ errEl.textContent = 'For mange mislykkede forsøk. Prøv igjen om ' + wait + ' minutter.'; errEl.classList.remove('hidden'); return; }
-  }
+  if(!isValidUsername(username, loginMode !== 'register') || !code) return;
   if(loginMode === 'register' && !isValidPhone(phone)) return;
   if(loginMode === 'register'){
     const prob = contentProblem(username, {strict:true, reserved:true});
     if(prob){ errEl.textContent = 'Brukernavn: ' + prob; errEl.classList.remove('hidden'); return; }
   }
-
-  // Re-check the ban list right before letting someone in, so a ban made
-  // from the admin page takes effect immediately, not just at page load.
-  // Bans and force-logout are keyed by username now, since the 6-digit
-  // number is no longer unique to one account.
-  await loadBannedCodes();
-  if(bannedCodes.includes(username)){
-    errEl.textContent = 'Denne kontoen er utestengt fra Fixvice for brudd på vilkårene.';
+  const submitBtn = document.getElementById('loginSubmitBtn');
+  submitBtn.disabled = true;
+  busyStart(loginMode === 'register' ? 'Oppretter konto …' : 'Logger inn …');
+  try{
+  const r = await api('auth', loginMode === 'register'
+    ? { action: 'register', username, password: code, phone, email }
+    : { action: 'login', username, password: code });
+  submitBtn.disabled = false;
+  if(!r.ok){
+    errEl.textContent = apiErrorText(r);
     errEl.classList.remove('hidden');
     return;
   }
-
-  if(loginMode === 'register'){
-    // The username is the only thing that has to be unique — several
-    // accounts can share the same 6-digit number.
-    if(findAccountByUsername(username)){
-      errEl.textContent = 'Brukernavnet er allerede tatt – velg et annet.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-    registeredCodes.push({ code, username, phone, email: email || null });
-    await saveRegisteredCodes();
-    currentUser = { code, username, phone, email: email || null, loginTime: Date.now() };
-    await saveUser();
-  } else {
-    let account = findAccountByUsername(username);
-    if(!account){
-      // Might be an older account created before usernames existed —
-      // those are stored with no username yet. If one of those has a
-      // matching number and nobody else has claimed this username,
-      // claim it now so the account keeps working.
-      const legacyIdx = registeredCodes.findIndex(a => {
-        const rec = typeof a === 'string' ? { code: a, username: null } : a;
-        return !rec.username && rec.code === code;
-      });
-      if(legacyIdx !== -1){
-        registeredCodes[legacyIdx] = { code, username };
-        await saveRegisteredCodes();
-        account = { code, username };
-      }
-    }
-    if(!account){
-      recordLoginFail(username.toLowerCase());
-      errEl.textContent = 'Fant ingen konto med dette brukernavnet. Trykk «Opprett ny konto» for å lage en.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-    if(account.code !== code){
-      recordLoginFail(username.toLowerCase());
-      errEl.textContent = 'Nummeret stemmer ikke med dette brukernavnet.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-    currentUser = { code, username: account.username, loginTime: Date.now() };
-    await saveUser();
-  }
+  currentUser = Object.assign({}, r.data.profile, { token: r.data.token, loginTime: Date.now() });
+  await saveUser();
+  await loadServices();
   document.getElementById('loginUsernameInput').value = "";
   document.getElementById('loginCodeInput').value = "";
   document.getElementById('loginPhoneInput').value = "";
@@ -5484,6 +5418,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   } else {
     show('home');
   }
+  } finally { busyEnd(); }
 });
 /* Reusable confirmation popup: askConfirm({title,text,yes,no}) -> Promise<boolean>. */
 function askConfirm(opts){
@@ -5592,7 +5527,9 @@ function renderProfileScreen(){
   const anT = document.getElementById('profileAnalyticsToggle'); if(anT) anT.checked = analyticsOn();
   document.getElementById('profileNameInput').value = account.displayName || '';
   document.getElementById('profileUsernameInput').value = currentUser.username || '';
-  document.getElementById('profileCodeInput').value = account.code || currentUser.code || '';
+  document.getElementById('profileCurPwInput').value = '';
+  document.getElementById('profileNewPwInput').value = '';
+  document.getElementById('deleteAccountPwInput').value = '';
   document.getElementById('profilePhoneInput').value = account.phone || '';
   document.getElementById('profileEmailInput').value = account.email || '';
   document.getElementById('profileBioInput').value = account.bio || '';
@@ -5604,17 +5541,13 @@ function renderProfileScreen(){
 
 function updateProfileSaveState(){
   const username = document.getElementById('profileUsernameInput').value.trim();
-  const code = document.getElementById('profileCodeInput').value.trim();
-  const phone = document.getElementById('profilePhoneInput').value.trim();
-  document.getElementById('profileSaveBtn').disabled = !(isValidUsername(username, username === (currentUser && currentUser.username)) && /^\d{6}$/.test(code));
+  const np = document.getElementById('profileNewPwInput').value;
+  const cp = document.getElementById('profileCurPwInput').value;
+  document.getElementById('profileSaveBtn').disabled = !(isValidUsername(username, true) && (!np || (np.length >= 8 && cp.length > 0)));
 }
-['profileUsernameInput','profileCodeInput','profilePhoneInput','profileNameInput'].forEach(id=>{
+['profileUsernameInput','profileNewPwInput','profileCurPwInput','profilePhoneInput','profileNameInput'].forEach(id=>{
   document.getElementById(id).addEventListener('input', updateProfileSaveState);
 });
-document.getElementById('profileCodeInput').addEventListener('input', (e)=>{
-  e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
-});
-
 document.getElementById('profileLogoutBtn').addEventListener('click', doLogout);
 document.getElementById('openProfileBtn').addEventListener('click', ()=>{
   renderProfileScreen();
@@ -5625,140 +5558,33 @@ document.getElementById('backFromProfile').addEventListener('click', ()=>{
   show('myServices');
 });
 
-/* Renames every occurrence of a username key (listing ownership +
-   per-customer conversation threads) across the SHARED services list, not
-   just this browser's local copy — mirrors saveChatMessage()'s
-   fetch-latest-then-merge pattern so a rename can't wipe out someone
-   else's concurrent save. */
-async function migrateUsernameKey(oldKey, newKey){
-  if(oldKey === newKey) return true;
-  if(!supabaseConfigured()) return true; // nothing shared to migrate — local-only fallback is fine
-  try{
-    const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, {
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
-    });
-    let latest = Array.isArray(myServices) ? myServices.slice() : [];
-    if(getRes.ok){
-      const rows = await getRes.json();
-      if(rows && rows[0] && Array.isArray(rows[0].data)) latest = rows[0].data;
-    }
-    latest = latest.map(s=>{
-      let changed = false;
-      let ownerCode = s.ownerCode;
-      if(ownerCode === oldKey){ ownerCode = newKey; changed = true; }
-      let conversations = s.conversations;
-      if(conversations && Object.prototype.hasOwnProperty.call(conversations, oldKey)){
-        conversations = Object.assign({}, conversations);
-        const oldMsgs = conversations[oldKey] || [];
-        const existing = conversations[newKey] || [];
-        conversations[newKey] = existing.concat(oldMsgs).sort((a,b)=> (a.time||0) - (b.time||0));
-        delete conversations[oldKey];
-        changed = true;
-      }
-      return changed ? Object.assign({}, s, { ownerCode, conversations }) : s;
-    });
-    const putRes = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
-      method: "POST",
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json",
-        "Prefer": "resolution=merge-duplicates"
-      },
-      body: JSON.stringify({ id: "global", data: latest })
-    });
-    if(putRes.ok){ myServices = latest; return true; }
-    console.error('migrateUsernameKey: save failed', putRes.status);
-  } catch(e){ console.error('migrateUsernameKey threw', e); }
-  return false;
-}
-
 document.getElementById('profileSaveBtn').addEventListener('click', async ()=>{
   if(!currentUser) return;
   const errEl = document.getElementById('profileErrorMsg');
   const okEl = document.getElementById('profileSuccessMsg');
-  errEl.classList.add('hidden');
-  okEl.classList.add('hidden');
-
-  const newUsername = document.getElementById('profileUsernameInput').value.trim();
-  const newCode = document.getElementById('profileCodeInput').value.trim();
-  const phone = document.getElementById('profilePhoneInput').value.trim();
-  const email = document.getElementById('profileEmailInput').value.trim();
+  errEl.classList.add('hidden'); okEl.classList.add('hidden');
   const bio = document.getElementById('profileBioInput').value.trim();
   const displayName = document.getElementById('profileNameInput').value.trim();
-  if(!isValidUsername(newUsername, newUsername === currentUser.username) || !/^\d{6}$/.test(newCode)) return;
-
-  {
-    const acct = findAccountByUsername(currentUser.username) || currentUser;
-    const probs = [
-      contentProblem(newUsername, {strict:true, reserved: newUsername.toLowerCase() !== String(currentUser.username).toLowerCase()}),
-      contentProblem(displayName, {strict:true, reserved: displayName !== (acct.displayName || '')}),
-      contentProblem(bio, {})
-    ].filter(Boolean);
-    if(probs.length){ errEl.textContent = probs[0]; errEl.classList.remove('hidden'); return; }
-  }
-  const oldKey = currentUser.username.trim().toLowerCase();
-  const newKey = newUsername.trim().toLowerCase();
-
-  if(newKey !== oldKey){
-    const clash = findAccountByUsername(newUsername);
-    if(clash){
-      errEl.textContent = 'Brukernavnet er allerede tatt – velg et annet.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-  }
-
-  document.getElementById('profileSaveBtn').disabled = true;
-  document.getElementById('profileSaveBtn').textContent = 'Lagrer …';
-
-  // Re-check the ban list, same as at login — a username someone renamed
-  // their way into shouldn't accidentally dodge an existing ban.
-  await loadBannedCodes();
-  if(newKey !== oldKey && bannedCodes.includes(newKey)){
-    errEl.textContent = 'Det brukernavnet er utestengt fra Fixvice.';
-    errEl.classList.remove('hidden');
-    document.getElementById('profileSaveBtn').disabled = false;
-    document.getElementById('profileSaveBtn').textContent = t(currentLang,'continueBtn') || 'Lagre endringer';
-    return;
-  }
-
-  const idx = registeredCodes.findIndex(a=>{
-    const rec = typeof a === 'string' ? { code: a, username: null } : a;
-    const key = rec.username ? rec.username.trim().toLowerCase() : rec.code;
-    return key === oldKey;
-  });
-  const updatedAccount = {
-    code: newCode,
-    username: newUsername,
-    phone,
-    email: email || null,
-    bio: bio || null,
-    displayName: displayName || null,
-    avatar: profileAvatarData || null,
-    country: (idx !== -1 && registeredCodes[idx] && registeredCodes[idx].country) || null
-  };
-  if(idx !== -1) registeredCodes[idx] = updatedAccount;
-  else registeredCodes.push(updatedAccount);
-  await saveRegisteredCodes();
-
-  let migrationOk = true;
-  if(newKey !== oldKey){
-    migrationOk = await migrateUsernameKey(oldKey, newKey);
-  }
-
-  currentUser = Object.assign({}, currentUser, updatedAccount, { loginTime: currentUser.loginTime });
+  const newPw = document.getElementById('profileNewPwInput').value;
+  const curPw = document.getElementById('profileCurPwInput').value;
+  const probs = [
+    contentProblem(displayName, {strict:true, reserved: displayName !== (currentUser.displayName || '')}),
+    contentProblem(bio, {})
+  ].filter(Boolean);
+  if(probs.length){ errEl.textContent = probs[0]; errEl.classList.remove('hidden'); return; }
+  const btn = document.getElementById('profileSaveBtn');
+  btn.disabled = true; btn.textContent = 'Lagrer …';
+  const body = { action: 'updateProfile', displayName, bio, avatar: profileAvatarData || null };
+  if(newPw){ body.newPassword = newPw; body.currentPassword = curPw; }
+  const r = await api('auth', body);
+  btn.disabled = false; btn.textContent = 'Lagre endringer';
+  if(!r.ok){ errEl.textContent = apiErrorText(r); errEl.classList.remove('hidden'); return; }
+  currentUser = Object.assign({}, currentUser, r.data.profile, r.data.token ? { token: r.data.token } : {});
   await saveUser();
-
-  document.getElementById('profileSaveBtn').disabled = false;
-  document.getElementById('profileSaveBtn').textContent = 'Lagre endringer';
+  document.getElementById('profileCurPwInput').value = ''; document.getElementById('profileNewPwInput').value = '';
   updateProfileSaveState();
-
-  okEl.textContent = migrationOk
-    ? 'Profilen er lagret.'
-    : 'Profilen er lagret, men det kan ta et øyeblikk før de eksisterende annonsene og meldingene dine viser det nye brukernavnet. Prøv igjen hvis de ser feil ut.';
+  okEl.textContent = 'Profilen er lagret.';
   okEl.classList.remove('hidden');
-
   const loggedInAsEl = document.getElementById('loggedInAsLabel');
   if(loggedInAsEl) loggedInAsEl.textContent = 'Innlogget som @' + currentUser.username;
   renderProfileCard();
@@ -6365,7 +6191,7 @@ async function startCheckout(){
   btn.disabled = true; btn.textContent = 'Åpner Stripe …';
   try{
     const res = await fetch('/api/checkout', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + currentUser.token },
       body: JSON.stringify({ plan, serviceId: sponsorTargetService ? sponsorTargetService.id : null, username: currentUser.username })
     });
     const data = await res.json().catch(()=> ({}));
@@ -6417,172 +6243,30 @@ async function fetchWithRetry(url, options, retries){
    for Supabase) and recorded in lastSaveErrorDetail, instead of being
    swallowed silently, so a "why didn't my listing save" report can
    actually be diagnosed. */
-async function saveServices(){
-  const json = JSON.stringify(myServices);
-
-  if(supabaseConfigured()){
-    try {
-      const res = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          "Prefer": "resolution=merge-duplicates"
-        },
-        body: JSON.stringify({ id: "global", data: myServices })
-      });
-      if(res.ok) return true;
-      const bodyText = await res.text().catch(()=> '');
-      lastSaveErrorDetail = `Supabase HTTP ${res.status}: ${bodyText.slice(0,300)}`;
-      console.error('saveServices: Supabase save failed', res.status, bodyText);
-    } catch(e){
-      lastSaveErrorDetail = `Supabase request failed: ${e && e.message ? e.message : e}`;
-      console.error('saveServices: Supabase request threw', e);
-    }
-  } else {
-    lastSaveErrorDetail = 'Supabase is not configured.';
-  }
-
-  // Supabase didn't succeed — still write to a local fallback so the app
-  // keeps working in *this* browser, but this is NOT the same as actually
-  // saving: a listing that only exists in localStorage won't show up for
-  // anyone else, on any other device, which is what "it's not saving"
-  // usually turns out to mean. So the return value below stays false even
-  // when the local fallback itself succeeds.
-  try {
-    if(window.storage){
-      await window.storage.set(STORAGE_KEY, json, true);
-      return false;
-    }
-  } catch(e){ console.error('saveServices: window.storage failed', e); }
-  try {
-    localStorage.setItem(STORAGE_KEY, json);
-  } catch(e){
-    console.error('saveServices: localStorage failed', e);
-    lastSaveErrorDetail += ' | Local backup also failed: ' + (e && e.message ? e.message : e);
-  }
-
-  return false;
-}
-
-/* Chat is shared data: several people can message the same listing from
-   different devices. sendChatMessage() used to call plain saveServices(),
-   which always overwrites the *entire* table with this browser's local
-   copy of myServices — so if anything else had been saved since this
-   browser last loaded (another listing, another message), that save wiped
-   it out, and the message could look like it "didn't save" on the other
-   person's side. This re-fetches the latest shared data right before
-   saving and merges in only this one conversation's messages, instead of
-   blindly overwriting everything. */
-async function saveChatMessage(serviceId, customerCode){
-  if(supabaseConfigured()){
-    try {
-      const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, {
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
-      let latest = Array.isArray(myServices) ? myServices.slice() : [];
-      if(getRes.ok){
-        const rows = await getRes.json();
-        if(rows && rows[0] && Array.isArray(rows[0].data)) latest = rows[0].data;
-      }
-
-      const localMessages = (activeChatService && activeChatService.conversations && Array.isArray(activeChatService.conversations[customerCode]))
-        ? activeChatService.conversations[customerCode] : [];
-      let found = false;
-      latest = latest.map(s=>{
-        if(s.id === serviceId){
-          found = true;
-          const conversations = Object.assign({}, s.conversations || {});
-          conversations[customerCode] = localMessages;
-          return Object.assign({}, s, { conversations });
-        }
-        return s;
-      });
-      // The listing isn't in the shared data yet (e.g. it only exists in
-      // this browser so far) — keep the message by adding it rather than
-      // silently dropping it.
-      if(!found && activeChatService) latest.push(activeChatService);
-
-      const putRes = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          "Prefer": "resolution=merge-duplicates"
-        },
-        body: JSON.stringify({ id: "global", data: latest })
-      });
-      if(putRes.ok){
-        myServices = latest;
-        const updated = myServices.find(s => s.id === serviceId);
-        if(updated) activeChatService = updated;
-        return true;
-      }
-      const bodyText = await putRes.text().catch(()=> '');
-      lastSaveErrorDetail = `Supabase HTTP ${putRes.status}: ${bodyText.slice(0,300)}`;
-      console.error('saveChatMessage: Supabase save failed', putRes.status, bodyText);
-    } catch(e){
-      lastSaveErrorDetail = `Supabase request failed: ${e && e.message ? e.message : e}`;
-      console.error('saveChatMessage: Supabase request threw', e);
-    }
-  } else {
-    lastSaveErrorDetail = 'Supabase is not configured.';
-  }
-  // Fall back to the same local-only behavior saveServices() already has
-  // (window.storage / localStorage), so the message isn't lost in *this*
-  // browser even if the shared save failed.
-  return await saveServices();
-}
+/* Writes are no longer done from the browser. Listings and messages are saved by the server (api/data.js), which
+   always acts as the signed-in user. This stub exists only so that old call sites cannot overwrite shared data. */
+async function saveServices(){ console.warn('saveServices() is disabled: use api("data", ...)'); return true; }
+async function saveChatMessage(){ return true; }
 
 async function loadServices(){
-  if(supabaseConfigured()){
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, {
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
-      if(res.ok){
-        const rows = await res.json();
-        if(rows && rows[0] && Array.isArray(rows[0].data) && rows[0].data.length > 0){
-          myServices = rows[0].data;
-          return true;
-        }
-        return false;
-      }
-    } catch(e){ /* network/config issue — fall through to local storage */ }
-  }
-
-  try {
-    if(window.storage){
-      const result = await window.storage.get(STORAGE_KEY, true);
-      if(result && result.value){
-        const parsed = JSON.parse(result.value);
-        if(Array.isArray(parsed) && parsed.length > 0){
-          myServices = parsed;
-          return true;
-        }
-      }
-      return false;
-    }
-  } catch(e){ /* fall through to localStorage */ }
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      if(Array.isArray(parsed) && parsed.length > 0){
-        myServices = parsed;
-        return true;
+  if(!supabaseConfigured()) return false;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.svc2&select=data`, {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    if(!res.ok) return false;
+    const rows = await res.json();
+    const list = (rows && rows[0] && Array.isArray(rows[0].data)) ? rows[0].data : [];
+    list.forEach(x => { x.conversations = {}; });
+    if(currentUser){ // add only the conversations this person is part of
+      const r = await api('data', { action: 'getChats' });
+      if(r.ok && r.data.chats){
+        list.forEach(x => { const c = r.data.chats[String(x.id)]; if(c) x.conversations = c; });
       }
     }
-  } catch(e){ /* no stored data yet, or storage unavailable — fall back to seed data */ }
-  return false;
+    myServices = list;
+    return list.length > 0;
+  }catch(e){ return false; }
 }
 
 /* Poll for new services/messages from other visitors every 8s while
@@ -6705,8 +6389,6 @@ function countWords(text){ return (text.match(/\S+/g) || []).length; }
 })();
 
 window.__initUserP = (async function initUser(){
-  await loadRegisteredCodes();
-  await loadBannedCodes();
   // Browsing (home/country/city) is open to everyone. The login screen
   // only shows up when something account-specific is clicked — see
   // requireLogin(). Being signed in is now remembered across visits (see
@@ -6714,11 +6396,9 @@ window.__initUserP = (async function initUser(){
   // had a country/city open last time is taken straight back to that
   // listings page instead of the home screen.
   await loadUser();
+  if(currentUser) await loadServices(); // fetch this person's conversations too
   if(currentUser && currentUser.username){
-    if(bannedCodes.includes(currentUser.username.trim().toLowerCase())){
-      // Banned since their last visit — don't silently sign them back in.
-      await clearUser();
-    } else {
+    {
       await loadPremium();
       const last = await loadLastLocation();
       if(last){
@@ -6925,40 +6605,12 @@ function openEditService(s){
 // Saves ONE edited listing without overwriting other people's newer data: re-fetch the shared list,
 // replace only this listing's own fields (keeping the latest messages/boost state), then write back.
 async function saveServiceEdit(updated){
-  if(supabaseConfigured()){
-    try {
-      const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, {
-        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
-      });
-      let latest = myServices.slice();
-      if(getRes.ok){
-        const rows = await getRes.json();
-        if(rows && rows[0] && Array.isArray(rows[0].data)) latest = rows[0].data;
-      }
-      let found = false;
-      latest = latest.map(x=>{
-        if(x.id !== updated.id) return x;
-        found = true;
-        return Object.assign({}, x, {
-          name: updated.name, desc: updated.desc, cat: updated.cat, price: updated.price,
-          currency: updated.currency, priceNote: updated.priceNote, image: updated.image,
-          video: updated.video, editedAt: updated.editedAt
-        });
-      });
-      if(!found) latest.unshift(updated);
-      const putRes = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
-        method: "POST",
-        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
-        body: JSON.stringify({ id: "global", data: latest })
-      });
-      if(putRes.ok){ myServices = latest; return true; }
-      const bodyText = await putRes.text().catch(()=> '');
-      lastSaveErrorDetail = `Supabase HTTP ${putRes.status}: ${bodyText.slice(0,300)}`;
-    } catch(e){
-      lastSaveErrorDetail = `Supabase request failed: ${e && e.message ? e.message : e}`;
-    }
-  }
-  return await saveServices();
+  const r = await api('data', { action: 'editService', id: updated.id, fields: {
+    name: updated.name, desc: updated.desc, cat: updated.cat, price: updated.price, currency: updated.currency,
+    priceNote: updated.priceNote, image: updated.image,
+    video: (typeof updated.video === 'string' && updated.video.startsWith('data:')) ? updated.video : null } });
+  if(!r.ok) lastSaveErrorDetail = apiErrorText(r);
+  return r.ok;
 }
 
 async function publishEditedService(){
@@ -7031,13 +6683,17 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
     // in the chat section further down).
     conversations: {}
   };
+  const pubBtn = document.getElementById('publishBtn');
+  pubBtn.disabled = true;
+  const pr = await api('data', { action: 'createService', service: {
+    name, desc, cat, price: priceVal, currency: currencyVal, priceNote: service.priceNote,
+    image: svcImageData, video: (typeof svcVideoData === 'string' && svcVideoData.startsWith('data:')) ? svcVideoData : null,
+    locations, lang: countries[0].lang } });
+  pubBtn.disabled = false;
+  if(!pr.ok){ showFormError('Kunne ikke publisere: ' + apiErrorText(pr)); return; }
+  Object.assign(service, pr.data.service, { conversations: {} });
   myServices.unshift(service);
   track('publish', { cat, countries: countries.map(c=>c.name) });
-  const saved = await saveServices();
-  if(!saved){
-    const detail = lastSaveErrorDetail ? (' [' + lastSaveErrorDetail + ']') : '';
-    showToast(t(countries[0].lang,'saveFailedWarning') + detail, null, countries[0].lang, 20000);
-  }
 
   const firstLoc = locations[0];
   browseCountry = countries[0];
@@ -7179,8 +6835,9 @@ function renderMyServices(lang){
         yes: 'Ja, slett den', no: 'Behold den'
       });
       if(!ok) return;
+      const dr = await api('data', { action: 'deleteService', id: s.id });
+      if(!dr.ok){ showToast('Kunne ikke slette: ' + apiErrorText(dr), null, 'no', 6000); return; }
       myServices = myServices.filter(x => x.id !== s.id);
-      saveServices();
       renderMyServices(lang);
     });
     if(s.video){
@@ -7235,8 +6892,8 @@ document.querySelectorAll('.privinlink').forEach(a=> a.addEventListener('click',
    cancelled first so that no further weekly charges are made. */
 async function deleteMyAccount(){
   if(!currentUser) return;
-  const me = currentUser.username;
-  const meKey = String(me || '').trim().toLowerCase();
+  const pw = document.getElementById('deleteAccountPwInput').value;
+  if(!pw){ showToast('Skriv inn passordet ditt i feltet over knappen for å slette kontoen.', null, 'no', 6000); return; }
   const ok = await askConfirm({
     title: 'Slette kontoen din?',
     text: 'Dette sletter kontoen din, alle annonsene dine, samtalene dine og aktivitetsdataene dine for godt. En aktiv Premium avsluttes. Boost og Premium som allerede er betalt, refunderes ikke. Dette kan ikke angres.',
@@ -7245,50 +6902,16 @@ async function deleteMyAccount(){
   if(!ok) return;
   const btn = document.getElementById('deleteAccountBtn');
   btn.disabled = true; btn.textContent = 'Sletter …';
-  try{
-    const pr = premiumUsers[meKey];
-    if(pr && pr.until > Date.now() && !pr.cancelling){
-      const r = await fetch('/api/cancel-premium', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: me, code: String(currentUser.code || '') })
-      });
-      if(!r.ok) throw new Error('Kunne ikke avslutte Premium først. Ingenting ble slettet.');
-    }
-    const headers = { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": "application/json" };
-    if(supabaseConfigured()){
-      const getRes = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.global&select=data`, { headers });
-      let latest = Array.isArray(myServices) ? myServices.slice() : [];
-      if(getRes.ok){ const rows = await getRes.json(); if(rows && rows[0] && Array.isArray(rows[0].data)) latest = rows[0].data; }
-      latest = latest.filter(x => x && x.ownerCode !== me).map(x=>{
-        if(x.conversations && Object.prototype.hasOwnProperty.call(x.conversations, me)){
-          const c = Object.assign({}, x.conversations); delete c[me]; return Object.assign({}, x, { conversations: c });
-        }
-        return x;
-      });
-      const put = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
-        method: "POST", headers: Object.assign({ "Prefer": "resolution=merge-duplicates" }, headers),
-        body: JSON.stringify({ id: "global", data: latest })
-      });
-      if(!put.ok) throw new Error('Kunne ikke slette annonsene dine. Ingenting annet ble slettet.');
-      myServices = latest;
-    }
-    await loadRegisteredCodes();
-    registeredCodes = registeredCodes.filter(a => {
-      if(typeof a === 'string') return a !== String(currentUser.code);
-      return !a || String(a.username || '').trim().toLowerCase() !== meKey;
-    });
-    await saveRegisteredCodes();
-    if(supabaseConfigured()){
-      try{ await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${encodeURIComponent('an_' + meKey)}`, { method: 'DELETE', headers }); }catch(e){}
-    }
-    await clearUser();
-    ['jelp_myServices_v2','jelp_premium_v1','jelp_lastLocation_v1'].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
-    showToast('Kontoen og dataene dine er slettet.', null, 'no', 6000);
-    setTimeout(()=> location.reload(), 1800);
-  }catch(e){
-    showToast((e && e.message) ? e.message : 'Kunne ikke slette kontoen. Prøv igjen.', null, 'no', 7000);
+  const r = await api('auth', { action: 'deleteAccount', password: pw });
+  if(!r.ok){
+    showToast(apiErrorText(r), null, 'no', 7000);
     btn.disabled = false; btn.textContent = 'Slett kontoen min';
+    return;
   }
+  await clearUser();
+  ['fixvice_login_fails_v1','jelp_myServices_v2','jelp_premium_v1','jelp_lastLocation_v1'].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+  showToast('Kontoen og dataene dine er slettet.', null, 'no', 6000);
+  setTimeout(()=> location.reload(), 1800);
 }
 document.getElementById('deleteAccountBtn').addEventListener('click', deleteMyAccount);
 </script>
