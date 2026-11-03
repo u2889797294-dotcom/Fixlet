@@ -54,10 +54,10 @@
 
 <div id="gate">
   <h2>Fixvice Admin</h2>
-  <p>Dette er et administrasjonspanel for hele Fixvice-databasen. Alt som gjøres her påvirker den <strong>live</strong> nettsiden umiddelbart for alle brukere. Skriv inn admin-passordet for å fortsette.</p>
-  <input type="password" id="gatePassword" placeholder="Admin-passord" autocomplete="off">
+  <p>Dette er et administrasjonspanel for hele Fixvice-databasen. Alt som gjøres her påvirker den <strong>live</strong> nettsiden umiddelbart for alle brukere. Skriv inn admin-nøkkelen (ADMIN_KEY fra Vercel) for å fortsette.</p>
+  <input type="password" id="gatePassword" placeholder="Admin-nøkkel" autocomplete="off">
   <button class="primary" id="gateSubmit">Logg inn</button>
-  <p id="gateError" style="color:var(--bad); display:none;">Feil passord.</p>
+  <p id="gateError" style="color:var(--bad); display:none;">Feil admin-nøkkel.</p>
 </div>
 
 <div id="app" style="display:none;">
@@ -66,9 +66,7 @@
     <span class="who">Koblet til samme database som nettsiden</span>
   </header>
   <main>
-    <div class="warn">
-      ⚠️ Dette passordet er kun en enkel sperre i nettleseren, ikke ekte sikkerhet — hvem som helst som finner denne siden og passordet har samme tilgang som deg. Del lenken og passordet kun med folk du stoler på. Vurder å endre passordet i filen jevnlig.
-    </div>
+    <div class="warn">Admin-nøkkelen sjekkes på serveren og står ikke i denne filen. Den huskes bare i denne fanen. Alt du gjør her gjelder den live nettsiden med en gang.</div>
 
     <div class="stat-row" id="statRow"></div>
 
@@ -101,40 +99,10 @@
 </div>
 
 <script>
-/* Same Supabase project/table as the main Fixvice site (index.html) —
-   four rows in one table, used as a tiny key-value store:
-     id="global"      -> all listings (services)
-     id="users"       -> every registered account, as
-                          { code, username, phone, email, bio, avatar }
-                          (several accounts can share the same 6-digit
-                          number; only the username has to be unique)
-     id="banned"      -> usernames (lowercased) banned from logging in
-     id="forceLogout" -> { username: timestamp } map used to remotely
-                          sign an account out of all its devices
-   This page reads and writes those same four rows directly. */
-const SUPABASE_URL = "https://upqntfrjjkmlrguhwgut.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_4gbfqCFJaOqhUC-Bp_Hg3A_d0K-l4Kc";
-const SUPABASE_TABLE = "Jelp-services";
-
-// Change this to whatever you want — see the warning banner in the page
-// itself about what this password does and doesn't protect against.
-const ADMIN_PASSWORD = "GaisRik908070";
-
-let services = [];
-let registeredCodes = [];
-let bannedCodes = [];
-let forceLogoutMap = {};
-
-const FORCE_LOGOUT_ROW_ID = 'forceLogout';
-
-async function getObjectRow(id){
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${id}&select=data`, {
-    headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
-  });
-  if(!res.ok) throw new Error('HTTP ' + res.status);
-  const rows = await res.json();
-  return (rows && rows[0] && rows[0].data && typeof rows[0].data === 'object' && !Array.isArray(rows[0].data)) ? rows[0].data : {};
-}
+/* The admin panel talks only to /api/admin. The admin key is typed in here, kept for this browser tab only
+   (sessionStorage) and checked on the server — it is not stored in this file. */
+let adminKey = '';
+let listings = [], users = [], banned = [], premiumKeys = [];
 
 function showMsg(text, ok){
   const el = document.getElementById('msg');
@@ -142,81 +110,35 @@ function showMsg(text, ok){
   el.className = 'msg ' + (ok ? 'ok' : 'fail');
   setTimeout(()=>{ el.className = 'msg'; }, 6000);
 }
-
-async function getRow(id){
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${id}&select=data`, {
-    headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
-  });
-  if(!res.ok) throw new Error('HTTP ' + res.status);
-  const rows = await res.json();
-  return (rows && rows[0] && Array.isArray(rows[0].data)) ? rows[0].data : [];
-}
-
-async function putRow(id, data){
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`, {
-    method: "POST",
-    headers: {
-      "apikey": SUPABASE_ANON_KEY,
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-      "Content-Type": "application/json",
-      "Prefer": "resolution=merge-duplicates"
-    },
-    body: JSON.stringify({ id, data })
-  });
-  if(!res.ok){
-    const bodyText = await res.text().catch(()=> '');
-    throw new Error(`HTTP ${res.status}: ${bodyText.slice(0,300)}`);
-  }
-}
-
-function countConversationMessages(service){
-  if(!service || !service.conversations) return 0;
-  return Object.values(service.conversations).reduce((sum, msgs)=> sum + (msgs ? msgs.length : 0), 0);
+const ERR = { forbidden:'Feil admin-nøkkel.', rate_limited:'For mange forsøk. Vent litt.', no_such_user:'Fant ikke brukeren.', bad_password:'Passordet må være 8–72 tegn.', bad_username:'Ugyldig brukernavn.', server_error:'Feil på serveren.', network:'Ingen kontakt med serveren.' };
+async function call(action, body){
+  let res, data = {};
+  try{
+    res = await fetch('/api/admin', { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + adminKey }, body: JSON.stringify(Object.assign({ action }, body || {})) });
+    data = await res.json().catch(()=> ({}));
+  }catch(e){ throw new Error(ERR.network); }
+  if(!res.ok) throw Object.assign(new Error(ERR[data.error] || data.error || ('HTTP ' + res.status)), { status: res.status });
+  return data;
 }
 
 async function loadAll(){
-  // Each row is fetched independently (Promise.allSettled, not .catch(()=>[])):
-  // a transient network hiccup on just ONE of these used to silently reset
-  // that list to empty, which made accounts/listings appear to vanish from
-  // the page even though nothing was actually deleted server-side. Now a
-  // failed fetch keeps whatever was already loaded and reports the problem
-  // instead of wiping the list.
-  const [svcResult, usersResult, bannedResult, kickedResult] = await Promise.allSettled([
-    getRow('global'),
-    getRow('users'),
-    getRow('banned'),
-    getObjectRow(FORCE_LOGOUT_ROW_ID)
-  ]);
-  const failed = [];
-  if(svcResult.status === 'fulfilled') services = svcResult.value; else failed.push('tjenester');
-  if(usersResult.status === 'fulfilled') registeredCodes = usersResult.value; else failed.push('kontoer');
-  if(bannedResult.status === 'fulfilled') bannedCodes = bannedResult.value; else failed.push('bannlysing');
-  if(kickedResult.status === 'fulfilled') forceLogoutMap = kickedResult.value; else failed.push('utlogging');
-  renderStats();
-  renderListings();
-  renderAccounts();
-  if(failed.length > 0){
-    showMsg('Klarte ikke å oppdatere: ' + failed.join(', ') + '. Viser forrige kjente data — trykk "Oppdater liste" for å prøve igjen.', false);
-  }
+  const d = await call('overview');
+  listings = d.listings || []; users = d.users || []; banned = d.banned || []; premiumKeys = d.premium || [];
+  renderStats(); renderListings(); renderAccounts();
 }
-
 function renderStats(){
-  const totalMessages = services.reduce((sum,s)=> sum + countConversationMessages(s), 0);
+  const totalMessages = listings.reduce((sum,s)=> sum + (s.messages||0), 0);
   document.getElementById('statRow').innerHTML = `
-    <div class="stat"><div class="n">${services.length}</div><div class="l">Tjenester</div></div>
+    <div class="stat"><div class="n">${listings.length}</div><div class="l">Tjenester</div></div>
     <div class="stat"><div class="n">${totalMessages}</div><div class="l">Meldinger totalt</div></div>
-    <div class="stat"><div class="n">${registeredCodes.length}</div><div class="l">Registrerte kontoer</div></div>
-    <div class="stat"><div class="n">${bannedCodes.length}</div><div class="l">Bannlyste kontoer</div></div>`;
+    <div class="stat"><div class="n">${users.length}</div><div class="l">Registrerte kontoer</div></div>
+    <div class="stat"><div class="n">${banned.length}</div><div class="l">Bannlyste kontoer</div></div>`;
 }
-
 function renderListings(){
   const list = document.getElementById('listingsList');
-  if(services.length === 0){
-    list.innerHTML = `<div class="empty">Ingen tjenester registrert.</div>`;
-    return;
-  }
-  list.innerHTML = "";
-  services.slice().sort((a,b)=> (b.createdAt||0) - (a.createdAt||0)).forEach(s=>{
+  if(listings.length === 0){ list.innerHTML = `<div class="empty">Ingen tjenester registrert.</div>`; return; }
+  list.innerHTML = '';
+  listings.slice().sort((a,b)=> (b.createdAt||0) - (a.createdAt||0)).forEach(s=>{
     const card = document.createElement('div');
     card.className = 'card';
     const dateStr = s.createdAt ? new Date(s.createdAt).toLocaleDateString('nb-NO', {day:'numeric', month:'short', year:'numeric'}) : '—';
@@ -228,232 +150,108 @@ function renderListings(){
           <div class="meta">
             ${escapeHtml(s.cat || '?')} · ${escapeHtml(s.country || '?')} (${(s.cities||[]).map(escapeHtml).join(', ')})<br>
             Pris: ${priceStr} · Opprettet: ${dateStr} · Eier: ${s.ownerCode ? '@'+escapeHtml(String(s.ownerCode)) : '—'}<br>
-            Meldinger: ${countConversationMessages(s)} · ID: ${escapeHtml(String(s.id))}
+            Meldinger: ${s.messages||0} · ID: ${escapeHtml(String(s.id))}
           </div>
         </div>
-        <button class="danger" data-id="${escapeHtml(String(s.id))}">Slett</button>
+        <button class="danger">Slett</button>
       </div>`;
     card.querySelector('button').addEventListener('click', ()=> deleteListing(s.id));
     list.appendChild(card);
   });
 }
-
+async function run(fn, okText){
+  try{ await fn(); if(okText) showMsg(okText, true); }
+  catch(e){ if(e.status === 403){ lock(); return; } showMsg('Det gikk ikke: ' + e.message, false); }
+}
 async function deleteListing(id){
   if(!confirm('Slette denne tjenesten permanent for alle brukere?')) return;
   if(!confirm('ER DU HELT SIKKER? Tjenesten og alle samtalene i den forsvinner for alltid. Dette kan ikke angres.')) return;
-  try{
-    services = services.filter(s => s.id !== id);
-    await putRow('global', services);
-    showMsg('Tjenesten ble slettet.', true);
-    renderStats();
-    renderListings();
-  } catch(e){
-    showMsg('Klarte ikke å slette: ' + e.message, false);
-  }
+  await run(async ()=>{ await call('deleteListing', { id }); await loadAll(); }, 'Tjenesten ble slettet.');
 }
-
 document.getElementById('deleteAllBtn').addEventListener('click', async ()=>{
-  if(services.length === 0){ showMsg('Ingen tjenester å slette.', true); return; }
-  const typed = prompt(`Dette sletter alle ${services.length} tjenester permanent for alle brukere. Skriv "SLETT ALT" for å bekrefte.`);
+  if(listings.length === 0){ showMsg('Ingen tjenester å slette.', true); return; }
+  const typed = prompt(`Dette sletter alle ${listings.length} tjenester permanent for alle brukere. Skriv "SLETT ALT" for å bekrefte.`);
   if(typed !== 'SLETT ALT') return;
-  try{
-    services = [];
-    await putRow('global', []);
-    showMsg('Alle tjenester ble slettet.', true);
-    renderStats();
-    renderListings();
-  } catch(e){
-    showMsg('Klarte ikke å slette: ' + e.message, false);
-  }
+  await run(async ()=>{ await call('deleteAllListings'); await loadAll(); }, 'Alle tjenester ble slettet.');
 });
-
-document.getElementById('reloadListings').addEventListener('click', loadAll);
-document.getElementById('reloadAccounts').addEventListener('click', loadAll);
-
-/* Several accounts can now share the same 6-digit number — only the
-   username has to be unique — so the username (lowercased) is the real
-   identity key for banning, force-logout and ownership, exactly like in
-   the main app. Older accounts created before usernames existed have no
-   username yet; for those we fall back to the number as the key, same as
-   the main app does when migrating them on next login. */
-function identityKey(acct){
-  return acct.username ? acct.username.trim().toLowerCase() : acct.code;
-}
-function normalizedAccounts(){
-  // Each registered entry is normally { code, username }. Older accounts
-  // created before usernames existed may still be plain code strings.
-  return registeredCodes.map(a => typeof a === 'string' ? { code: a, username: null } : a);
-}
+document.getElementById('reloadListings').addEventListener('click', ()=> run(loadAll));
+document.getElementById('reloadAccounts').addEventListener('click', ()=> run(loadAll));
 
 function renderAccounts(){
   const list = document.getElementById('accountsList');
-  const accounts = normalizedAccounts();
-  if(accounts.length === 0 && bannedCodes.length === 0){
-    list.innerHTML = `<div class="empty">Ingen registrerte kontoer funnet.</div>`;
-    return;
-  }
-  // Show every registered account, plus any banned key that for some
-  // reason isn't in the registered list (e.g. banned manually below).
-  const byKey = new Map(accounts.map(a => [identityKey(a), a]));
-  bannedCodes.forEach(key=>{ if(!byKey.has(key)) byKey.set(key, { code: null, username: key }); });
-  const allAccounts = Array.from(byKey.entries()).sort((a,b)=> a[0].localeCompare(b[0]));
-  list.innerHTML = "";
-  allAccounts.forEach(([key, acct])=>{
-    const isBanned = bannedCodes.includes(key);
-    const ownedCount = services.filter(s => s.ownerCode === key).length;
+  const byKey = new Map(users.map(u => [u.username.toLowerCase(), u]));
+  banned.forEach(k=>{ if(!byKey.has(k)) byKey.set(k, { username: k, ghost: true }); });
+  if(byKey.size === 0){ list.innerHTML = `<div class="empty">Ingen registrerte kontoer funnet.</div>`; return; }
+  list.innerHTML = '';
+  Array.from(byKey.entries()).sort((a,b)=> a[0].localeCompare(b[0])).forEach(([key, acct])=>{
+    const isBanned = banned.includes(key);
+    const owned = listings.filter(s => String(s.ownerCode).toLowerCase() === key).length;
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
       <div class="row">
         <div>
-          <h3>${acct.username ? '@' + escapeHtml(acct.username) : '(intet brukernavn)'} <span class="meta">${acct.code ? '#'+escapeHtml(acct.code) : ''}</span></h3>
+          <h3>@${escapeHtml(acct.username)} ${acct.ghost ? '<span class="meta">(slettet konto)</span>' : ''}</h3>
           <div class="meta">
             <span class="pill ${isBanned ? 'banned' : 'ok'}">${isBanned ? 'Bannlyst' : 'Aktiv'}</span>
-            ${ownedCount} tjeneste(r) publisert
+            ${owned} tjeneste(r) publisert${premiumKeys.includes(key) ? ' · Premium' : ''}
             ${acct.phone ? ' · 📱 '+escapeHtml(acct.phone) : ''}
             ${acct.email ? ' · ✉️ '+escapeHtml(acct.email) : ''}
           </div>
           ${acct.bio ? `<div class="meta" style="margin-top:4px; font-style:italic;">"${escapeHtml(acct.bio)}"</div>` : ''}
         </div>
-        <div class="btnrow">
-          <button class="logout" data-key="${escapeHtml(key)}">Logg ut</button>
-          <button class="${isBanned ? '' : 'danger'}" data-key="${escapeHtml(key)}">${isBanned ? 'Opphev bannlysing' : 'Bannlys'}</button>
-          <button class="danger" data-key="${escapeHtml(key)}">Slett bruker</button>
-        </div>
+        <div class="btnrow"></div>
       </div>`;
-    const buttons = card.querySelectorAll('button');
-    buttons[0].addEventListener('click', ()=> forceLogout(key));
-    buttons[1].addEventListener('click', ()=> toggleBan(key, !isBanned));
-    buttons[2].addEventListener('click', ()=> deleteAccount(key));
+    const row = card.querySelector('.btnrow');
+    const add = (text, cls, fn)=>{ const bt = document.createElement('button'); bt.textContent = text; if(cls) bt.className = cls; bt.addEventListener('click', fn); row.appendChild(bt); };
+    if(!acct.ghost){
+      add('Logg ut', 'logout', ()=> forceLogout(key));
+      add('Nytt passord', '', ()=> resetPassword(key));
+    }
+    add(isBanned ? 'Opphev bannlysing' : 'Bannlys', isBanned ? '' : 'danger', ()=> toggleBan(key, !isBanned));
+    if(!acct.ghost) add('Slett bruker', 'danger', ()=> deleteAccount(key));
     list.appendChild(card);
   });
 }
-
 async function forceLogout(key){
   if(!confirm(`Logge ut konto "${key}" fra alle enheter nå?`)) return;
-  try{
-    forceLogoutMap[key] = Date.now();
-    await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
-    showMsg(`Kontoen blir logget ut (kan ta inntil 10 sekunder).`, true);
-  } catch(e){
-    showMsg('Klarte ikke å logge ut kontoen: ' + e.message, false);
-  }
+  await run(()=> call('forceLogout', { username: key }), 'Kontoen er logget ut.');
 }
-
-/* Permanently deletes an account. Works on the LATEST shared data (re-fetched
-   right before writing) so it can't wipe a registration or listing someone
-   else saved a moment ago. A ban on the username is deliberately kept, so a
-   banned person can't just delete-and-recreate. The account is also force-
-   logged-out so any device that is still signed in is kicked. */
+async function resetPassword(key){
+  const pw = prompt(`Nytt passord for "${key}" (minst 8 tegn). Send det til brukeren på en trygg måte.`);
+  if(!pw) return;
+  await run(()=> call('resetPassword', { username: key, newPassword: pw }), 'Passordet er endret.');
+}
 async function deleteAccount(key){
-  if(!confirm(`Slette brukeren "${key}" PERMANENT? Kontoen fjernes og brukeren logges ut. Dette kan ikke angres.`)) return;
-  const alsoListings = confirm(`Slette også alle tjenester og samtaler som tilhører "${key}"?\n\nOK = ja, slett dem også\nAvbryt = behold tjenestene (de blir uten eier)`);
-  try{
-    const latestUsers = await getRow('users');
-    const remaining = latestUsers.filter(a => {
-      const rec = typeof a === 'string' ? { code: a, username: null } : a;
-      return identityKey(rec) !== key;
-    });
-    await putRow('users', remaining);
-    registeredCodes = remaining;
-    try{ await putRow('an_' + key, { user: key, events: [] }); }catch(e){} // also wipe this user's activity record
-
-    if(alsoListings){
-      const latestServices = await getRow('global');
-      const cleaned = latestServices
-        .filter(s => s.ownerCode !== key)
-        .map(s => {
-          if(s.conversations && Object.prototype.hasOwnProperty.call(s.conversations, key)){
-            const conv = Object.assign({}, s.conversations);
-            delete conv[key];
-            return Object.assign({}, s, { conversations: conv });
-          }
-          return s;
-        });
-      await putRow('global', cleaned);
-      services = cleaned;
-    }
-
-    forceLogoutMap[key] = Date.now();
-    await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
-
-    showMsg(`Brukeren "${key}" er slettet${alsoListings ? ' sammen med tjenestene' : ''}.`, true);
-    renderStats();
-    renderListings();
-    renderAccounts();
-  } catch(e){
-    showMsg('Klarte ikke å slette brukeren: ' + e.message, false);
-  }
+  if(!confirm(`Slette brukeren "${key}" PERMANENT? Dette kan ikke angres.`)) return;
+  const withListings = confirm(`Slette også alle tjenester og samtaler som tilhører "${key}"?\n\nOK = ja, slett dem også\nAvbryt = behold tjenestene`);
+  await run(async ()=>{
+    const d = await call('deleteAccount', { username: key, withListings });
+    await loadAll();
+    if(d.notes && d.notes.includes('premium_not_cancelled')) showMsg('Brukeren er slettet, men Premium-abonnementet kunne ikke avsluttes automatisk. Sjekk Stripe.', false);
+    else showMsg('Brukeren er slettet' + (withListings ? ' sammen med tjenestene.' : '.'), true);
+  });
 }
-
 async function toggleBan(key, shouldBan){
-  const action = shouldBan ? 'bannlyse' : 'oppheve bannlysingen for';
-  if(!confirm(`Er du sikker på at du vil ${action} konto "${key}"?`)) return;
-  try{
-    if(shouldBan){
-      if(!bannedCodes.includes(key)) bannedCodes.push(key);
-    } else {
-      bannedCodes = bannedCodes.filter(c => c !== key);
-    }
-    await putRow('banned', bannedCodes);
-    showMsg(shouldBan ? `Kontoen er bannlyst.` : `Bannlysingen er opphevet.`, true);
-    renderStats();
-    renderAccounts();
-  } catch(e){
-    showMsg('Klarte ikke å oppdatere: ' + e.message, false);
-  }
+  if(!confirm(`Er du sikker på at du vil ${shouldBan ? 'bannlyse' : 'oppheve bannlysingen for'} konto "${key}"?`)) return;
+  await run(async ()=>{ await call('ban', { username: key, on: shouldBan }); await loadAll(); }, shouldBan ? 'Kontoen er bannlyst.' : 'Bannlysingen er opphevet.');
 }
-
 document.getElementById('logoutAllBtn').addEventListener('click', async ()=>{
-  const accounts = normalizedAccounts();
-  if(accounts.length === 0){ showMsg('Ingen registrerte kontoer å logge ut.', true); return; }
-  if(!confirm(`Logge ut ALLE ${accounts.length} registrerte kontoer fra alle enheter nå?`)) return;
-  try{
-    const now = Date.now();
-    accounts.forEach(a => { forceLogoutMap[identityKey(a)] = now; });
-    await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
-    showMsg(`Alle ${accounts.length} kontoer blir logget ut (kan ta inntil 10 sekunder).`, true);
-  } catch(e){
-    showMsg('Klarte ikke å logge ut alle kontoene: ' + e.message, false);
-  }
+  if(users.length === 0){ showMsg('Ingen registrerte kontoer å logge ut.', true); return; }
+  if(!confirm(`Logge ut ALLE ${users.length} kontoer fra alle enheter nå?`)) return;
+  await run(()=> call('forceLogoutAll'), 'Alle kontoer er logget ut.');
 });
-
 document.getElementById('deleteAllUsersBtn').addEventListener('click', async ()=>{
-  try{
-    const latestUsers = await getRow('users');
-    if(latestUsers.length === 0){ showMsg('Det finnes ingen brukere å slette.', true); return; }
-    if(!confirm(`Slette ALLE ${latestUsers.length} brukere PERMANENT? Alle kontoer fjernes og alle blir logget ut. Dette kan ikke angres.`)) return;
-    const typed = prompt('Skriv SLETT ALLE for å bekrefte:');
-    if(typed !== 'SLETT ALLE'){ showMsg('Avbrutt — ingenting ble slettet.', false); return; }
-    const alsoListings = confirm('Slette også ALLE tjenester og samtaler?\n\nOK = ja, slett alt\nAvbryt = behold tjenestene (de blir uten eier)');
-
-    // 1) Kick everyone out first (works by timestamp, see forceLogout), 2) then remove the accounts.
-    const now = Date.now();
-    latestUsers.forEach(a=>{
-      const rec = typeof a === 'string' ? { code: a, username: null } : a;
-      forceLogoutMap[identityKey(rec)] = now;
-    });
-    await putRow(FORCE_LOGOUT_ROW_ID, forceLogoutMap);
-    await putRow('users', []);
-    registeredCodes = [];
-    for(const a of latestUsers){ try{ const rec = typeof a === 'string' ? { code: a, username: null } : a; await putRow('an_' + identityKey(rec), { user: identityKey(rec), events: [] }); }catch(e){} }
-    if(alsoListings){
-      await putRow('global', []);
-      services = [];
-    }
-    showMsg(`Alle ${latestUsers.length} brukere er slettet og logget ut${alsoListings ? ', sammen med alle tjenester' : ''} (utlogging kan ta inntil 10 sekunder).`, true);
-    renderStats();
-    renderListings();
-    renderAccounts();
-  } catch(e){
-    showMsg('Klarte ikke å slette alle brukerne: ' + e.message, false);
-  }
+  if(users.length === 0){ showMsg('Det finnes ingen brukere å slette.', true); return; }
+  if(!confirm(`Slette ALLE ${users.length} brukere PERMANENT? Dette kan ikke angres.`)) return;
+  if(prompt('Skriv SLETT ALLE for å bekrefte:') !== 'SLETT ALLE'){ showMsg('Avbrutt — ingenting ble slettet.', false); return; }
+  const withListings = confirm('Slette også ALLE tjenester og samtaler?\n\nOK = ja, slett alt\nAvbryt = behold tjenestene');
+  await run(async ()=>{ await call('deleteAllUsers', { withListings }); await loadAll(); }, 'Alle brukere er slettet.');
 });
-
 document.getElementById('manualBanBtn').addEventListener('click', ()=>{
   const username = document.getElementById('manualCodeInput').value.trim();
   if(!/^[A-Za-z0-9_.-]{3,20}$/.test(username)){ showMsg('Skriv inn et gyldig brukernavn (3–20 tegn).', false); return; }
-  document.getElementById('manualCodeInput').value = "";
+  document.getElementById('manualCodeInput').value = '';
   toggleBan(username.toLowerCase(), true);
 });
 
@@ -462,8 +260,6 @@ function escapeHtml(str){
   div.textContent = str == null ? '' : String(str);
   return div.innerHTML;
 }
-
-/* ---------------- Tabs ---------------- */
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=> t.classList.remove('active'));
@@ -473,27 +269,29 @@ document.querySelectorAll('.tab').forEach(tab=>{
   });
 });
 
-/* ---------------- Password gate ---------------- */
-function unlock(){
+/* ---------------- Admin-nøkkel ---------------- */
+function lock(){
+  adminKey = '';
+  try{ sessionStorage.removeItem('fixviceAdminKey'); }catch(e){}
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('gate').style.display = 'block';
+}
+async function unlock(key, quiet){
+  adminKey = key;
+  try{
+    await loadAll();
+  }catch(e){
+    adminKey = '';
+    if(!quiet){ const g = document.getElementById('gateError'); g.textContent = e.status === 403 ? 'Feil admin-nøkkel.' : e.message; g.style.display = 'block'; }
+    return;
+  }
+  try{ sessionStorage.setItem('fixviceAdminKey', key); }catch(e){}
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  loadAll().catch(e=> showMsg('Klarte ikke å laste data: ' + e.message, false));
 }
-document.getElementById('gateSubmit').addEventListener('click', ()=>{
-  const val = document.getElementById('gatePassword').value;
-  if(val === ADMIN_PASSWORD){
-    try{ sessionStorage.setItem('fixletAdminUnlocked', '1'); } catch(e){}
-    unlock();
-  } else {
-    document.getElementById('gateError').style.display = 'block';
-  }
-});
-document.getElementById('gatePassword').addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter') document.getElementById('gateSubmit').click();
-});
-try{
-  if(sessionStorage.getItem('fixletAdminUnlocked') === '1') unlock();
-} catch(e){}
+document.getElementById('gateSubmit').addEventListener('click', ()=> unlock(document.getElementById('gatePassword').value));
+document.getElementById('gatePassword').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') document.getElementById('gateSubmit').click(); });
+try{ const k = sessionStorage.getItem('fixviceAdminKey'); if(k) unlock(k, true); }catch(e){}
 </script>
 </body>
 </html>
