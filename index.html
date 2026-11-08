@@ -320,8 +320,12 @@
   .plans-explain strong{ color:var(--ink); }
   .plans-skip{ display:inline-block; margin-top:18px; padding:10px 18px; border:none; background:none; color:var(--ink-soft); font:inherit; font-size:14px; font-weight:700; text-decoration:underline; cursor:pointer; }
   .plans-skip:hover{ color:var(--ink); }
-  .plans-topskip{ display:block; margin:0 auto 14px; padding:7px 14px; border:1.5px solid var(--line); background:#fff; color:var(--ink); font:inherit; font-size:11.5px; font-weight:800; letter-spacing:.6px; border-radius:8px; cursor:pointer; }
-  .plans-topskip:hover{ border-color:#0d9488; color:#0d9488; }
+  .plans-topskip{ position:sticky; top:12px; z-index:30; display:block; margin:0 auto 16px; min-width:150px; padding:11px 30px; border:none; border-radius:999px; background:var(--grad); color:#fff; font:inherit; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 8px 22px rgba(13,148,136,.35); transition:transform .25s ease, box-shadow .25s ease; }
+  .plans-free{ display:flex; align-items:center; justify-content:center; gap:10px; width:100%; margin:18px 0 0; padding:8px 14px; border:1.5px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); font:inherit; font-size:13px; cursor:pointer; }
+  .plans-free strong{ font-weight:800; }
+  .plans-free span{ color:var(--ink-soft); font-weight:600; }
+  .plans-free:hover{ border-color:#0d9488; }
+  .plans-topskip:hover{ transform:translateY(-1px); box-shadow:0 12px 28px rgba(13,148,136,.45); }
   @media (max-width:760px){ .plans-grid{ grid-template-columns:1fr; gap:22px; } .plans-wrap h2{ font-size:23px; } }
 
   /* ---------- Terms popup on open ---------- */
@@ -2892,18 +2896,18 @@
   <!-- ===================== SPONSOR A SERVICE (one-time boosts) / PREMIUM (€9/week) ===================== -->
   <div class="screen hidden" id="plansScreen">
     <div class="plans-wrap">
-      <button type="button" class="plans-topskip" id="plansTopSkipBtn">PUBLISER UTEN BOOST</button>
+      <button type="button" class="plans-topskip" id="plansTopSkipBtn">Fortsett</button>
       <h2>🎉 Tjenesten din er publisert!</h2>
       <p class="plans-sub">Vil du at flere skal se den? Velg en boost – eller hopp over, det er helt valgfritt.</p>
       <div class="plans-grid">
-        <button type="button" class="plancard" id="plan50">
-          <span class="plan-badge">God start</span>
-          <span class="plan-pct">+50%</span>
-          <span class="plan-label">mer synlighet</span>
-          <span class="plan-price">€7.90</span>
-          <span class="plan-kind">engangsbetaling · denne tjenesten</span>
-          <ul><li>Vises høyere opp i byen din</li><li>«Sponset»-merke</li><li>Boostet i 30 dager</li></ul>
-          <span class="plan-cta">Velg +50 %</span>
+        <button type="button" class="plancard best" id="planPremium">
+          <span class="plan-badge">Alle tjenester</span>
+          <span class="plan-pct">Premium</span>
+          <span class="plan-label">alle tjenestene dine</span>
+          <span class="plan-price">€9<small>/uke</small></span>
+          <span class="plan-kind">ukentlig · avslutt når som helst</span>
+          <ul><li>Alle tjenester boostes</li><li>Nye tjenester inkluderes</li><li>Vises over vanlige annonser</li></ul>
+          <span class="plan-cta">Velg Premium</span>
         </button>
         <button type="button" class="plancard popular" id="plan100">
           <span class="plan-badge">Største boost</span>
@@ -2914,23 +2918,23 @@
           <ul><li>Vises over vanlige annonser</li><li>«Sponset»-merke</li><li>Boostet i 30 dager</li></ul>
           <span class="plan-cta">Velg +100 %</span>
         </button>
-        <button type="button" class="plancard best" id="planPremium">
-          <span class="plan-badge">Alle tjenester</span>
-          <span class="plan-pct">Premium</span>
-          <span class="plan-label">alle tjenestene dine</span>
-          <span class="plan-price">€9<small>/uke</small></span>
-          <span class="plan-kind">ukentlig · avslutt når som helst</span>
-          <ul><li>Alle tjenester boostes</li><li>Nye tjenester inkluderes</li><li>Vises over vanlige annonser</li></ul>
-          <span class="plan-cta">Velg Premium</span>
+        <button type="button" class="plancard" id="plan50">
+          <span class="plan-badge">God start</span>
+          <span class="plan-pct">+50%</span>
+          <span class="plan-label">mer synlighet</span>
+          <span class="plan-price">€7.90</span>
+          <span class="plan-kind">engangsbetaling · denne tjenesten</span>
+          <ul><li>Vises høyere opp i byen din</li><li>«Sponset»-merke</li><li>Boostet i 30 dager</li></ul>
+          <span class="plan-cta">Velg +50 %</span>
         </button>
       </div>
+      <button type="button" class="plans-free" id="plansSkipBtn"><strong>Gratis</strong><span>Ingen boost – tjenesten din er allerede live</span></button>
       <div class="plans-explain">
-        <p><strong>+50 % mer synlighet (€7,90):</strong> en engangsboost for bare denne tjenesten. Den vises høyere opp i markedsplassen i byene dine og får et «Sponset»-merke i 30 dager.</p>
-        <p><strong>+100 % mer synlighet (€9,90):</strong> vår største engangsboost for denne tjenesten. Den vises over vanlige annonser og over +50 %-boosten i 30 dager. Boost øker synligheten, men garanterer ikke et antall klikk, meldinger eller salg.</p>
         <p><strong>Premium (€9 per uke):</strong> i stedet for å betale per tjeneste boostes alle tjenestene på kontoen din, også de du publiserer senere. Nyttig hvis du har flere tjenester. Du kan selv avslutte Premium når som helst i profilen din. Engangsboost kan ikke stoppes; de varer bare i 30 dager.</p>
+        <p><strong>+100 % mer synlighet (€9,90):</strong> vår største engangsboost for denne tjenesten. Den vises over vanlige annonser og over +50 %-boosten i 30 dager. Boost øker synligheten, men garanterer ikke et antall klikk, meldinger eller salg.</p>
+        <p><strong>+50 % mer synlighet (€7,90):</strong> en engangsboost for bare denne tjenesten. Den vises høyere opp i markedsplassen i byene dine og får et «Sponset»-merke i 30 dager.</p>
         <p>Prisen som vises er hele prisen du betaler i kassen, i euro. Premium fornyes hver uke til du avslutter. Fixvice legger ikke til andre gebyrer. Betalingen håndteres av Stripe. Les <a href="#" class="refundlink">retningslinjene for refusjon og avbestilling</a> før du kjøper.</p>
       </div>
-      <button type="button" class="plans-skip" id="plansSkipBtn">Hopp over – publiser uten boost</button>
       <p class="plans-explain" style="text-align:center;margin-top:4px;">Ikke noe problem! Tjenesten din er allerede live. Du kan boste den når som helst senere fra «Dine tjenester».</p>
     </div>
   </div>
