@@ -135,6 +135,13 @@ module.exports = async (req, res) => {
       const mine = svcs.filter(x => x && String(x.ownerCode).toLowerCase() === sess.key);
       for(const x of mine) await S.sbDeleteRow(chatRowId(x.id)).catch(() => {});
       await S.sbPutRow('svc2', svcs.filter(x => !(x && String(x.ownerCode).toLowerCase() === sess.key)));
+      try{
+        const pend = (await S.sbGetRow('svc_pending')) || [];
+        await S.sbPutRow('svc_pending', pend.filter(x => !(x && String(x.ownerCode).toLowerCase() === sess.key)));
+        const v = (await S.sbGetRow('views')) || {};
+        mine.forEach(x => { delete v[String(x.id)]; });
+        await S.sbPutRow('views', v);
+      }catch(e){}
       const idx = (await S.sbGetRow('chatidx')) || {};
       for(const sid of (idx[sess.key] || [])){
         const row = await S.sbGetRow(chatRowId(sid));
@@ -163,6 +170,12 @@ async function migrateUsername(oldName, newName, oldKey, newKey){
   let changed = false;
   svcs.forEach(x => { if(x && String(x.ownerCode).toLowerCase() === oldKey){ x.ownerCode = newName; changed = true; } });
   if(changed) await S.sbPutRow('svc2', svcs);
+  try{
+    const pend = (await S.sbGetRow('svc_pending')) || [];
+    let pc = false;
+    pend.forEach(x => { if(x && String(x.ownerCode).toLowerCase() === oldKey){ x.ownerCode = newName; pc = true; } });
+    if(pc) await S.sbPutRow('svc_pending', pend);
+  }catch(e){}
   const idx = (await S.sbGetRow('chatidx')) || {};
   const ids = idx[oldKey] || [];
   for(const sid of ids){

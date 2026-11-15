@@ -41,5 +41,9 @@ Rader som `accounts`, `av_*`, `chat_*`, `chatidx` og `ratelimit` kan da ikke les
 ## Admin-panelet (admin.html)
 Admin-panelet går nå via serveren (`/api/admin`) og bruker `ADMIN_KEY` fra Vercel. Det er ikke noe passord i filen lenger, og panelet skriver ikke direkte til databasen. Det virker derfor også etter at databasereglene er låst. Det gamle passordet i filen lå åpent i repoet og i git-historikken, så regn det som kjent for andre.
 
+## Moderering og visninger
+- Nye og endrede annonser sjekkes automatisk på serveren (`api/_moderation.js`) mot vilkårene, punkt 9.1. Klare brudd blokkeres. Uklare tilfeller går til raden `svc_pending`, som bare serveren kan lese, og vises ikke for andre før en admin godkjenner dem under «Moderering» i admin-panelet.
+- Visninger telles i raden `views` og leveres via `/api/data` (ingen endring i RLS nødvendig). Samme besøkende telles én gang per annonse per døgn, og eierens egne visninger telles ikke.
+
 ## Det som fortsatt er svakt
 Aktivitetsdata ved «Godta alle» skrives fortsatt direkte fra nettleseren til `an_<bruker>`. Det slutter å virke når reglene over er på plass, og må flyttes til serveren. Banneord-filteret for innhold sjekkes bare i nettleseren.

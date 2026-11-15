@@ -321,6 +321,10 @@
   .plans-skip{ display:inline-block; margin-top:18px; padding:10px 18px; border:none; background:none; color:var(--ink-soft); font:inherit; font-size:14px; font-weight:700; text-decoration:underline; cursor:pointer; }
   .plans-skip:hover{ color:var(--ink); }
   .plans-topskip{ position:sticky; top:12px; z-index:30; display:block; margin:0 auto 16px; min-width:150px; padding:11px 30px; border:none; border-radius:999px; background:var(--grad); color:#fff; font:inherit; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 8px 22px rgba(13,148,136,.35); transition:transform .25s ease, box-shadow .25s ease; }
+  .dviews{ display:inline-flex; align-items:center; gap:6px; margin:2px 0 10px; font-size:13.5px; font-weight:700; color:var(--ink-soft); }
+  .mysvc-views{ margin:0 0 8px; font-size:13px; font-weight:700; color:var(--ink-soft); }
+  .pendingbox{ margin:0 0 14px; padding:12px 14px; border:1.5px solid #f59e0b; border-radius:14px; background:#fffbeb; color:#92400e; font-size:14px; font-weight:600; line-height:1.45; text-align:left; }
+  .pendingbox strong{ color:#78350f; }
   .plans-free{ display:flex; align-items:center; justify-content:center; gap:10px; width:100%; margin:18px 0 0; padding:8px 14px; border:1.5px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); font:inherit; font-size:13px; cursor:pointer; }
   .plans-free strong{ font-weight:800; }
   .plans-free span{ color:var(--ink-soft); font-weight:600; }
@@ -3393,6 +3397,7 @@
         </div>
         <div class="dbreadcrumb" id="detailBreadcrumb"></div>
         <h2 id="detailName"></h2>
+        <div class="dviews" id="detailViews"></div>
         <div class="dsectiontitle" id="dAboutTitle">Om denne tjenesten</div>
         <p class="ddesc" id="detailDesc"></p>
 
@@ -4406,6 +4411,14 @@ function openServiceDetail(service, lang){
   dImg.onload = ()=> dImg.classList.add('loaded');
   document.getElementById('detailBreadcrumb').innerHTML = `${ic(icoKey)} <span>${t(lang, service.cat)} · ${service.country}</span>`;
   document.getElementById('detailName').textContent = service.name;
+  const dViews = document.getElementById('detailViews');
+  dViews.textContent = viewsLabel(viewCounts[String(service.id)]);
+  api('data', { action: 'view', id: String(service.id) }).then(r => {
+    if(r && r.ok && r.data && r.data.counted && detailServiceNow === service){
+      viewCounts[String(service.id)] = r.data.views;
+      dViews.textContent = viewsLabel(r.data.views);
+    }
+  }).catch(()=>{});
   document.getElementById('dAboutTitle').textContent = t(lang,'aboutTitle');
   document.getElementById('detailDesc').textContent = service.desc;
 
@@ -5170,7 +5183,7 @@ function busyTextFor(path, body){
   if(a === 'editService' || a === 'updateProfile') return 'Lagrer …';
   if(a === 'deleteService') return 'Sletter …';
   if(a === 'deleteAccount') return 'Sletter kontoen …';
-  if(a === 'sendMessage' || a === 'me') return null; // chat stays instant
+  if(a === 'sendMessage' || a === 'me' || a === 'view' || a === 'getViews') return null; // chat stays instant
   return 'Vent litt …';
 }
 async function api(path, body){
@@ -5194,6 +5207,7 @@ async function apiInner(path, body){
   return { ok: res.ok && data.ok !== false, status: res.status, data };
 }
 const API_ERRORS = {
+  content_blocked: 'Annonsen bryter vilkårene og kan ikke publiseres. Endre teksten og prøv igjen.',
   bad_credentials: 'Feil brukernavn eller passord.',
   rate_limited: 'For mange forsøk. Vent en stund og prøv igjen.',
   bad_username: 'Brukernavnet må være 3–10 tegn (bokstaver, tall, _ . -).',
@@ -5209,7 +5223,13 @@ const API_ERRORS = {
   network: 'Fikk ikke kontakt med serveren. Sjekk nettet og prøv igjen.',
   premium_cancel_failed: 'Kunne ikke avslutte Premium først. Ingenting ble slettet.'
 };
-function apiErrorText(r){ return API_ERRORS[r && r.data && r.data.error] || ('Noe gikk galt (' + ((r && r.data && r.data.error) || (r && r.status)) + '). Prøv igjen.'); }
+function apiErrorText(r){
+  if(r && r.data && r.data.error === 'content_blocked'){
+    return API_ERRORS.content_blocked + (r.data.reason ? ' (Funnet: ' + r.data.reason + '.)' : '');
+  }
+  return apiErrorTextBase(r);
+}
+function apiErrorTextBase(r){ return API_ERRORS[r && r.data && r.data.error] || ('Noe gikk galt (' + ((r && r.data && r.data.error) || (r && r.status)) + '). Prøv igjen.'); }
 
 const BANNED_ROW_ID = 'banned'; // a third row in the same Supabase table; only the separate admin page writes to it
 let bannedCodes = []; // usernames banned from the admin page (despite the name) — checked at login, never written from here
@@ -6257,6 +6277,9 @@ async function fetchWithRetry(url, options, retries){
 async function saveServices(){ console.warn('saveServices() is disabled: use api("data", ...)'); return true; }
 async function saveChatMessage(){ return true; }
 
+let viewCounts = {};      // listing id -> number of views (public)
+let myPendingList = [];   // this user's listings waiting for admin review
+function viewsLabel(n){ n = Number(n) || 0; return '👁 ' + n.toLocaleString('nb-NO') + (n === 1 ? ' visning' : ' visninger'); }
 async function loadServices(){
   if(!supabaseConfigured()) return false;
   try{
@@ -6272,8 +6295,10 @@ async function loadServices(){
       if(r.ok && r.data.chats){
         list.forEach(x => { const c = r.data.chats[String(x.id)]; if(c) x.conversations = c; });
       }
+      myPendingList = (r.ok && Array.isArray(r.data.pending)) ? r.data.pending : [];
     }
     myServices = list;
+    try{ const vr = await api('data', { action: 'getViews' }); if(vr.ok && vr.data.views) viewCounts = vr.data.views; }catch(e){}
     return list.length > 0;
   }catch(e){ return false; }
 }
@@ -6613,12 +6638,14 @@ function openEditService(s){
 
 // Saves ONE edited listing without overwriting other people's newer data: re-fetch the shared list,
 // replace only this listing's own fields (keeping the latest messages/boost state), then write back.
+let lastSaveWasPending = false;
 async function saveServiceEdit(updated){
   const r = await api('data', { action: 'editService', id: updated.id, fields: {
     name: updated.name, desc: updated.desc, cat: updated.cat, price: updated.price, currency: updated.currency,
     priceNote: updated.priceNote, image: updated.image,
     video: (typeof updated.video === 'string' && updated.video.startsWith('data:')) ? updated.video : null } });
   if(!r.ok) lastSaveErrorDetail = apiErrorText(r);
+  lastSaveWasPending = !!(r.ok && r.data && r.data.pending);
   return r.ok;
 }
 
@@ -6645,6 +6672,10 @@ async function publishEditedService(){
   if(!ok){
     const detail = lastSaveErrorDetail ? (' [' + lastSaveErrorDetail + ']') : '';
     showToast(t(s.lang,'saveFailedWarning') + detail, null, s.lang, 20000);
+  } else if(lastSaveWasPending){
+    myServices = myServices.filter(x => x.id !== s.id);
+    myPendingList.unshift({ id: s.id, name: s.name, reasons: [] });
+    showToast('Endringen er sendt til gjennomgang. Annonsen er skjult til en administrator har godkjent den.', null, s.lang, 9000);
   } else {
     showToast('Tjenesten er oppdatert', null, s.lang, 3500);
   }
@@ -6701,8 +6732,15 @@ document.getElementById('publishBtn').addEventListener('click', async ()=>{
   pubBtn.disabled = false;
   if(!pr.ok){ showFormError('Kunne ikke publisere: ' + apiErrorText(pr)); return; }
   Object.assign(service, pr.data.service, { conversations: {} });
-  myServices.unshift(service);
   track('publish', { cat, countries: countries.map(c=>c.name) });
+  if(pr.data.pending){
+    myPendingList.unshift({ id: service.id, name: service.name, reasons: (service.moderation && service.moderation.reasons) || [] });
+    showToast('Annonsen din er sendt til gjennomgang og blir synlig når en administrator har godkjent den.', null, countries[0].lang, 9000);
+    renderMyServices(currentLang);
+    show('myServices');
+    return;
+  }
+  myServices.unshift(service);
 
   const firstLoc = locations[0];
   browseCountry = countries[0];
@@ -6769,6 +6807,13 @@ function renderMyServices(lang){
 
   const list = document.getElementById('myServicesList');
   list.innerHTML = "";
+  if(myPendingList.length){
+    const pb = document.createElement('div');
+    pb.className = 'pendingbox';
+    pb.innerHTML = '⏳ <strong>Under gjennomgang:</strong> ' + myPendingList.map(x => escapeHtml(x.name)).join(', ') +
+      '<br>Annonsen er skjult og blir synlig når en administrator har godkjent den.';
+    list.appendChild(pb);
+  }
 
   if(myOwnServices.length === 0){
     const div = document.createElement('div');
@@ -6817,6 +6862,7 @@ function renderMyServices(lang){
         <div class="mysvc-catrow">${ic(icoKey)} <span>${t(s.lang, s.cat)}</span></div>
         <h3>${escapeHtml(s.name)}</h3>
         <p class="mysvc-date">${t(s.lang,'publishedLabel')} ${dateStr}</p>
+        <p class="mysvc-views">${viewsLabel(viewCounts[String(s.id)])}</p>
         <p class="mysvc-desc">${escapeHtml(s.desc)}</p>
         <div class="mysvc-cityrow">${cityChips}</div>
         ${sponsorBlock}

@@ -2,6 +2,7 @@
 // Used only by admin.html. Everything runs here with the service key; the browser never touches the database.
 const crypto = require('crypto');
 const S = require('./_shared');
+const { moderate, reasonText } = require('./_moderation');
 
 function fail(res, code, error){ return res.status(code).json({ error }); }
 function chatRowId(serviceId){ return 'chat_' + String(serviceId).replace(/[^A-Za-z0-9]/g, '_'); }
@@ -15,6 +16,9 @@ async function removeListings(svcs, shouldDelete){
   const gone = svcs.filter(shouldDelete);
   for(const x of gone) await S.sbDeleteRow(chatRowId(x.id)).catch(() => {});
   await S.sbPutRow('svc2', svcs.filter(x => !shouldDelete(x)));
+  if(gone.length){
+    try{ const v = (await S.sbGetRow('views')) || {}; gone.forEach(x => { delete v[String(x.id)]; }); await S.sbPutRow('views', v); }catch(e){}
+  }
   return gone.length;
 }
 
@@ -28,6 +32,8 @@ async function removeAccount(key, withListings, accounts){
   if(withListings){
     const svcs = (await S.sbGetRow('svc2')) || [];
     await removeListings(svcs, x => x && String(x.ownerCode).toLowerCase() === key);
+    const pend = (await S.sbGetRow('svc_pending')) || [];
+    await S.sbPutRow('svc_pending', pend.filter(x => !(x && String(x.ownerCode).toLowerCase() === key)));
   }
   const acc = accounts[key];
   const idx = (await S.sbGetRow('chatidx')) || {};
@@ -65,9 +71,15 @@ module.exports = async (req, res) => {
           counts[id] = Object.values(rows[id] || {}).reduce((n, m) => n + (Array.isArray(m) ? m.length : 0), 0);
         });
       }
+      const viewsRow = (await S.sbGetRow('views')) || {};
       const listings = svcs.map(x => ({
         id: x.id, name: x.name, cat: x.cat, country: x.country, cities: x.cities, price: x.price, currency: x.currency,
-        createdAt: x.createdAt, ownerCode: x.ownerCode, messages: counts[chatRowId(x.id)] || 0
+        createdAt: x.createdAt, ownerCode: x.ownerCode, messages: counts[chatRowId(x.id)] || 0, views: Number(viewsRow[String(x.id)]) || 0
+      }));
+      const pending = ((await S.sbGetRow('svc_pending')) || []).map(x => ({
+        id: x.id, name: x.name, desc: x.desc, cat: x.cat, country: x.country, cities: x.cities, price: x.price, currency: x.currency,
+        createdAt: x.createdAt, ownerCode: x.ownerCode, reasons: (x.moderation && x.moderation.reasons) || [],
+        reasonText: reasonText(x.moderation && x.moderation.reasons)
       }));
       const users = Object.values(accounts).map(a => ({
         username: a.username, displayName: a.displayName || null, bio: a.bio || null, phone: a.phone || '', email: a.email || null,
@@ -75,7 +87,7 @@ module.exports = async (req, res) => {
       }));
       const banned = (await S.sbGetRow('banned')) || [];
       const premium = (await S.sbGetRow('premium')) || {};
-      return res.status(200).json({ ok: true, listings, users, banned: Array.isArray(banned) ? banned : [], premium: Object.keys(premium) });
+      return res.status(200).json({ ok: true, listings, pending, users, banned: Array.isArray(banned) ? banned : [], premium: Object.keys(premium) });
     }
 
     if(b.action === 'deleteListing'){
@@ -83,8 +95,42 @@ module.exports = async (req, res) => {
       const n = await removeListings(svcs, x => x && String(x.id) === String(b.id));
       return res.status(200).json({ ok: true, deleted: n });
     }
+    if(b.action === 'approveListing'){
+      const pend = (await S.sbGetRow('svc_pending')) || [];
+      const x = pend.find(s => s && String(s.id) === String(b.id));
+      if(!x) return fail(res, 404, 'not_found');
+      const svcs = (await S.sbGetRow('svc2')) || [];
+      x.moderation = { status: 'approved', at: Date.now() };
+      svcs.unshift(x);
+      await S.sbPutRow('svc2', svcs);
+      await S.sbPutRow('svc_pending', pend.filter(s => s !== x));
+      return res.status(200).json({ ok: true });
+    }
+    if(b.action === 'rejectListing'){
+      const pend = (await S.sbGetRow('svc_pending')) || [];
+      await S.sbPutRow('svc_pending', pend.filter(s => !(s && String(s.id) === String(b.id))));
+      return res.status(200).json({ ok: true });
+    }
+    // Run the moderation rules over every published listing. Anything that now fails is taken off the public list and put in the review queue.
+    if(b.action === 'scanListings'){
+      const svcs = (await S.sbGetRow('svc2')) || [];
+      const pend = (await S.sbGetRow('svc_pending')) || [];
+      const keep = [], moved = [];
+      svcs.forEach(x => {
+        const m = x && x.moderation && x.moderation.status === 'approved' ? { verdict: 'ok' } : moderate({ name: x.name, desc: x.desc, priceNote: x.priceNote });
+        if(m.verdict === 'ok'){ keep.push(x); return; }
+        x.moderation = { status: 'pending', reasons: m.reasons, at: Date.now() };
+        moved.push(x);
+      });
+      if(moved.length){
+        await S.sbPutRow('svc2', keep);
+        await S.sbPutRow('svc_pending', moved.concat(pend));
+      }
+      return res.status(200).json({ ok: true, scanned: svcs.length, moved: moved.length });
+    }
     if(b.action === 'deleteAllListings'){
       const svcs = (await S.sbGetRow('svc2')) || [];
+      await S.sbPutRow('svc_pending', []);
       const n = await removeListings(svcs, () => true);
       return res.status(200).json({ ok: true, deleted: n });
     }

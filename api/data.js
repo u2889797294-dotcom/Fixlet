@@ -2,6 +2,7 @@
 // Public listings live in the row "svc2" (anyone may READ it, only this server WRITES it, and always as the signed-in user).
 // Chats live in private rows "chat_<serviceId>" plus an index row "chatidx"; people only ever get the threads they are part of.
 const S = require('./_shared');
+const { moderate, reasonText } = require('./_moderation');
 
 const CATS = ['handyman','cleaning','moving','tutoring','beauty','design_it','garden','photo','events','petcare','transport','consulting','legal','other'];
 const CURRENCIES = ['NOK','SEK','DKK','ISK','EUR','USD','GBP'];
@@ -18,6 +19,7 @@ function dataUrl(v, kind, max){
   const re = kind === 'video' ? /^data:video\/(mp4|webm|quicktime);base64,/ : /^data:image\/(jpeg|png|webp);base64,/;
   return re.test(v) ? v : undefined;
 }
+function blockedResponse(res, m){ return res.status(400).json({ error: 'content_blocked', reason: reasonText(m.reasons) }); }
 function countWords(t){ return (t.match(/\S+/g) || []).length; }
 
 // Validates the fields of a listing and returns a clean object, or { error }.
@@ -40,9 +42,31 @@ module.exports = async (req, res) => {
   if(req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   try{
     if(!S.serviceKey()) return fail(res, 503, 'not_configured');
+    const b = req.body || {};
+
+    // ---- Public: view counter (no login needed). One view per visitor per listing per 24 h; the owner's own views don't count. ----
+    if(b.action === 'getViews'){
+      return res.status(200).json({ ok: true, views: (await S.sbGetRow('views')) || {} });
+    }
+    if(b.action === 'view'){
+      const id = String(b.id == null ? '' : b.id).slice(0, 60);
+      if(!id) return fail(res, 400, 'bad_id');
+      const svcs = (await S.sbGetRow('svc2')) || [];
+      const x = svcs.find(s => s && String(s.id) === id);
+      if(!x) return res.status(200).json({ ok: true, counted: false });
+      let viewer = null; try{ viewer = await S.readSession(req); }catch(e){}
+      if(viewer && String(x.ownerCode).toLowerCase() === viewer.key) return res.status(200).json({ ok: true, counted: false });
+      const rk = 'view:' + S.clientIp(req) + ':' + id;
+      if(await S.rateBlocked(rk, 1, S.DAY)) return res.status(200).json({ ok: true, counted: false });
+      await S.rateRecord(rk);
+      const views = (await S.sbGetRow('views')) || {};
+      views[id] = (Number(views[id]) || 0) + 1;
+      await S.sbPutRow('views', views);
+      return res.status(200).json({ ok: true, counted: true, views: views[id] });
+    }
+
     const sess = await S.readSession(req);
     if(!sess) return fail(res, 401, 'not_signed_in');
-    const b = req.body || {};
     const me = sess.username, meKey = sess.key;
     const ownerOf = (x) => String(x.ownerCode).toLowerCase();
 
@@ -57,36 +81,73 @@ module.exports = async (req, res) => {
         if(!loc || !COUNTRIES.includes(loc.country) || !Array.isArray(loc.cities) || !loc.cities.length || loc.cities.length > 500) return fail(res, 400, 'bad_locations');
         locations.push({ country: loc.country, cities: loc.cities.map(x => str(x, 60)).filter(Boolean) });
       }
+      const m = moderate({ name: c.name, desc: c.desc, priceNote: c.priceNote });
+      if(m.verdict === 'block') return blockedResponse(res, m);
       const svcs = (await S.sbGetRow('svc2')) || [];
-      if(svcs.filter(x => x && ownerOf(x) === meKey).length >= MAX_SERVICES_PER_USER) return fail(res, 400, 'too_many_services');
+      const pend = (await S.sbGetRow('svc_pending')) || [];
+      if(svcs.concat(pend).filter(x => x && ownerOf(x) === meKey).length >= MAX_SERVICES_PER_USER) return fail(res, 400, 'too_many_services');
       const service = Object.assign({
         id: Date.now() + Math.random(), locations,
         cities: locations.flatMap(l => l.cities), country: locations.map(l => l.country).join(', '),
         lang: str(f.lang, 5) || 'no', createdAt: Date.now(), sponsored: false, ownerCode: me
       }, c);
+      await S.rateRecord('create:' + meKey);
+      if(m.verdict === 'review'){
+        service.moderation = { status: 'pending', reasons: m.reasons, at: Date.now() };
+        pend.unshift(service);
+        await S.sbPutRow('svc_pending', pend);
+        return res.status(200).json({ ok: true, pending: true, service });
+      }
       svcs.unshift(service);
       await S.sbPutRow('svc2', svcs);
-      await S.rateRecord('create:' + meKey);
       return res.status(200).json({ ok: true, service });
     }
 
     if(b.action === 'editService'){
       const svcs = (await S.sbGetRow('svc2')) || [];
-      const x = svcs.find(s => s && String(s.id) === String(b.id));
+      const pend = (await S.sbGetRow('svc_pending')) || [];
+      let x = svcs.find(s => s && String(s.id) === String(b.id));
+      const wasPending = !x;
+      if(!x) x = pend.find(s => s && String(s.id) === String(b.id));
       if(!x) return fail(res, 404, 'not_found');
       if(ownerOf(x) !== meKey) return fail(res, 403, 'not_owner');
       const c = cleanListing(b.fields || {}, true); if(c.error) return fail(res, 400, c.error);
+      const m = moderate({ name: c.name !== undefined ? c.name : x.name, desc: c.desc !== undefined ? c.desc : x.desc, priceNote: c.priceNote !== undefined ? c.priceNote : x.priceNote });
+      if(m.verdict === 'block') return blockedResponse(res, m);
       Object.assign(x, c, { editedAt: Date.now() });
+      if(m.verdict === 'review' && !wasPending){
+        // moved out of the public list until an admin looks at it
+        x.moderation = { status: 'pending', reasons: m.reasons, at: Date.now() };
+        await S.sbPutRow('svc2', svcs.filter(s => s !== x));
+        pend.unshift(x);
+        await S.sbPutRow('svc_pending', pend);
+        return res.status(200).json({ ok: true, pending: true, service: x });
+      }
+      if(wasPending){
+        if(m.verdict === 'review'){ x.moderation = { status: 'pending', reasons: m.reasons, at: Date.now() }; await S.sbPutRow('svc_pending', pend); return res.status(200).json({ ok: true, pending: true, service: x }); }
+        delete x.moderation; // edited into something clean: publish it
+        await S.sbPutRow('svc_pending', pend.filter(s => s !== x));
+        svcs.unshift(x); await S.sbPutRow('svc2', svcs);
+        return res.status(200).json({ ok: true, service: x });
+      }
       await S.sbPutRow('svc2', svcs);
       return res.status(200).json({ ok: true, service: x });
     }
 
     if(b.action === 'deleteService'){
       const svcs = (await S.sbGetRow('svc2')) || [];
+      const pend = (await S.sbGetRow('svc_pending')) || [];
+      const px = pend.find(s => s && String(s.id) === String(b.id));
+      if(px){
+        if(ownerOf(px) !== meKey) return fail(res, 403, 'not_owner');
+        await S.sbPutRow('svc_pending', pend.filter(s => s !== px));
+        return res.status(200).json({ ok: true });
+      }
       const x = svcs.find(s => s && String(s.id) === String(b.id));
       if(!x) return res.status(200).json({ ok: true });
       if(ownerOf(x) !== meKey) return fail(res, 403, 'not_owner');
       await S.sbPutRow('svc2', svcs.filter(s => s !== x));
+      try{ const v = (await S.sbGetRow('views')) || {}; if(v[String(x.id)] !== undefined){ delete v[String(x.id)]; await S.sbPutRow('views', v); } }catch(e){}
       await S.sbDeleteRow(chatRowId(x.id)).catch(() => {});
       return res.status(200).json({ ok: true });
     }
@@ -149,7 +210,9 @@ module.exports = async (req, res) => {
         Object.keys(row).forEach(k => { if(owner || k.toLowerCase() === meKey) threads[k] = row[k]; });
         if(Object.keys(threads).length) out[sid] = threads;
       }
-      return res.status(200).json({ ok: true, chats: out });
+      const pend = ((await S.sbGetRow('svc_pending')) || []).filter(x => x && ownerOf(x) === meKey)
+        .map(x => ({ id: x.id, name: x.name, reasons: (x.moderation && x.moderation.reasons) || [] }));
+      return res.status(200).json({ ok: true, chats: out, pending: pend });
     }
 
     return fail(res, 400, 'unknown_action');

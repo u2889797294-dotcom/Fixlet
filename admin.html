@@ -77,6 +77,7 @@
 
     <div class="tabs">
       <div class="tab active" data-tab="listings">Tjenester</div>
+      <div class="tab" data-tab="moderation" id="modTab">Moderering</div>
       <div class="tab" data-tab="accounts">Kontoer &amp; bannlysing</div>
     </div>
 
@@ -88,6 +89,15 @@
         <button class="danger" id="deleteAllBtn">Slett ALLE tjenester</button>
       </div>
       <div id="listingsList"></div>
+    </div>
+
+    <div class="panel" id="panel-moderation">
+      <div class="toolbar">
+        <button id="reloadMod">Oppdater liste</button>
+        <button id="scanBtn">Skann alle publiserte tjenester</button>
+      </div>
+      <p class="meta" style="margin:0 0 12px;">Nye og endrede annonser sjekkes automatisk mot vilkårene (punkt 9.1). Klare brudd blokkeres med en melding til eieren. Det som er uklart havner her, skjult for alle andre, til du godkjenner eller fjerner det.</p>
+      <div id="pendingList"></div>
     </div>
 
     <div class="panel" id="panel-accounts">
@@ -107,7 +117,7 @@
 /* The admin panel talks only to /api/admin. The admin key is typed in here, kept for this browser tab only
    (sessionStorage) and checked on the server — it is not stored in this file. */
 let adminKey = '';
-let listings = [], users = [], banned = [], premiumKeys = [];
+let listings = [], pending = [], users = [], banned = [], premiumKeys = [];
 
 function showMsg(text, ok){
   const el = document.getElementById('msg');
@@ -128,8 +138,8 @@ async function call(action, body){
 
 async function loadAll(){
   const d = await call('overview');
-  listings = d.listings || []; users = d.users || []; banned = d.banned || []; premiumKeys = d.premium || [];
-  renderStats(); renderListings(); renderAccounts();
+  listings = d.listings || []; pending = d.pending || []; users = d.users || []; banned = d.banned || []; premiumKeys = d.premium || [];
+  renderStats(); renderListings(); renderPending(); renderAccounts();
 }
 function renderStats(){
   const totalMessages = listings.reduce((sum,s)=> sum + (s.messages||0), 0);
@@ -137,7 +147,9 @@ function renderStats(){
     <div class="stat"><div class="n">${listings.length}</div><div class="l">Tjenester</div></div>
     <div class="stat"><div class="n">${totalMessages}</div><div class="l">Meldinger totalt</div></div>
     <div class="stat"><div class="n">${users.length}</div><div class="l">Registrerte kontoer</div></div>
-    <div class="stat"><div class="n">${banned.length}</div><div class="l">Bannlyste kontoer</div></div>`;
+    <div class="stat"><div class="n">${banned.length}</div><div class="l">Bannlyste kontoer</div></div>
+    <div class="stat"><div class="n">${pending.length}</div><div class="l">Venter på godkjenning</div></div>`;
+  document.getElementById('modTab').textContent = 'Moderering' + (pending.length ? ' (' + pending.length + ')' : '');
 }
 function renderListings(){
   const list = document.getElementById('listingsList');
@@ -155,7 +167,7 @@ function renderListings(){
           <div class="meta">
             ${escapeHtml(s.cat || '?')} · ${escapeHtml(s.country || '?')} (${(s.cities||[]).map(escapeHtml).join(', ')})<br>
             Pris: ${priceStr} · Opprettet: ${dateStr} · Eier: ${s.ownerCode ? '@'+escapeHtml(String(s.ownerCode)) : '—'}<br>
-            Meldinger: ${s.messages||0} · ID: ${escapeHtml(String(s.id))}
+            Visninger: ${s.views||0} · Meldinger: ${s.messages||0} · ID: ${escapeHtml(String(s.id))}
           </div>
         </div>
         <button class="danger">Slett</button>
@@ -258,6 +270,38 @@ document.getElementById('manualBanBtn').addEventListener('click', ()=>{
   if(!/^[A-Za-z0-9_.-]{3,20}$/.test(username)){ showMsg('Skriv inn et gyldig brukernavn (3–20 tegn).', false); return; }
   document.getElementById('manualCodeInput').value = '';
   toggleBan(username.toLowerCase(), true);
+});
+
+function renderPending(){
+  const list = document.getElementById('pendingList');
+  if(pending.length === 0){ list.innerHTML = `<div class="empty">Ingen annonser venter på godkjenning.</div>`; return; }
+  list.innerHTML = '';
+  pending.forEach(s=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="row">
+        <div>
+          <h3>${escapeHtml(s.name || '(uten navn)')}</h3>
+          <div class="meta">
+            Eier: @${escapeHtml(String(s.ownerCode || '?'))} · ${escapeHtml(s.cat || '?')} · ${escapeHtml(s.country || '?')} (${(s.cities||[]).map(escapeHtml).join(', ')})<br>
+            <strong>Markert fordi:</strong> ${escapeHtml(s.reasonText || 'ukjent')}
+          </div>
+          <div class="meta" style="margin-top:6px; white-space:pre-wrap;">${escapeHtml(s.desc || '')}</div>
+        </div>
+        <div class="btnrow"></div>
+      </div>`;
+    const row = card.querySelector('.btnrow');
+    const add = (text, cls, fn)=>{ const bt = document.createElement('button'); bt.textContent = text; if(cls) bt.className = cls; bt.addEventListener('click', fn); row.appendChild(bt); };
+    add('Godkjenn', '', ()=> run(async ()=>{ await call('approveListing', { id: s.id }); await loadAll(); }, 'Annonsen er godkjent og synlig.'));
+    add('Fjern', 'danger', ()=>{ if(!confirm('Fjerne denne annonsen for godt?')) return; run(async ()=>{ await call('rejectListing', { id: s.id }); await loadAll(); }, 'Annonsen er fjernet.'); });
+    list.appendChild(card);
+  });
+}
+document.getElementById('reloadMod').addEventListener('click', ()=> run(loadAll));
+document.getElementById('scanBtn').addEventListener('click', ()=>{
+  if(!confirm('Sjekke alle publiserte tjenester mot reglene? Det som ikke består blir skjult og havner i køen.')) return;
+  run(async ()=>{ const d = await call('scanListings'); await loadAll(); showMsg(`Skannet ${d.scanned} tjenester. ${d.moved} flyttet til gjennomgang.`, true); });
 });
 
 function escapeHtml(str){
