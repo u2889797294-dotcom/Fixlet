@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /tjenester/
+Disallow: /api/
+
+Sitemap: https://fixvice.com/sitemap.xml
