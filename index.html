@@ -2808,11 +2808,10 @@
     </div>
     <div class="herotext">
       <h1 id="heroTitle">Find local help</h1>
-      <p id="heroSub">Velg byen din for å se tjenester i nærheten – eller legg ut din egen.</p>
+      <p id="heroSub">Velg landet ditt for å se tjenester i nærheten – eller legg ut din egen.</p>
     </div>
-    <p class="lede" id="countryLede">Velg byen din</p>
-    <input type="text" class="plain-search" id="homeCitySearch" maxlength="150" placeholder="Søk etter by …" aria-label="Søk etter by" autocomplete="off">
-    <div class="citygrid" id="homeCityGrid"></div>
+    <p class="lede" id="countryLede">Velg landet du bor i</p>
+    <div class="countrygrid bigcountries" id="countryGrid"></div>
   </div>
 
   <!-- ===================== CITY SELECT (browsing, single choice) ===================== -->
@@ -3650,11 +3649,8 @@ const COUNTRIES = [
   {name:"Sweden", flag:"🇸🇪", lang:"sv"},
 ].sort((a,b)=>a.name.localeCompare(b.name));
 
-/* Fixvice is currently open for Norway only. The other countries stay in COUNTRIES so that old
-   listings and lookups keep working, but they are not offered anywhere in the interface. */
-const ACTIVE_COUNTRY = "Norway";
-const ENABLED_COUNTRIES = [ACTIVE_COUNTRY];
-const VISIBLE_COUNTRIES = COUNTRIES.filter(c => c.name === ACTIVE_COUNTRY);
+const ENABLED_COUNTRIES = COUNTRIES.map(c => c.name);
+const VISIBLE_COUNTRIES = COUNTRIES;
 
 const CITIES = {
   "Denmark": ["København", "Aarhus", "Odense", "Aalborg", "Esbjerg", "Randers", "Kolding", "Horsens", "Vejle", "Roskilde", "Aabenraa", "Aalestrup", "Aars", "Albertslund", "Allerød", "Allinge", "Amager", "Assens", "Augustenborg", "Aulum", "Avedøre", "Ballerup", "Billund", "Birkerød", "Bjerringbro", "Bogense", "Bording", "Bornholm", "Brabrand", "Brande", "Broager", "Brædstrup", "Brøndby", "Brønderslev", "Brønshøj", "Børkop", "Charlottenlund", "Christiansfeld", "Dalum", "Dianalund", "Dragør", "Ebeltoft", "Egedal", "Egtved", "Ejstrupholm", "Faaborg", "Faaborg-Midtfyn", "Fanø", "Farum", "Favrskov", "Faxe", "Fjerritslev", "Fredensborg", "Fredericia", "Frederiksberg", "Frederikshavn", "Frederikssund", "Frederiksværk", "Furesø", "Fåborg", "Fårup", "Galten", "Gentofte", "Gilleleje", "Give", "Gladsaxe", "Glamsbjerg", "Glostrup", "Gram", "Grenaa", "Greve", "Gribskov", "Grindsted", "Gråsten", "Gudhjem", "Guldborgsund", "Haarby", "Haderslev", "Hadsten", "Hadsund", "Halsnæs", "Hammel", "Hanstholm", "Harboøre", "Hasle", "Haslev", "Hedehusene", "Hedensted", "Hellerup", "Helsingør", "Herlev", "Herning", "Hillerød", "Hinnerup", "Hjerting", "Hjørring", "Hobro", "Holbæk", "Holstebro", "Holte", "Hornbæk", "Hornslet", "Humlebæk", "Hundested", "Hundige", "Hurup", "Hvide Sande", "Hvidovre", "Højby", "Høje-Taastrup", "Hørning", "Hørsholm", "Ikast", "Ikast-Brande", "Ishøj", "Jammerbugt", "Jelling", "Juelsminde", "Jyllinge", "Kalundborg", "Karlslunde", "Kastrup", "Kerteminde", "Klampenborg", "Kokkedal", "Korsør", "Køge", "Langeland", "Langå", "Lejre", "Lemvig", "Lolland", "Lunderskov", "Lyngby", "Lyngby-Taarbæk", "Lystrup", "Læsø", "Løgstør", "Løgumkloster", "Løkken", "Mariager", "Mariagerfjord", "Maribo", "Marstal", "Middelfart", "Morsø", "Munkebo", "Måløv", "Nakskov", "Nexø", "Nibe", "Nivå", "Nordborg", "Nordby", "Norddjurs", "Nordfyn", "Nyborg", "Nykøbing Falster", "Nykøbing M", "Nykøbing Mors", "Nykøbing Sjælland", "Næstved", "Nørresundby", "Odder", "Odsherred", "Ordrup", "Otterup", "Padborg", "Pandrup", "Portalen", "Præstø", "Rebild", "Ribe", "Ringe", "Ringkøbing", "Ringkøbing-Skjern", "Ringsted", "Risskov", "Roslev", "Rudersdal", "Rudkøbing", "Ry", "Rødby", "Rødding", "Rødekro", "Rødovre", "Rømø", "Rønne", "Samsø", "Silkeborg", "Skagen", "Skanderborg", "Skive", "Skjern", "Skodsborg", "Skælskør", "Skærbæk", "Skødstrup", "Skørping", "Slagelse", "Smørum", "Solrød", "Solrød Strand", "Sorø", "Spjald", "Spøttrup", "Stege", "Stenløse", "Stevns", "Stilling", "Struer", "Støvring", "Sunds", "Sundsøre", "Svaneke", "Svendborg", "Sydals", "Syddjurs", "Sæby", "Sønderborg", "Sønderho", "Taastrup", "Tarm", "Them", "Thisted", "Thorsø", "Thyborøn", "Tilst", "Tjele", "Toftlund", "Tårnby", "Tårs", "Tølløse", "Tønder", "Tørring", "Ulfborg", "Ullerslev", "Valby", "Vallensbæk", "Vamdrup", "Vanløse", "Varde", "Vedbæk", "Vejen", "Vemb", "Vemmelev", "Vestervig", "Vesthimmerland", "Viborg", "Viby", "Videbæk", "Vinderup", "Vissenbjerg", "Vojens", "Vordingborg", "Værløse", "Årslev", "Ærø", "Ærøskøbing", "Ølgod", "Ølstykke"],
@@ -4004,7 +4000,7 @@ function countryStatsHTML(name){
 }
 function refreshCountryGrids(){
   try{
-    if(document.getElementById('homeCityGrid')) renderHomeCities();
+    if(typeof countryGrid !== 'undefined' && countryGrid) renderCountryGrid(countryGrid, "", onBrowseCountrySelected);
     const pg = document.getElementById('postCountryGrid');
     if(pg && pg.children.length) renderPostCountryGrid();
   }catch(e){}
@@ -4030,35 +4026,8 @@ function renderCountryGrid(container, filter, onSelect){
     });
 }
 
-/* The start page lists every Norwegian city straight away (no country step). */
-function renderHomeCities(filter){
-  const grid = document.getElementById('homeCityGrid');
-  if(!grid) return;
-  const norway = withEffLang(COUNTRIES.find(c => c.name === ACTIVE_COUNTRY));
-  const f = (filter || '').trim().toLowerCase();
-  grid.innerHTML = "";
-  CITIES[ACTIVE_COUNTRY].filter(city => !f || city.toLowerCase().includes(f)).forEach((city, idx)=>{
-    const div = document.createElement('div');
-    div.className = 'citycard cardPop';
-    div.style.animationDelay = Math.min(idx,20) * 0.03 + 's';
-    div.textContent = city;
-    div.addEventListener('click', ()=>{
-      requireLogin(()=>{
-        const cc = withEffLang(COUNTRIES.find(c => c.name === ACTIVE_COUNTRY));
-        browseCountry = cc;
-        browseCity = city;
-        document.getElementById('htmlRoot').setAttribute('lang', cc.lang);
-        renderSiteScreen(cc, city);
-        show('services');
-        saveLastLocation();
-      });
-    });
-    makeKeyboardClickable(div, city);
-    grid.appendChild(div);
-  });
-}
-renderHomeCities();
-document.getElementById('homeCitySearch').addEventListener('input', e=> renderHomeCities(e.target.value));
+const countryGrid = document.getElementById('countryGrid');
+renderCountryGrid(countryGrid, "", onBrowseCountrySelected);
 
 
 function onBrowseCountrySelected(c){
@@ -4075,12 +4044,87 @@ function onBrowseCountrySelected(c){
 
 let browseCity = null;
 
+/* Approximate coordinates of the largest cities per country, used to find the nearest city. */
+const CITY_COORDS = {
+  "Norway": {"Oslo":[59.91,10.75],"Bergen":[60.39,5.32],"Trondheim":[63.43,10.40],"Stavanger":[58.97,5.73],"Drammen":[59.74,10.20],"Fredrikstad":[59.22,10.93],"Kristiansand":[58.15,8.00],"Sandnes":[58.85,5.74],"Tromsø":[69.65,18.96],"Sarpsborg":[59.28,11.11]},
+  "Sweden": {"Stockholm":[59.33,18.07],"Göteborg":[57.71,11.97],"Malmö":[55.60,13.00],"Uppsala":[59.86,17.64],"Västerås":[59.61,16.55],"Örebro":[59.27,15.21],"Linköping":[58.41,15.62],"Helsingborg":[56.05,12.69],"Jönköping":[57.78,14.16],"Norrköping":[58.59,16.19]},
+  "Denmark": {"København":[55.68,12.57],"Aarhus":[56.16,10.20],"Odense":[55.40,10.39],"Aalborg":[57.05,9.92],"Esbjerg":[55.48,8.45],"Randers":[56.46,10.04],"Kolding":[55.49,9.47],"Horsens":[55.86,9.85],"Vejle":[55.71,9.54],"Roskilde":[55.64,12.08]},
+  "Finland": {"Helsinki":[60.17,24.94],"Espoo":[60.21,24.66],"Tampere":[61.50,23.76],"Vantaa":[60.29,25.04],"Oulu":[65.01,25.47],"Turku":[60.45,22.27],"Jyväskylä":[62.24,25.75],"Lahti":[60.98,25.66],"Kuopio":[62.89,27.68],"Pori":[61.49,21.80]},
+  "Iceland": {"Reykjavík":[64.15,-21.94],"Akureyri":[65.69,-18.09],"Reykjanesbær":[63.99,-22.56],"Akranes":[64.32,-22.07],"Selfoss":[63.93,-21.00]},
+  "England": {"London":[51.51,-0.13],"Birmingham":[52.49,-1.89],"Manchester":[53.48,-2.24],"Liverpool":[53.41,-2.98],"Leeds":[53.80,-1.55],"Sheffield":[53.38,-1.47],"Bristol":[51.45,-2.59],"Newcastle upon Tyne":[54.98,-1.62],"Nottingham":[52.95,-1.15],"Leicester":[52.64,-1.13]}
+};
+function nearestCityByPosition(country, lat, lon){
+  const pts = CITY_COORDS[country] || {};
+  let best = null, bd = Infinity;
+  Object.keys(pts).forEach(name=>{
+    const dLat = (pts[name][0]-lat)*Math.PI/180, dLon = (pts[name][1]-lon)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat*Math.PI/180)*Math.cos(pts[name][0]*Math.PI/180)*Math.sin(dLon/2)**2;
+    const d = 2*6371*Math.asin(Math.sqrt(a));
+    if(d < bd){ bd = d; best = name; }
+  });
+  return best;
+}
+function editDistance(a, b){
+  const m = a.length, n = b.length; if(!m) return n; if(!n) return m;
+  let prev = Array.from({length:n+1}, (_,j)=>j);
+  for(let i=1;i<=m;i++){
+    const cur = [i];
+    for(let j=1;j<=n;j++) cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev = cur;
+  }
+  return prev[n];
+}
+function closestCitiesByName(country, q, limit){
+  const f = q.toLowerCase();
+  return CITIES[country].map(city=>{
+    const c = city.toLowerCase();
+    const d = Math.min(editDistance(f, c), c.startsWith(f.slice(0,3)) ? editDistance(f, c.slice(0, f.length)) + 1 : 99);
+    return { city, d };
+  }).sort((a,b)=>a.d-b.d).slice(0, limit).map(x=>x.city);
+}
+function chooseBrowseCity(c, city){
+  browseCity = city;
+  renderSiteScreen(c, city);
+  show('services');
+  saveLastLocation();
+}
 function renderCityGrid(c, filter){
   const grid = document.getElementById('cityGrid');
   grid.innerHTML = "";
   const f = (filter || '').trim().toLowerCase();
   if(filter === undefined){ const si = document.getElementById('citySearch'); if(si) si.value = ''; }
-  CITIES[c.name].filter(city => !f || city.toLowerCase().includes(f)).forEach((city, idx)=>{
+  const matches = CITIES[c.name].filter(city => !f || city.toLowerCase().includes(f));
+  if(f && !matches.length){
+    const note = document.createElement('p');
+    note.className = 'cityhint';
+    note.style.gridColumn = '1 / -1';
+    note.textContent = 'Fant ikke «' + filter.trim() + '». Velg den som ligger nærmest:';
+    grid.appendChild(note);
+    closestCitiesByName(c.name, f, 4).forEach(city=>{
+      const d = document.createElement('div');
+      d.className = 'citycard cardPop';
+      d.textContent = city;
+      d.addEventListener('click', ()=> chooseBrowseCity(c, city));
+      makeKeyboardClickable(d, city);
+      grid.appendChild(d);
+    });
+  }
+  if(!f && navigator.geolocation && CITY_COORDS[c.name]){
+    const near = document.createElement('div');
+    near.className = 'citycard cardPop';
+    near.style.fontWeight = '700';
+    near.textContent = '📍 Bruk min posisjon';
+    near.addEventListener('click', ()=>{
+      near.textContent = 'Finner nærmeste by …';
+      navigator.geolocation.getCurrentPosition(pos=>{
+        const city = nearestCityByPosition(c.name, pos.coords.latitude, pos.coords.longitude);
+        if(city) chooseBrowseCity(c, city); else near.textContent = '📍 Bruk min posisjon';
+      }, ()=>{ near.textContent = 'Kunne ikke hente posisjonen din. Velg en by under.'; }, { timeout: 8000 });
+    });
+    makeKeyboardClickable(near, 'Bruk min posisjon');
+    grid.appendChild(near);
+  }
+  matches.forEach((city, idx)=>{
     const div = document.createElement('div');
     div.className = 'citycard cardPop';
     div.style.animationDelay = Math.min(idx,20) * 0.03 + 's';
@@ -4100,7 +4144,10 @@ document.getElementById('citySearch').addEventListener('input', e=>{
   if(browseCountry) renderCityGrid(browseCountry, e.target.value);
 });
 document.getElementById('backFromCity').addEventListener('click', ()=> show('home'));
-document.getElementById('backFromServices').addEventListener('click', ()=> show('home'));
+document.getElementById('backFromServices').addEventListener('click', ()=>{
+  if(browseCountry) renderCityGrid(browseCountry);
+  show('city');
+});
 
 function renderSiteScreen(c, city){
   document.getElementById('locLabel').textContent = city;
@@ -5707,14 +5754,10 @@ function openPremiumScreen(lang, returnTo){
 /* ---------------- Posting flow (multi-country) — free to publish now ---------------- */
 document.getElementById('listServiceBtn').addEventListener('click', ()=>{
   requireLogin(()=>{
-    postSelectedCountries = new Set([withEffLang(COUNTRIES.find(c => c.name === ACTIVE_COUNTRY))]);
+    postSelectedCountries = new Set();
     postSelectedCitiesByCountry = {};
-    const countries = [...postSelectedCountries];
-    document.getElementById('postCitiesLede').textContent = t(countries[0].lang,'postCities');
-    document.getElementById('backFromPostCitiesLabel').textContent = 'Tilbake';
-    document.getElementById('postSubmitBtn').textContent = t(countries[0].lang,'continueBtn');
-    renderPostCityGroups(countries);
-    show('postCities');
+    renderPostCountryGrid();
+    show('postCountry');
   });
 });
 
@@ -5880,7 +5923,7 @@ function checkPostCitiesValid(){
   countLabel.textContent = totalSelected + (totalSelected === 1 ? " by valgt" : " byer valgt");
 }
 
-document.getElementById('backFromPostCities').addEventListener('click', ()=> show('home'));
+document.getElementById('backFromPostCities').addEventListener('click', ()=> show('postCountry'));
 
 document.getElementById('postSubmitBtn').addEventListener('click', ()=>{
   const countries = [...postSelectedCountries];
