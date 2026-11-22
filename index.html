@@ -4446,21 +4446,6 @@ function renderCityGrid(c, filter){
       grid.appendChild(d);
     });
   }
-  if(!f && navigator.geolocation && CITY_COORDS[c.name]){
-    const near = document.createElement('div');
-    near.className = 'citycard cardPop';
-    near.style.fontWeight = '700';
-    near.textContent = c.lang === 'no' ? '📍 Bruk min posisjon' : '📍 Use my location';
-    near.addEventListener('click', ()=>{
-      near.textContent = 'Finding the nearest city …';
-      navigator.geolocation.getCurrentPosition(pos=>{
-        const city = nearestCityByPosition(c.name, pos.coords.latitude, pos.coords.longitude);
-        if(city) chooseBrowseCity(c, city); else near.textContent = c.lang === 'no' ? '📍 Bruk min posisjon' : '📍 Use my location';
-      }, ()=>{ near.textContent = 'Could not get your location. Pick a city below.'; }, { timeout: 8000 });
-    });
-    makeKeyboardClickable(near, c.lang === 'no' ? 'Bruk min posisjon' : 'Use my location');
-    grid.appendChild(near);
-  }
   const CITY_CAP = 400;
   const shown = f ? matches : matches.slice(0, CITY_CAP);
   if(!f && matches.length > CITY_CAP){
