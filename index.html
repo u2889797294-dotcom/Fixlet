@@ -2713,18 +2713,24 @@
 @media (prefers-reduced-transparency: reduce){ .bottomtabbar{ background:#fff !important; -webkit-backdrop-filter:none; backdrop-filter:none; } }
 
   /* ---------- First-visit welcome page: photo fills the screen, content sits on top ---------- */
-  :root{ --wall:#bfcdd3; }
+  :root{ --wall:#ffffff; }
   body.onwelcome .logowrap{ position:absolute; top:0; left:0; right:0; z-index:5; width:100%; max-width:1100px; box-sizing:border-box; margin:0 auto; justify-content:flex-start; padding:22px max(22px,env(safe-area-inset-left)) 0; background:transparent; }
   body.onwelcome .logowrap img{ width:180px; max-width:50vw; }
   #welcomeScreen{ align-items:stretch; }
   .welcome{ position:relative; width:100%; min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; background:var(--wall); padding:104px 0 max(44px,env(safe-area-inset-bottom)); box-sizing:border-box; }
   .welcome-photo{ position:absolute; inset:0; background:url(/welcome-hero.jpg) 48% 100% / auto 74% no-repeat var(--wall); }
-  .welcome-photo::after{ content:""; position:absolute; inset:0; background:linear-gradient(to bottom, var(--wall) 0%, var(--wall) 26%, rgba(191,205,211,0) 52%), linear-gradient(to top, rgba(10,25,35,.38) 0%, rgba(10,25,35,0) 30%); }
+  .welcome-photo::after{ content:""; position:absolute; inset:0; background:linear-gradient(to bottom, #fff 0%, #fff 27%, rgba(255,255,255,.9) 33%, rgba(255,255,255,0) 58%), linear-gradient(to top, #fff 0%, rgba(255,255,255,.85) 8%, rgba(255,255,255,0) 30%); }
   .welcome-inner{ position:relative; z-index:1; width:100%; max-width:1100px; margin:0 auto; padding:0 max(22px,env(safe-area-inset-left)); box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; flex:1; }
   .welcome-text{ max-width:560px; }
   .welcome-text h1{ font-size:clamp(34px,8.5vw,56px); line-height:1.08; font-weight:800; margin:0 0 14px; color:#14213d; letter-spacing:-.02em; }
   .welcome-text p{ font-size:clamp(17px,3.8vw,21px); font-weight:500; margin:0; color:#14213d; }
   .welcome-search{ margin-top:40px; display:flex; align-items:center; gap:12px; width:100%; max-width:640px; padding:10px 10px 10px 20px; border:0; border-radius:999px; background:#fff; box-shadow:0 12px 34px rgba(10,25,35,.28); font:inherit; font-size:17px; color:#4b5870; text-align:left; cursor:pointer; box-sizing:border-box; }
+  .welcome-auth{ position:absolute; top:22px; right:max(22px,env(safe-area-inset-right)); z-index:6; display:flex; align-items:center; gap:8px; }
+  .welcome-auth button{ font:inherit; font-size:15px; font-weight:700; padding:10px 16px; border-radius:999px; cursor:pointer; line-height:1; }
+  .welcome-auth .wa-login{ background:rgba(255,255,255,.92); color:#14213d; border:1.5px solid #cfd8dc; }
+  .welcome-auth .wa-signup{ background:linear-gradient(135deg,var(--teal),#2f9e8f); color:#fff; border:1.5px solid transparent; }
+  .welcome-auth button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  @media(min-width:900px){ .welcome-auth{ right:clamp(22px,5vw,80px); } }
   .welcome-search svg.mag{ flex:none; width:22px; height:22px; color:#14213d; }
   .welcome-search .ph{ flex:1; min-width:0; }
   .welcome-search .go{ flex:none; width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--teal),#2f9e8f); display:flex; align-items:center; justify-content:center; color:#fff; }
@@ -2735,7 +2741,7 @@
     .welcome-inner{ max-width:none; margin:0; padding-left:clamp(22px,5vw,80px); padding-right:22px; }
     .welcome-text{ max-width:480px; }
     .welcome-photo{ background-position:left center; background-size:cover; }
-    .welcome-photo::after{ background:linear-gradient(90deg, rgba(191,205,211,.94) 0%, rgba(191,205,211,.78) 32%, rgba(191,205,211,0) 62%), linear-gradient(to top, rgba(10,25,35,.30) 0%, rgba(10,25,35,0) 28%); }
+    .welcome-photo::after{ background:linear-gradient(90deg, rgba(255,255,255,.96) 0%, rgba(255,255,255,.8) 32%, rgba(255,255,255,0) 62%), linear-gradient(to bottom, #fff 0%, rgba(255,255,255,0) 14%), linear-gradient(to top, #fff 0%, rgba(255,255,255,.8) 8%, rgba(255,255,255,0) 26%); }
   }
 </style>
 </head>
@@ -2796,6 +2802,11 @@
           </div>
           <p class="lockednote" id="loginCCNote">Choose your country code (+47, +46, +45, +358, +44 or +354) before the number.</p>
           <input type="email" maxlength="60" class="loginusernameinput" id="loginEmailInput" placeholder="Email (optional)" autocomplete="off">
+          <div class="captchabox" id="captchaBox">
+            <p class="lockednote" id="captchaQuestion">Loading a quick check …</p>
+            <input type="text" inputmode="numeric" maxlength="3" class="loginusernameinput" id="captchaAnswer" placeholder="Answer" autocomplete="off">
+          </div>
+          <input type="text" id="loginWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
         </div>
         <p class="loginerror hidden" id="loginErrorMsg"></p>
         <label class="loginack hidden" id="loginAckLabel">
@@ -2823,6 +2834,10 @@
   <div class="screen hidden" id="welcomeScreen">
     <div class="welcome">
       <div class="welcome-photo" aria-hidden="true"></div>
+      <div class="welcome-auth">
+        <button type="button" class="wa-login" id="welcomeLoginBtn">Log in</button>
+        <button type="button" class="wa-signup" id="welcomeSignupBtn">Sign up</button>
+      </div>
       <div class="welcome-inner">
       <div class="welcome-text">
         <h1>Get help with<br>your service needs</h1>
@@ -4159,12 +4174,15 @@ function goToStart(){
 }
 document.querySelector('.logowrap img').addEventListener('click', goToStart);
 
-/* First visit: show the welcome page. Tapping the search bar goes straight to the country page. */
+/* Welcome page for visitors who are not signed in. Tapping the search bar goes straight to the country page. */
 document.getElementById('welcomeSearch').addEventListener('click', ()=> show('home'));
+document.getElementById('welcomeLoginBtn').addEventListener('click', ()=>{ show('login'); setLoginMode('login'); });
+document.getElementById('welcomeSignupBtn').addEventListener('click', ()=>{ show('login'); setLoginMode('register'); });
 (function(){
-  let seen = false;
-  try{ seen = localStorage.getItem('fixvice_welcome_seen') === '1'; }catch(e){}
-  if(!seen) show('welcome');
+  // Shown every visit until you have logged in; once signed in you go straight to the country page.
+  let signedIn = false;
+  try{ const u = JSON.parse(localStorage.getItem('fixvice_session_v1') || 'null'); signedIn = !!(u && u.token && u.username); }catch(e){}
+  if(!signedIn) show('welcome');
 })();
 document.querySelector('.finnheader .minilogo').addEventListener('click', goToStart);
 
@@ -5545,6 +5563,12 @@ const API_ERRORS = {
   bad_password: 'Password must be at least 8 characters.',
   bad_phone: 'The mobile number is not valid.',
   bad_email: 'The email address is not valid.',
+  bad_email_domain: 'Please use a real email address (example and throwaway addresses are not allowed).',
+  captcha_failed: 'The check was wrong. Answer the new question and try again.',
+  too_many_accounts: 'That mobile number or email is already used on other accounts.',
+  spam_username: 'That username looks automatic. Choose a normal name.',
+  spam_listing: 'This listing looks like spam. Write a real title and description.',
+  duplicate_listing: 'You already have a listing like this (or it is copied from others).',
   username_taken: 'That username is already taken – choose another.',
   reserved_username: 'This name is reserved. Choose another.',
   banned: 'This account has been banned from Fixvice for breaking the Terms.',
@@ -5680,8 +5704,20 @@ function requireLogin(action){
 }
 
 let loginMode = 'login'; // 'login' | 'register'
+let captchaToken = '';
+async function loadCaptcha(){
+  const q = document.getElementById('captchaQuestion'), inp = document.getElementById('captchaAnswer');
+  if(!q) return;
+  inp.value = ''; captchaToken = ''; q.textContent = 'Loading a quick check …';
+  try{
+    const r = await api('auth', { action: 'captcha' });
+    if(r.ok && r.data.token){ captchaToken = r.data.token; q.textContent = 'Quick check so we know you are human: ' + r.data.question; }
+    else q.textContent = 'Could not load the check. Try again in a moment.';
+  }catch(e){ q.textContent = 'Could not load the check. Try again in a moment.'; }
+}
 function setLoginMode(mode){
   loginMode = mode;
+  if(mode === 'register') loadCaptcha();
   document.getElementById('loginTabLogin').classList.toggle('active', mode === 'login');
   document.getElementById('loginTabRegister').classList.toggle('active', mode === 'register');
   document.getElementById('loginExtraFieldsWrap').classList.toggle('hidden', mode !== 'register');
@@ -5739,6 +5775,8 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   const email = document.getElementById('loginEmailInput').value.trim();
   const errEl = document.getElementById('loginErrorMsg');
   if(loginMode === 'register' && !loginAcked){ errEl.textContent = 'Tick the box to confirm that you will remember your password and accept the Terms.'; errEl.classList.remove('hidden'); return; }
+  if(loginMode === 'register' && email && /@(.*\.)?(ex+[a-z]*mple|test|fake|invalid)\.[a-z.]+$/i.test(email)){ errEl.textContent = API_ERRORS.bad_email_domain; errEl.classList.remove('hidden'); return; }
+  if(loginMode === 'register' && !document.getElementById('captchaAnswer').value.trim()){ errEl.textContent = 'Answer the quick check question.'; errEl.classList.remove('hidden'); return; }
   if(loginMode === 'register' && !cc){ errEl.textContent = 'Please choose your country code (+47, +46, +45, +358, +44 or +354).'; errEl.classList.remove('hidden'); return; }
   errEl.classList.add('hidden');
   if(!isValidUsername(username, loginMode !== 'register') || !code) return;
@@ -5752,12 +5790,13 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   busyStart(loginMode === 'register' ? 'Oppretter konto …' : 'Logger inn …');
   try{
   const r = await api('auth', loginMode === 'register'
-    ? { action: 'register', username, password: code, phone, email }
+    ? { action: 'register', username, password: code, phone, email, captchaToken, captchaAnswer: document.getElementById('captchaAnswer').value.trim(), website: document.getElementById('loginWebsite').value }
     : { action: 'login', username, password: code });
   submitBtn.disabled = false;
   if(!r.ok){
     errEl.textContent = apiErrorText(r);
     errEl.classList.remove('hidden');
+    if(loginMode === 'register') loadCaptcha();
     return;
   }
   currentUser = Object.assign({}, r.data.profile, { token: r.data.token, loginTime: Date.now() });

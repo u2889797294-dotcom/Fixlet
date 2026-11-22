@@ -2,6 +2,7 @@
 // All accounts live in the private row "accounts" (read and written only with the server's service key).
 // Passwords are stored only as salted scrypt hashes. A successful register/login returns a signed session token.
 const S = require('./_shared');
+const SP = require('./_spam');
 
 const USERNAME_RE = /^[A-Za-z0-9_.\-]{3,10}$/;
 const PHONE_RE = /^[\d\s\+\-\(\)]{6,20}$/;
@@ -26,7 +27,11 @@ module.exports = async (req, res) => {
     const ip = S.clientIp(req);
     const accounts = (await S.sbGetRow('accounts')) || {};
 
+    if(b.action === 'captcha') return res.status(200).json(Object.assign({ ok: true }, SP.newCaptcha()));
+
     if(b.action === 'register'){
+      if(b.website) return fail(res, 400, 'captcha_failed'); // hidden honeypot field that only bots fill in
+      if(!SP.checkCaptcha(b.captchaToken, b.captchaAnswer)) return fail(res, 400, 'captcha_failed');
       const wait = await S.rateBlocked('register-ip:' + ip, 5, 3600 * 1000);
       if(wait) return fail(res, 429, 'rate_limited', { retryAfterSec: wait });
       const username = str(b.username, 10), key = username.toLowerCase();
@@ -36,7 +41,9 @@ module.exports = async (req, res) => {
       if(!PHONE_RE.test(phone) || !/\d{5,}/.test(phone.replace(/\D/g, ''))) return fail(res, 400, 'bad_phone');
       const email = str(b.email, 60);
       if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail(res, 400, 'bad_email');
+      if(email && SP.badEmailDomain(email)) return fail(res, 400, 'bad_email_domain');
       if(reserved(username)) return fail(res, 400, 'reserved_username');
+      const spamProb = SP.accountProblem(accounts, username, phone, email); if(spamProb) return fail(res, 400, spamProb);
       if(await isBanned(key)) return fail(res, 403, 'banned');
       if(accounts[key]) return fail(res, 409, 'username_taken');
       accounts[key] = { username, hash: await S.hashPassword(b.password), phone, email: email || null, displayName: null, bio: null, avatar: null, country: null, created: Date.now() };
@@ -92,7 +99,7 @@ module.exports = async (req, res) => {
       }
       if(wantsPw){ if(!validPassword(b.newPassword)) return fail(res, 400, 'bad_password'); acc.hash = await S.hashPassword(b.newPassword); }
       if(b.phone !== undefined){ const ph = str(b.phone, 20); if(!PHONE_RE.test(ph) || !/\d{5,}/.test(ph.replace(/\D/g, ''))) return fail(res, 400, 'bad_phone'); acc.phone = ph; }
-      if(b.email !== undefined){ const em = str(b.email, 60); if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return fail(res, 400, 'bad_email'); acc.email = em || null; }
+      if(b.email !== undefined){ const em = str(b.email, 60); if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return fail(res, 400, 'bad_email'); if(em && SP.badEmailDomain(em)) return fail(res, 400, 'bad_email_domain'); acc.email = em || null; }
       if(b.displayName !== undefined) acc.displayName = str(b.displayName, 20) || null;
       if(b.bio !== undefined) acc.bio = str(b.bio, 300) || null;
       if(b.country !== undefined) acc.country = str(b.country, 30) || null;

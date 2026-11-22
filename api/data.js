@@ -2,6 +2,7 @@
 // Public listings live in the row "svc2" (anyone may READ it, only this server WRITES it, and always as the signed-in user).
 // Chats live in private rows "chat_<serviceId>" plus an index row "chatidx"; people only ever get the threads they are part of.
 const S = require('./_shared');
+const SP = require('./_spam');
 const { moderate, reasonText } = require('./_moderation');
 
 const CATS = ['handyman','cleaning','moving','tutoring','beauty','design_it','garden','photo','events','petcare','transport','consulting','legal','other'];
@@ -86,6 +87,7 @@ module.exports = async (req, res) => {
       const svcs = (await S.sbGetRow('svc2')) || [];
       const pend = (await S.sbGetRow('svc_pending')) || [];
       if(svcs.concat(pend).filter(x => x && ownerOf(x) === meKey).length >= MAX_SERVICES_PER_USER) return fail(res, 400, 'too_many_services');
+      const spamProb = SP.listingProblem(svcs.concat(pend), meKey, ownerOf, c); if(spamProb) return fail(res, 400, spamProb);
       const service = Object.assign({
         id: Date.now() + Math.random(), locations,
         cities: locations.flatMap(l => l.cities), country: locations.map(l => l.country).join(', '),
