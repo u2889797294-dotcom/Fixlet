@@ -6,7 +6,7 @@ const SP = require('./_spam');
 const { moderate, reasonText } = require('./_moderation');
 
 const CATS = ['handyman','cleaning','moving','tutoring','beauty','design_it','garden','photo','events','petcare','transport','consulting','legal','other'];
-const CURRENCIES = ['NOK','SEK','DKK','ISK','EUR','USD','GBP'];
+const CURRENCIES = ["ALL","AMD","AUD","BAM","BGN","BOB","BRL","BWP","CAD","CHF","CLP","CRC","CZK","DKK","DOP","EUR","GBP","GHS","GMD","HUF","ISK","JMD","JPY","KRW","LRD","MDL","MKD","MNT","MRU","MUR","MWK","NAD","NOK","NPR","NZD","PAB","PGK","PLN","PYG","QAR","RON","SEK","SLL","UAH","USD","UYU","XAF","XOF","ZAR","ZMW"];
 const COUNTRIES = ["Denmark","England","Finland","Iceland","Norway","Sweden","Albania","Armenia","Australia","Austria","Belgium","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Bulgaria","Canada","Central African Republic","Chile","Costa Rica","Croatia","Cyprus","Czechia","Dominican Republic","Estonia","France","Gabon","Gambia","Germany","Ghana","Greece","Hungary","Ireland","Italy","Ivory Coast","Jamaica","Japan","Latvia","Liberia","Lithuania","Malawi","Mauritania","Mauritius","Moldova","Mongolia","Namibia","Nepal","Netherlands","New Zealand","North Macedonia","Panama","Papua New Guinea","Paraguay","Poland","Portugal","Qatar","Republic of the Congo","Romania","Senegal","Sierra Leone","Slovakia","Slovenia","South Africa","South Korea","Spain","Switzerland","Ukraine","United States","Uruguay","Zambia"];
 const FORM_FIELDS = ['address','date','time','phone','notes'];
 const MAX_SERVICES_PER_USER = 30;

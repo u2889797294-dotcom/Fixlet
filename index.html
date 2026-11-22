@@ -2811,16 +2811,10 @@
           <div class="phonerow">
             <select id="loginPhoneCC" aria-label="Country code">
               <option value="" selected disabled>+ ?</option>
-              <option value="+47">🇳🇴 +47</option>
-              <option value="+46">🇸🇪 +46</option>
-              <option value="+45">🇩🇰 +45</option>
-              <option value="+358">🇫🇮 +358</option>
-              <option value="+44">🇬🇧 +44</option>
-              <option value="+354">🇮🇸 +354</option>
             </select>
             <input type="tel" maxlength="14" class="loginusernameinput" id="loginPhoneInput" placeholder="Mobile number" autocomplete="off">
           </div>
-          <p class="lockednote" id="loginCCNote">Choose your country code (+47, +46, +45, +358, +44 or +354) before the number.</p>
+          <p class="lockednote" id="loginCCNote">Choose your country code (+xxx) before the number.</p>
           <input type="email" maxlength="60" class="loginusernameinput" id="loginEmailInput" placeholder="Email (optional)" autocomplete="off">
           <div class="captchabox" id="captchaBox">
             <p class="lockednote" id="captchaQuestion">Loading a quick check …</p>
@@ -3908,7 +3902,81 @@ const CATS = [
 ];
 
 /* Currencies a listing's price can be entered in. */
-const CURRENCIES = ["NOK","SEK","DKK","ISK","EUR","USD","GBP"]; // Nordic currencies first (Norway, Sweden, Denmark, Finland uses EUR; England uses GBP)
+/* GEN-INFO-START */
+const COUNTRY_INFO = {
+  "Albania": {"cur":["ALL"],"dial":"+355"},
+  "Armenia": {"cur":["AMD"],"dial":"+374"},
+  "Australia": {"cur":["AUD"],"dial":"+61"},
+  "Austria": {"cur":["EUR"],"dial":"+43"},
+  "Belgium": {"cur":["EUR"],"dial":"+32"},
+  "Bolivia": {"cur":["BOB"],"dial":"+591"},
+  "Bosnia and Herzegovina": {"cur":["BAM"],"dial":"+387"},
+  "Botswana": {"cur":["BWP"],"dial":"+267"},
+  "Brazil": {"cur":["BRL"],"dial":"+55"},
+  "Bulgaria": {"cur":["BGN"],"dial":"+359"},
+  "Canada": {"cur":["CAD"],"dial":"+1"},
+  "Central African Republic": {"cur":["XAF"],"dial":"+236"},
+  "Chile": {"cur":["CLP"],"dial":"+56"},
+  "Costa Rica": {"cur":["CRC"],"dial":"+506"},
+  "Croatia": {"cur":["EUR"],"dial":"+385"},
+  "Cyprus": {"cur":["EUR"],"dial":"+357"},
+  "Czechia": {"cur":["CZK"],"dial":"+420"},
+  "Denmark": {"cur":["DKK"],"dial":"+45"},
+  "Dominican Republic": {"cur":["DOP"],"dial":"+1"},
+  "England": {"cur":["GBP"],"dial":"+44"},
+  "Estonia": {"cur":["EUR"],"dial":"+372"},
+  "Finland": {"cur":["EUR"],"dial":"+358"},
+  "France": {"cur":["EUR"],"dial":"+33"},
+  "Gabon": {"cur":["XAF"],"dial":"+241"},
+  "Gambia": {"cur":["GMD"],"dial":"+220"},
+  "Germany": {"cur":["EUR"],"dial":"+49"},
+  "Ghana": {"cur":["GHS"],"dial":"+233"},
+  "Greece": {"cur":["EUR"],"dial":"+30"},
+  "Hungary": {"cur":["HUF"],"dial":"+36"},
+  "Iceland": {"cur":["ISK"],"dial":"+354"},
+  "Ireland": {"cur":["EUR"],"dial":"+353"},
+  "Italy": {"cur":["EUR"],"dial":"+39"},
+  "Ivory Coast": {"cur":["XOF"],"dial":"+225"},
+  "Jamaica": {"cur":["JMD"],"dial":"+1876"},
+  "Japan": {"cur":["JPY"],"dial":"+81"},
+  "Latvia": {"cur":["EUR"],"dial":"+371"},
+  "Liberia": {"cur":["LRD"],"dial":"+231"},
+  "Lithuania": {"cur":["EUR"],"dial":"+370"},
+  "Malawi": {"cur":["MWK"],"dial":"+265"},
+  "Mauritania": {"cur":["MRU"],"dial":"+222"},
+  "Mauritius": {"cur":["MUR"],"dial":"+230"},
+  "Moldova": {"cur":["MDL"],"dial":"+373"},
+  "Mongolia": {"cur":["MNT"],"dial":"+976"},
+  "Namibia": {"cur":["NAD","ZAR"],"dial":"+264"},
+  "Nepal": {"cur":["NPR"],"dial":"+977"},
+  "Netherlands": {"cur":["EUR"],"dial":"+31"},
+  "New Zealand": {"cur":["NZD"],"dial":"+64"},
+  "North Macedonia": {"cur":["MKD"],"dial":"+389"},
+  "Norway": {"cur":["NOK"],"dial":"+47"},
+  "Panama": {"cur":["PAB","USD"],"dial":"+507"},
+  "Papua New Guinea": {"cur":["PGK"],"dial":"+675"},
+  "Paraguay": {"cur":["PYG"],"dial":"+595"},
+  "Poland": {"cur":["PLN"],"dial":"+48"},
+  "Portugal": {"cur":["EUR"],"dial":"+351"},
+  "Qatar": {"cur":["QAR"],"dial":"+974"},
+  "Republic of the Congo": {"cur":["XAF"],"dial":"+242"},
+  "Romania": {"cur":["RON"],"dial":"+40"},
+  "Senegal": {"cur":["XOF"],"dial":"+221"},
+  "Sierra Leone": {"cur":["SLL"],"dial":"+232"},
+  "Slovakia": {"cur":["EUR"],"dial":"+421"},
+  "Slovenia": {"cur":["EUR"],"dial":"+386"},
+  "South Africa": {"cur":["ZAR"],"dial":"+27"},
+  "South Korea": {"cur":["KRW"],"dial":"+82"},
+  "Spain": {"cur":["EUR"],"dial":"+34"},
+  "Sweden": {"cur":["SEK"],"dial":"+46"},
+  "Switzerland": {"cur":["CHF"],"dial":"+41"},
+  "Ukraine": {"cur":["UAH"],"dial":"+380"},
+  "United States": {"cur":["USD"],"dial":"+1"},
+  "Uruguay": {"cur":["UYU"],"dial":"+598"},
+  "Zambia": {"cur":["ZMW"],"dial":"+260"},
+};
+const CURRENCIES = ["ALL","AMD","AUD","BAM","BGN","BOB","BRL","BWP","CAD","CHF","CLP","CRC","CZK","DKK","DOP","EUR","GBP","GHS","GMD","HUF","ISK","JMD","JPY","KRW","LRD","MDL","MKD","MNT","MRU","MUR","MWK","NAD","NOK","NPR","NZD","PAB","PGK","PLN","PYG","QAR","RON","SEK","SLL","UAH","USD","UYU","XAF","XOF","ZAR","ZMW"]; // every currency used by the supported countries
+/* GEN-INFO-END */
 
 /* ---------------- Translations ---------------- */
 const T = {
@@ -4276,6 +4344,12 @@ renderCountryGrid(countryGrid, "", onBrowseCountrySelected);
 document.getElementById('homeCountrySearch').addEventListener('input', e=> renderCountryGrid(countryGrid, e.target.value, onBrowseCountrySelected));
 
 
+/* Currencies for a country: its own first, then EUR and USD, then every other supported currency. */
+function currencyOptionsFor(countryName){
+  const own = ((COUNTRY_INFO[countryName] || {}).cur || []);
+  const first = own.concat(['EUR','USD']).filter((x,i,a)=> CURRENCIES.includes(x) && a.indexOf(x) === i);
+  return first.concat(CURRENCIES.filter(x=> !first.includes(x)));
+}
 function enterCountry(c){
   const cc = withEffLang(c);
   browseCountry = cc;
@@ -5795,6 +5869,17 @@ document.getElementById('loginPhoneInput').addEventListener('input', (e)=>{
 document.getElementById('loginPhoneCC').addEventListener('change', updateLoginSubmitState);
 document.getElementById('loginCodeInput').addEventListener('input', updateLoginSubmitState);
 (function(){
+  // Phone codes for every supported country (flag + +xxx), and picking a country selects its code.
+  const cc = document.getElementById('loginPhoneCC');
+  COUNTRIES.slice().sort((a,b)=> a.name.localeCompare(b.name)).forEach(c=>{
+    const dial = (COUNTRY_INFO[c.name] || {}).dial; if(!dial) return;
+    const o = document.createElement('option'); o.value = dial; o.dataset.country = c.name; o.title = c.name;
+    o.textContent = c.flag + ' ' + dial; cc.appendChild(o);
+  });
+  document.getElementById('loginCountry').addEventListener('change', e=>{
+    const o = [...cc.options].find(x=> x.dataset.country === e.target.value);
+    if(o){ cc.value = o.value; cc.selectedIndex = o.index; cc.dispatchEvent(new Event('change')); }
+  });
   const sel = document.getElementById('loginCountry');
   COUNTRIES.slice().sort((a,b)=> a.name.localeCompare(b.name)).forEach(c=>{
     const o = document.createElement('option'); o.value = c.name; o.textContent = c.flag + ' ' + c.name; sel.appendChild(o);
@@ -5812,7 +5897,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   if(loginMode === 'register' && email && /@(.*\.)?(ex+[a-z]*mple|test|fake|invalid)\.[a-z.]+$/i.test(email)){ errEl.textContent = API_ERRORS.bad_email_domain; errEl.classList.remove('hidden'); return; }
   if(loginMode === 'register' && !document.getElementById('captchaAnswer').value.trim()){ errEl.textContent = 'Answer the quick check question.'; errEl.classList.remove('hidden'); return; }
   if(loginMode === 'register' && !regCountryName){ errEl.textContent = 'Choose your country.'; errEl.classList.remove('hidden'); return; }
-  if(loginMode === 'register' && !cc){ errEl.textContent = 'Please choose your country code (+47, +46, +45, +358, +44 or +354).'; errEl.classList.remove('hidden'); return; }
+  if(loginMode === 'register' && !cc){ errEl.textContent = 'Please choose your country code (+xxx).'; errEl.classList.remove('hidden'); return; }
   errEl.classList.add('hidden');
   if(!isValidUsername(username, loginMode !== 'register') || !code) return;
   if(loginMode === 'register' && !isValidPhone(phone)) return;
@@ -6319,8 +6404,8 @@ function showPostForm(c){
   document.getElementById('svcPriceNote').value = "";
   const currencySelect = document.getElementById('svcCurrency');
   currencySelect.innerHTML = `<option value="">${t(c.lang,'currencyPlaceholder')}</option>` +
-    CURRENCIES.map(cur => `<option value="${cur}">${cur}</option>`).join('');
-  currencySelect.value = "";
+    currencyOptionsFor(c.name).map(cur => `<option value="${cur}">${cur}</option>`).join('');
+  { const own = ((COUNTRY_INFO[c.name] || {}).cur || [])[0]; currencySelect.value = own || ""; } // preselect the country's own currency
   document.getElementById('lblWhatYouDo').textContent = t(c.lang,'whatYouDoLabel');
   document.getElementById('svcDesc').placeholder = t(c.lang,'whatYouDoPh');
   document.getElementById('svcDesc').value = "";
@@ -6360,7 +6445,7 @@ function applyTestFill(c){
   document.getElementById('svcName').value = "Test Company AS";
   document.getElementById('svcDesc').value = "This is placeholder test text — replace it with a real description before publishing for real.";
   document.getElementById('svcPrice').value = "350";
-  document.getElementById('svcCurrency').value = CURRENCIES[0];
+  document.getElementById('svcCurrency').selectedIndex = 1;
   document.getElementById('formConsentCheckbox').checked = true;
 
   svcImageData = TEST_IMAGE_PLACEHOLDER;
