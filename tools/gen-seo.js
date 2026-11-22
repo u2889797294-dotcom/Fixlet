@@ -105,7 +105,7 @@ function layout({ title, desc, canonical, body, ld }) {
 <script type="application/ld+json">${jsonld(ld)}</script></head><body>
 <header><div class="wrap"><a class="logo" href="/">Fixvice</a><a href="/">Åpne Fixvice</a></div></header>
 <main class="wrap">${body}</main>
-<footer><div class="wrap">Fixvice drives av Transform4Future Anna Madeleine Nordlund · Org.nr 924 590 734 · Harriet Backers vei 14E, 1415 Oppegård · <a href="mailto:kontaktfixvice@gmail.com">kontaktfixvice@gmail.com</a><br><a href="/tjenester/">Alle tjenester og byer</a></div></footer>
+<footer><div class="wrap">Fixvice drives av Transform4Future Anna Madeleine Nordlund · Org.nr 924 590 734 · <a href="mailto:kontaktfixvice@gmail.com">kontaktfixvice@gmail.com</a><br><a href="/tjenester/">Alle tjenester og byer</a></div></footer>
 </body></html>`;
 }
 
