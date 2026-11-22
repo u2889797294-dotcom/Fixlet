@@ -2712,23 +2712,31 @@
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){ .bottomtabbar{ background:rgba(255,255,255,.94) !important; } }
 @media (prefers-reduced-transparency: reduce){ .bottomtabbar{ background:#fff !important; -webkit-backdrop-filter:none; backdrop-filter:none; } }
 
-  /* ---------- First-visit welcome page ---------- */
-  body.onwelcome .logowrap{ justify-content:flex-start; width:100%; max-width:980px; box-sizing:border-box; margin:0 auto; padding:20px max(20px,env(safe-area-inset-left)) 0; background:transparent; position:relative; z-index:2; }
-  body.onwelcome, html:has(body.onwelcome){ background:#d0d6e7; }
-  body.onwelcome .logowrap img{ width:190px; max-width:55vw; }
+  /* ---------- First-visit welcome page: photo fills the screen, content sits on top ---------- */
+  :root{ --wall:#bfcdd3; }
+  body.onwelcome .logowrap{ position:absolute; top:0; left:0; right:0; z-index:5; width:100%; max-width:1100px; box-sizing:border-box; margin:0 auto; justify-content:flex-start; padding:22px max(22px,env(safe-area-inset-left)) 0; background:transparent; }
+  body.onwelcome .logowrap img{ width:180px; max-width:50vw; }
   #welcomeScreen{ align-items:stretch; }
-  .welcome{ position:relative; width:100%; max-width:980px; margin:0 auto; min-height:min(78vh,520px); padding:8px max(20px,env(safe-area-inset-left)) 32px; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; background:transparent; }
-  .welcome-photo{ position:absolute; top:0; right:0; bottom:0; width:62%; background:url(/welcome-hero.jpg) right top / cover no-repeat; -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 38%,#000 90%,transparent 100%),linear-gradient(to bottom,transparent 0%,#000 22%,#000 70%,transparent 100%); -webkit-mask-composite:source-in; mask-image:linear-gradient(to right,transparent 0%,#000 38%,#000 90%,transparent 100%),linear-gradient(to bottom,transparent 0%,#000 22%,#000 70%,transparent 100%); mask-composite:intersect; }
-  @media(max-width:600px){ .welcome-photo{ width:100%; background-size:auto 74%; background-position:34% 100%; -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 30%),linear-gradient(to bottom,transparent 26%,#000 46%,#000 78%,transparent 100%); mask-image:linear-gradient(to right,transparent 0%,#000 30%),linear-gradient(to bottom,transparent 26%,#000 46%,#000 78%,transparent 100%); } }
-  .welcome-text{ position:relative; z-index:1; margin-top:24px; max-width:560px; }
-  .welcome-text h1{ font-size:clamp(34px,8vw,52px); line-height:1.08; font-weight:800; margin:0 0 14px; color:#14213d; letter-spacing:-.02em; }
-  .welcome-text p{ font-size:clamp(16px,3.6vw,20px); font-weight:500; margin:0; color:#14213d; }
-  .welcome-search{ position:relative; z-index:1; margin-top:48px; display:flex; align-items:center; gap:12px; width:100%; max-width:640px; padding:10px 10px 10px 18px; border:0; border-radius:999px; background:#fff; box-shadow:0 10px 30px rgba(20,33,61,.14); font:inherit; font-size:17px; color:#4b5870; text-align:left; cursor:pointer; }
+  .welcome{ position:relative; width:100%; min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; background:var(--wall); padding:104px 0 max(44px,env(safe-area-inset-bottom)); box-sizing:border-box; }
+  .welcome-photo{ position:absolute; inset:0; background:url(/welcome-hero.jpg) 48% 100% / auto 74% no-repeat var(--wall); }
+  .welcome-photo::after{ content:""; position:absolute; inset:0; background:linear-gradient(to bottom, var(--wall) 0%, var(--wall) 26%, rgba(191,205,211,0) 52%), linear-gradient(to top, rgba(10,25,35,.38) 0%, rgba(10,25,35,0) 30%); }
+  .welcome-inner{ position:relative; z-index:1; width:100%; max-width:1100px; margin:0 auto; padding:0 max(22px,env(safe-area-inset-left)); box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; flex:1; }
+  .welcome-text{ max-width:560px; }
+  .welcome-text h1{ font-size:clamp(34px,8.5vw,56px); line-height:1.08; font-weight:800; margin:0 0 14px; color:#14213d; letter-spacing:-.02em; }
+  .welcome-text p{ font-size:clamp(17px,3.8vw,21px); font-weight:500; margin:0; color:#14213d; }
+  .welcome-search{ margin-top:40px; display:flex; align-items:center; gap:12px; width:100%; max-width:640px; padding:10px 10px 10px 20px; border:0; border-radius:999px; background:#fff; box-shadow:0 12px 34px rgba(10,25,35,.28); font:inherit; font-size:17px; color:#4b5870; text-align:left; cursor:pointer; box-sizing:border-box; }
   .welcome-search svg.mag{ flex:none; width:22px; height:22px; color:#14213d; }
   .welcome-search .ph{ flex:1; min-width:0; }
   .welcome-search .go{ flex:none; width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--teal),#2f9e8f); display:flex; align-items:center; justify-content:center; color:#fff; }
   .welcome-search .go svg{ width:22px; height:22px; }
   .welcome-search:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
+  @media(min-width:900px){
+    body.onwelcome .logowrap{ max-width:none; margin:0; padding-left:clamp(22px,5vw,80px); }
+    .welcome-inner{ max-width:none; margin:0; padding-left:clamp(22px,5vw,80px); padding-right:22px; }
+    .welcome-text{ max-width:480px; }
+    .welcome-photo{ background-position:left center; background-size:cover; }
+    .welcome-photo::after{ background:linear-gradient(90deg, rgba(191,205,211,.94) 0%, rgba(191,205,211,.78) 32%, rgba(191,205,211,0) 62%), linear-gradient(to top, rgba(10,25,35,.30) 0%, rgba(10,25,35,0) 28%); }
+  }
 </style>
 </head>
 <body>
@@ -2815,6 +2823,7 @@
   <div class="screen hidden" id="welcomeScreen">
     <div class="welcome">
       <div class="welcome-photo" aria-hidden="true"></div>
+      <div class="welcome-inner">
       <div class="welcome-text">
         <h1>Get help with<br>your service needs</h1>
         <p>Fast. Simple. Reliable.</p>
@@ -2824,6 +2833,7 @@
         <span class="ph">What do you need help with?</span>
         <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span>
       </button>
+      </div>
     </div>
   </div>
 
