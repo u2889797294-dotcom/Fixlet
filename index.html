@@ -4175,7 +4175,7 @@ function goToStart(){
 document.querySelector('.logowrap img').addEventListener('click', goToStart);
 
 /* Welcome page for visitors who are not signed in. Tapping the search bar goes straight to the country page. */
-document.getElementById('welcomeSearch').addEventListener('click', ()=> show('home'));
+document.getElementById('welcomeSearch').addEventListener('click', ()=> requireLogin(()=> show('home'))); // log in first, then straight to the country page
 document.getElementById('welcomeLoginBtn').addEventListener('click', ()=>{ show('login'); setLoginMode('login'); });
 document.getElementById('welcomeSignupBtn').addEventListener('click', ()=>{ show('login'); setLoginMode('register'); });
 (function(){
