@@ -1574,7 +1574,17 @@
      This one screen is deliberately black with square corners, by
      explicit request — it's an exception to the site's normal
      no-black / rounded-corner rules, scoped to #loginScreen only. */
+  body.onlogin, body.onlogin html{ background:#0a0a0a; }
+  html:has(body.onlogin){ background:#0a0a0a; }
+  body.onlogin #siteFooter, body.onlogin #siteFooter a{ color:#9aa5a0; }
+  body.onlogin #siteFooter a:hover{ color:#fff; }
+  body.onlogin .logowrap{ background:transparent; }
+  #loginPhoneCC{ background:#000 !important; color:#fff !important; border:1px solid #2a2a2a !important; }
+  #loginCountryNote{ color:#cfd8d2 !important; }
+  #loginCountry{ appearance:auto; color:#fff; background:#000; }
+  #loginCountry option{ color:#fff; background:#111; }
   #loginScreen{
+    min-height:calc(100vh - 150px) !important;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -2775,29 +2785,33 @@
       <div class="loginfeatures-row">
         <div class="loginfeature">
           <div class="loginfeature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
-          <p>Legg ut dine egne tjenester</p>
+          <p>List your own services</p>
         </div>
         <div class="loginfeature">
           <div class="loginfeature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
-          <p>Finn hjelp i byen din</p>
+          <p>Find help in your city</p>
         </div>
       </div>
 
       <div class="logincard">
         <div class="loginbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg></div>
-        <h2 class="loginheading">Logg inn på Fixvice</h2>
-        <p class="loginsub" id="loginSubText">Logg inn med brukernavnet og passordet ditt. Du lager dem første gang, og bruker de samme hver gang du kommer tilbake.</p>
+        <h2 class="loginheading">Log in to Fixvice</h2>
+        <p class="loginsub" id="loginSubText">Log in with your username and password. You create them the first time, and use the same ones every time you come back.</p>
 
         <div class="logintabs">
-          <button type="button" class="logintab active" id="loginTabLogin">Logg inn</button>
-          <button type="button" class="logintab" id="loginTabRegister">Opprett ny konto</button>
+          <button type="button" class="logintab active" id="loginTabLogin">Log in</button>
+          <button type="button" class="logintab" id="loginTabRegister">Create new account</button>
         </div>
 
-        <input type="text" maxlength="20" class="loginusernameinput" id="loginUsernameInput" placeholder="Brukernavn" autocomplete="off" autocapitalize="none" spellcheck="false">
-        <input type="password" maxlength="72" class="loginusernameinput" id="loginCodeInput" placeholder="Passord (minst 8 tegn)" autocomplete="current-password" autocorrect="off" spellcheck="false">
+        <input type="text" maxlength="20" class="loginusernameinput" id="loginUsernameInput" placeholder="Username" autocomplete="off" autocapitalize="none" spellcheck="false">
+        <input type="password" maxlength="72" class="loginusernameinput" id="loginCodeInput" placeholder="Password (min. 8 characters)" autocomplete="current-password" autocorrect="off" spellcheck="false">
         <div id="loginExtraFieldsWrap" class="hidden">
+          <select id="loginCountry" class="loginusernameinput" aria-label="Your country">
+            <option value="" selected disabled>Choose your country</option>
+          </select>
+          <p class="lockednote" id="loginCountryNote">This becomes your country. You go straight to its cities, and the site is shown in its language.</p>
           <div class="phonerow">
-            <select id="loginPhoneCC" aria-label="Landkode">
+            <select id="loginPhoneCC" aria-label="Country code">
               <option value="" selected disabled>+ ?</option>
               <option value="+47">🇳🇴 +47</option>
               <option value="+46">🇸🇪 +46</option>
@@ -2806,33 +2820,33 @@
               <option value="+44">🇬🇧 +44</option>
               <option value="+354">🇮🇸 +354</option>
             </select>
-            <input type="tel" maxlength="14" class="loginusernameinput" id="loginPhoneInput" placeholder="Mobilnummer" autocomplete="off">
+            <input type="tel" maxlength="14" class="loginusernameinput" id="loginPhoneInput" placeholder="Mobile number" autocomplete="off">
           </div>
-          <p class="lockednote" id="loginCCNote">Velg landkoden din (+47, +46, +45, +358, +44 eller +354) foran nummeret.</p>
-          <input type="email" maxlength="60" class="loginusernameinput" id="loginEmailInput" placeholder="E-post (valgfritt)" autocomplete="off">
+          <p class="lockednote" id="loginCCNote">Choose your country code (+47, +46, +45, +358, +44 or +354) before the number.</p>
+          <input type="email" maxlength="60" class="loginusernameinput" id="loginEmailInput" placeholder="Email (optional)" autocomplete="off">
           <div class="captchabox" id="captchaBox">
-            <p class="lockednote" id="captchaQuestion">Laster en rask sjekk …</p>
-            <input type="text" inputmode="numeric" maxlength="3" class="loginusernameinput" id="captchaAnswer" placeholder="Svar" autocomplete="off">
+            <p class="lockednote" id="captchaQuestion">Loading a quick check …</p>
+            <input type="text" inputmode="numeric" maxlength="3" class="loginusernameinput" id="captchaAnswer" placeholder="Answer" autocomplete="off">
           </div>
           <input type="text" id="loginWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
         </div>
         <p class="loginerror hidden" id="loginErrorMsg"></p>
         <label class="loginack hidden" id="loginAckLabel">
           <input type="checkbox" id="loginAckCheckbox">
-          <span><strong>Husk passordet ditt</strong> – vi kan ikke se det, og et glemt passord må nullstilles av oss. Ved å opprette en konto godtar jeg <a href="#" class="tosinlink">vilkårene</a> og <a href="#" class="privinlink">personvernerklæringen</a>.</span>
+          <span><strong>Remember your password</strong> – we cannot see it, and a forgotten password has to be reset by us. By creating an account I accept the <a href="#" class="tosinlink">Terms</a> and the <a href="#" class="privinlink">Privacy Policy</a>.</span>
         </label>
-        <button class="continuebtn" id="loginSubmitBtn" style="width:100%;" disabled>Logg inn</button>
-        <p class="loginnote" id="loginHintText">Har du ikke konto? Trykk «Opprett ny konto» ovenfor.</p>
+        <button class="continuebtn" id="loginSubmitBtn" style="width:100%;" disabled>Log in</button>
+        <p class="loginnote" id="loginHintText">Don't have an account? Tap "Create new account" above.</p>
       </div>
 
       <div class="loginfeatures-row">
         <div class="loginfeature">
           <div class="loginfeature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-          <p>Chat direkte med kunder</p>
+          <p>Chat directly with customers</p>
         </div>
         <div class="loginfeature">
           <div class="loginfeature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 6.5L21 9l-5.5 4.5L17 20l-5-3.5L7 20l1.5-6.5L3 9l6.5-.5z"/></svg></div>
-          <p>Bli sponset for flere klikk</p>
+          <p>Get sponsored for more clicks</p>
         </div>
       </div>
     </div>
@@ -2843,17 +2857,17 @@
     <div class="welcome">
       <div class="welcome-photo" aria-hidden="true"></div>
       <div class="welcome-auth">
-        <button type="button" class="wa-login" id="welcomeLoginBtn">Logg inn</button>
-        <button type="button" class="wa-signup" id="welcomeSignupBtn">Opprett konto</button>
+        <button type="button" class="wa-login" id="welcomeLoginBtn">Log in</button>
+        <button type="button" class="wa-signup" id="welcomeSignupBtn">Sign up</button>
       </div>
       <div class="welcome-inner">
       <div class="welcome-text">
-        <h1>Få hjelp med<br>tjenestene du trenger</h1>
-        <p>Raskt. Enkelt. Pålitelig.</p>
+        <h1>Get help with<br>your service needs</h1>
+        <p>Fast. Simple. Reliable.</p>
       </div>
-      <button class="welcome-search" id="welcomeSearch" type="button" aria-label="Hva trenger du hjelp med? Velg landet ditt">
+      <button class="welcome-search" id="welcomeSearch" type="button" aria-label="What do you need help with? Choose your country">
         <svg class="mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
-        <span class="ph">Hva trenger du hjelp med?</span>
+        <span class="ph">What do you need help with?</span>
         <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span>
       </button>
       </div>
@@ -2861,16 +2875,16 @@
     <section class="welcome-facts" aria-label="About Fixvice">
       <div class="wf-grid">
         <div class="wf-card">
-          <div class="wf-big"><span id="wfCountries">70</span> land</div>
-          <p>Finn lokale tjenester i alle byer i disse landene, fra de største hovedstedene til små tettsteder. Du kan også legge ut din egen tjeneste i alle <span id="wfCountries2">70</span>.</p>
+          <div class="wf-big"><span id="wfCountries">70</span> countries</div>
+          <p>Find local services in every city of these countries, from the biggest capitals to small towns. You can also list your own service in all <span id="wfCountries2">70</span> of them.</p>
         </div>
         <div class="wf-card">
-          <div class="wf-big">Ytringsfrihet først</div>
-          <p>Vi åpner bare Fixvice i land som ligger på eller over verdensgjennomsnittet for ytringsfrihet i RSF World Press Freedom Index 2026.</p>
+          <div class="wf-big">Free speech first</div>
+          <p>We only open Fixvice in countries that score at or above the world average for freedom of expression in the RSF World Press Freedom Index 2026.</p>
         </div>
         <div class="wf-card">
-          <div class="wf-big">Dataene dine er låst inne</div>
-          <p>Databasen vår bruker row level security. Kontoer, meldinger og passord er private, og bare de offentlige annonsene kan leses av alle.</p>
+          <div class="wf-big">Your data is locked down</div>
+          <p>Our database uses row level security. Accounts, messages and passwords are private, and only the public listings can be read by anyone.</p>
         </div>
       </div>
     </section>
@@ -2882,18 +2896,18 @@
       <button class="listbtn" id="listServiceBtn">+ Legg ut en tjeneste</button>
     </div>
     <div class="langtoggle" id="langToggle">
-      <span class="langtoggle-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3c2.5 2.7 3.8 6 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-6-3.8-9s1.3-6.3 3.8-9z"/></svg> Vis appen på:</span>
+      <span class="langtoggle-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3c2.5 2.7 3.8 6 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-6-3.8-9s1.3-6.3 3.8-9z"/></svg> Show app in:</span>
       <div class="langtoggle-btns">
-        <button class="langopt active" id="langOptLocal" data-mode="local">Lokalt språk</button>
-        <button class="langopt" id="langOptEnglish" data-mode="en">Engelsk</button>
+        <button class="langopt active" id="langOptLocal" data-mode="local">Local language</button>
+        <button class="langopt" id="langOptEnglish" data-mode="en">English</button>
       </div>
     </div>
     <div class="herotext">
-      <h1 id="heroTitle">Finn lokal hjelp</h1>
-      <p id="heroSub">Velg landet ditt for å se tjenester i nærheten – eller legg ut din egen.</p>
+      <h1 id="heroTitle">Find local help</h1>
+      <p id="heroSub">Pick your country to browse services near you — or list your own.</p>
     </div>
-    <p class="lede" id="countryLede">Velg landet du bor i</p>
-    <input type="text" class="plain-search" id="homeCountrySearch" maxlength="60" placeholder="Søk etter land …" aria-label="Søk etter land" autocomplete="off">
+    <p class="lede" id="countryLede">Choose the country you live in</p>
+    <input type="text" class="plain-search" id="homeCountrySearch" maxlength="60" placeholder="Search country …" aria-label="Search country" autocomplete="off">
     <div class="countrygrid" id="countryGrid"></div>
   </div>
 
@@ -3082,7 +3096,7 @@
         <p>1.3 Dersom en bestemmelse i disse vilkårene strider mot en bestemmelse i Personvernerklæringen eller Retningslinjene for informasjonskapsler og lokal lagring, gjelder den bestemmelsen som gir dine personopplysninger størst beskyttelse. I alle andre tilfeller går disse vilkårene foran.</p>
         <p><strong>2. Hva Fixvice er, og hva det ikke er.</strong></p>
         <p>2.1 Fixvice er en nettbasert annonseplattform. Den lar privatpersoner og virksomheter publisere annonser for lokale tjenester i landene som er tilgjengelige i landvalget på Fixvice, og lar andre finne, dele og kontakte disse annonsene.</p>
-        <p>2.1a Når du åpner Fixvice uten å være logget inn, får du en startside med et søkefelt og knappene «Logg inn» og «Opprett konto». Når du trykker på søkefeltet, må du logge inn eller opprette konto, og kommer deretter til siden der du velger land. Når du logger ut, kommer du tilbake til startsiden. Etter at du har valgt land og by, ser du tjenestene som er lagt ut der. Landene du kan velge mellom, vises på denne siden, og kan endres over tid.</p>
+        <p>2.1a Når du åpner Fixvice uten å være logget inn, får du en startside med et søkefelt og knappene «Logg inn» og «Opprett konto». Når du trykker på søkefeltet, må du logge inn eller opprette konto. Når du oppretter konto, velger du land, og kommer da rett til byene i det landet, med nettsiden på landets språk. Ellers kommer du til siden der du velger land. Når du logger ut, kommer du tilbake til startsiden. Etter at du har valgt land og by, ser du tjenestene som er lagt ut der. Landene du kan velge mellom, vises på denne siden, og kan endres over tid.</p>
         <p>2.2 Fixvice er kun en mellommann som tilbyr den tekniske plattformen. Fixvice er ikke part i noen avtale mellom en eier og en kunde, ansetter eller representerer ingen eier, utfører, fører tilsyn med, kontrollerer, anbefaler eller garanterer ingen tjeneste, og kontrollerer ikke identiteten, kvalifikasjonene, tillatelsene, forsikringen, skattestatusen eller påliteligheten til noen bruker.</p>
         <p>2.3 Enhver avtale om å utføre arbeid, prisen, omfanget, tidsplanen, betalingen for selve arbeidet og enhver tvist om arbeidet er utelukkende et forhold mellom eieren og kunden. Fixvice krever inn eller håndterer ikke betaling for tjenestene som annonseres på plattformen. Kun betalinger for Boost og Premium skjer via Fixvice.</p>
         <p>2.4 Ingenting på Fixvice, herunder merkelapper som «Sponset», kategorinavn eller tekster skrevet av en bruker, er råd, anbefaling, støtte eller løfte om kvalitet.</p>
@@ -4185,6 +4199,7 @@ function show(name){
   Object.values(screens).forEach(s => s.classList.add('hidden'));
   screens[name].classList.remove('hidden');
   document.body.classList.toggle('onwelcome', name === 'welcome');
+  document.body.classList.toggle('onlogin', name === 'login');
   if(name !== 'welcome'){ try{ localStorage.setItem('fixvice_welcome_seen','1'); }catch(e){} }
   if(name === 'login' && typeof setLoginAcked === 'function'){ try{ setLoginAcked(false); }catch(e){} }
   const logowrap = document.querySelector('.logowrap');
@@ -4263,16 +4278,20 @@ renderCountryGrid(countryGrid, "", onBrowseCountrySelected);
 document.getElementById('homeCountrySearch').addEventListener('input', e=> renderCountryGrid(countryGrid, e.target.value, onBrowseCountrySelected));
 
 
+function enterCountry(c){
+  const cc = withEffLang(c);
+  browseCountry = cc;
+  document.getElementById('cityHint').textContent = cc.lang === 'no' ? 'Finner du ikke byen din? Velg den som ligger nærmest.' : "Can't find your city? Pick the one nearest to you.";
+  document.getElementById('citySearch').placeholder = cc.lang === 'no' ? 'Søk etter by …' : 'Search city…';
+  document.getElementById('htmlRoot').setAttribute('lang', cc.lang);
+  document.getElementById('cityLede').textContent = t(cc.lang,'chooseCity');
+  document.getElementById('backFromCityLabel').textContent = t(cc.lang,'changeCountry');
+  renderCityGrid(cc);
+  show('city');
+  window.scrollTo(0,0);
+}
 function onBrowseCountrySelected(c){
-  requireLogin(()=>{
-    const cc = withEffLang(c);
-    browseCountry = cc;
-    document.getElementById('htmlRoot').setAttribute('lang', cc.lang);
-    document.getElementById('cityLede').textContent = t(cc.lang,'chooseCity');
-    document.getElementById('backFromCityLabel').textContent = t(cc.lang,'changeCountry');
-    renderCityGrid(cc);
-    show('city');
-  });
+  requireLogin(()=> enterCountry(c));
 }
 
 let browseCity = null;
@@ -4416,7 +4435,7 @@ function renderCityGrid(c, filter){
     const note = document.createElement('p');
     note.className = 'cityhint';
     note.style.gridColumn = '1 / -1';
-    note.textContent = 'Fant ikke «' + filter.trim() + '». Velg den som ligger nærmest:';
+    note.textContent = c.lang === 'no' ? 'Fant ikke «' + filter.trim() + '». Velg den som ligger nærmest:' : 'Could not find "' + filter.trim() + '". Pick the nearest one:';
     grid.appendChild(note);
     closestCitiesByName(c.name, f, 4).forEach(city=>{
       const d = document.createElement('div');
@@ -4431,15 +4450,15 @@ function renderCityGrid(c, filter){
     const near = document.createElement('div');
     near.className = 'citycard cardPop';
     near.style.fontWeight = '700';
-    near.textContent = '📍 Bruk min posisjon';
+    near.textContent = c.lang === 'no' ? '📍 Bruk min posisjon' : '📍 Use my location';
     near.addEventListener('click', ()=>{
       near.textContent = 'Finding the nearest city …';
       navigator.geolocation.getCurrentPosition(pos=>{
         const city = nearestCityByPosition(c.name, pos.coords.latitude, pos.coords.longitude);
-        if(city) chooseBrowseCity(c, city); else near.textContent = '📍 Bruk min posisjon';
+        if(city) chooseBrowseCity(c, city); else near.textContent = c.lang === 'no' ? '📍 Bruk min posisjon' : '📍 Use my location';
       }, ()=>{ near.textContent = 'Could not get your location. Pick a city below.'; }, { timeout: 8000 });
     });
-    makeKeyboardClickable(near, 'Bruk min posisjon');
+    makeKeyboardClickable(near, c.lang === 'no' ? 'Bruk min posisjon' : 'Use my location');
     grid.appendChild(near);
   }
   const CITY_CAP = 400;
@@ -5551,8 +5570,8 @@ function busyEnd(){
 }
 function busyTextFor(path, body){
   const a = body && body.action;
-  if(a === 'register') return 'Oppretter konto …';
-  if(a === 'login') return 'Logger inn …';
+  if(a === 'register') return 'Creating account…';
+  if(a === 'login') return 'Logging in…';
   if(a === 'createService') return 'Publiserer tjenesten …';
   if(a === 'editService' || a === 'updateProfile') return 'Lagrer …';
   if(a === 'deleteService') return 'Sletter …';
@@ -5582,21 +5601,21 @@ async function apiInner(path, body){
 }
 const API_ERRORS = {
   content_blocked: 'Annonsen bryter vilkårene og kan ikke publiseres. Endre teksten og prøv igjen.',
-  bad_credentials: 'Feil brukernavn eller passord.',
-  rate_limited: 'For mange forsøk. Vent en stund og prøv igjen.',
-  bad_username: 'Brukernavnet må være 3–10 tegn (bokstaver, tall, _ . -).',
-  bad_password: 'Passordet må være minst 8 tegn.',
-  bad_phone: 'Mobilnummeret er ikke gyldig.',
-  bad_email: 'E-postadressen er ikke gyldig.',
-  bad_email_domain: 'Bruk en ekte e-postadresse (example- og engangsadresser er ikke tillatt).',
-  captcha_failed: 'Sjekken var feil. Svar på det nye spørsmålet og prøv igjen.',
-  too_many_accounts: 'Dette mobilnummeret eller denne e-posten brukes allerede på andre kontoer.',
-  spam_username: 'Dette brukernavnet ser automatisk ut. Velg et vanlig navn.',
-  spam_listing: 'Denne annonsen ser ut som spam. Skriv en ekte tittel og beskrivelse.',
-  duplicate_listing: 'Du har allerede en slik annonse (eller den er kopiert fra andre).',
-  username_taken: 'Brukernavnet er allerede tatt – velg et annet.',
-  reserved_username: 'Dette navnet er reservert. Velg et annet.',
-  banned: 'Denne kontoen er utestengt fra Fixvice for brudd på vilkårene.',
+  bad_credentials: 'Wrong username or password.',
+  rate_limited: 'Too many attempts. Wait a while and try again.',
+  bad_username: 'Username must be 3–10 characters (letters, numbers, _ . -).',
+  bad_password: 'Password must be at least 8 characters.',
+  bad_phone: 'The mobile number is not valid.',
+  bad_email: 'The email address is not valid.',
+  bad_email_domain: 'Please use a real email address (example and throwaway addresses are not allowed).',
+  captcha_failed: 'The check was wrong. Answer the new question and try again.',
+  too_many_accounts: 'That mobile number or email is already used on other accounts.',
+  spam_username: 'That username looks automatic. Choose a normal name.',
+  spam_listing: 'This listing looks like spam. Write a real title and description.',
+  duplicate_listing: 'You already have a listing like this (or it is copied from others).',
+  username_taken: 'That username is already taken – choose another.',
+  reserved_username: 'This name is reserved. Choose another.',
+  banned: 'This account has been banned from Fixvice for breaking the Terms.',
   not_signed_in: 'Du må logge inn.',
   not_owner: 'Du kan bare endre dine egne annonser.',
   too_many_services: 'Du har nådd grensen på 30 annonser.',
@@ -5733,12 +5752,12 @@ let captchaToken = '';
 async function loadCaptcha(){
   const q = document.getElementById('captchaQuestion'), inp = document.getElementById('captchaAnswer');
   if(!q) return;
-  inp.value = ''; captchaToken = ''; q.textContent = 'Laster en rask sjekk …';
+  inp.value = ''; captchaToken = ''; q.textContent = 'Loading a quick check …';
   try{
     const r = await api('auth', { action: 'captcha' });
-    if(r.ok && r.data.token){ captchaToken = r.data.token; q.textContent = 'Rask sjekk så vi vet at du er et menneske: ' + r.data.question; }
-    else q.textContent = 'Kunne ikke laste sjekken. Prøv igjen om litt.';
-  }catch(e){ q.textContent = 'Kunne ikke laste sjekken. Prøv igjen om litt.'; }
+    if(r.ok && r.data.token){ captchaToken = r.data.token; q.textContent = 'Quick check so we know you are human: ' + r.data.question; }
+    else q.textContent = 'Could not load the check. Try again in a moment.';
+  }catch(e){ q.textContent = 'Could not load the check. Try again in a moment.'; }
 }
 function setLoginMode(mode){
   loginMode = mode;
@@ -5747,11 +5766,11 @@ function setLoginMode(mode){
   document.getElementById('loginTabRegister').classList.toggle('active', mode === 'register');
   document.getElementById('loginExtraFieldsWrap').classList.toggle('hidden', mode !== 'register');
   document.getElementById('loginAckLabel').classList.toggle('hidden', mode !== 'register');
-  document.getElementById('loginSubmitBtn').textContent = mode === 'login' ? 'Logg inn' : 'Opprett konto';
+  document.getElementById('loginSubmitBtn').textContent = mode === 'login' ? 'Log in' : 'Create account';
   document.getElementById('loginScreen').classList.toggle('registering', mode === 'register');
   document.getElementById('loginHintText').textContent = mode === 'login'
-    ? 'Har du ikke konto? Trykk «Opprett ny konto» ovenfor.'
-    : 'Brukernavn: maks 10 tegn. E-post er valgfritt. Du gjør dette bare én gang.';
+    ? 'Don\'t have an account? Tap "Create new account" above.'
+    : 'Username: max 10 characters. Email is optional. You only do this once.';
   document.getElementById('loginUsernameInput').maxLength = mode === 'register' ? 10 : 20; // new usernames max 10; older accounts may still have up to 20
   document.getElementById('loginErrorMsg').classList.add('hidden');
   updateLoginSubmitState();
@@ -5792,27 +5811,35 @@ document.getElementById('loginPhoneInput').addEventListener('input', (e)=>{
 });
 document.getElementById('loginPhoneCC').addEventListener('change', updateLoginSubmitState);
 document.getElementById('loginCodeInput').addEventListener('input', updateLoginSubmitState);
+(function(){
+  const sel = document.getElementById('loginCountry');
+  COUNTRIES.slice().sort((a,b)=> a.name.localeCompare(b.name)).forEach(c=>{
+    const o = document.createElement('option'); o.value = c.name; o.textContent = c.flag + ' ' + c.name; sel.appendChild(o);
+  });
+})();
 document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
+  const regCountryName = document.getElementById('loginCountry').value;
   const username = document.getElementById('loginUsernameInput').value.trim();
   const code = document.getElementById('loginCodeInput').value.trim();
   const cc = document.getElementById('loginPhoneCC').value;
   const phone = cc ? (cc + ' ' + document.getElementById('loginPhoneInput').value.trim()) : document.getElementById('loginPhoneInput').value.trim();
   const email = document.getElementById('loginEmailInput').value.trim();
   const errEl = document.getElementById('loginErrorMsg');
-  if(loginMode === 'register' && !loginAcked){ errEl.textContent = 'Kryss av for å bekrefte at du husker passordet ditt og godtar vilkårene.'; errEl.classList.remove('hidden'); return; }
+  if(loginMode === 'register' && !loginAcked){ errEl.textContent = 'Tick the box to confirm that you will remember your password and accept the Terms.'; errEl.classList.remove('hidden'); return; }
   if(loginMode === 'register' && email && /@(.*\.)?(ex+[a-z]*mple|test|fake|invalid)\.[a-z.]+$/i.test(email)){ errEl.textContent = API_ERRORS.bad_email_domain; errEl.classList.remove('hidden'); return; }
-  if(loginMode === 'register' && !document.getElementById('captchaAnswer').value.trim()){ errEl.textContent = 'Svar på sjekkspørsmålet.'; errEl.classList.remove('hidden'); return; }
-  if(loginMode === 'register' && !cc){ errEl.textContent = 'Velg landkoden din (+47, +46, +45, +358, +44 eller +354).'; errEl.classList.remove('hidden'); return; }
+  if(loginMode === 'register' && !document.getElementById('captchaAnswer').value.trim()){ errEl.textContent = 'Answer the quick check question.'; errEl.classList.remove('hidden'); return; }
+  if(loginMode === 'register' && !regCountryName){ errEl.textContent = 'Choose your country.'; errEl.classList.remove('hidden'); return; }
+  if(loginMode === 'register' && !cc){ errEl.textContent = 'Please choose your country code (+47, +46, +45, +358, +44 or +354).'; errEl.classList.remove('hidden'); return; }
   errEl.classList.add('hidden');
   if(!isValidUsername(username, loginMode !== 'register') || !code) return;
   if(loginMode === 'register' && !isValidPhone(phone)) return;
   if(loginMode === 'register'){
     const prob = contentProblem(username, {strict:true, reserved:true});
-    if(prob){ errEl.textContent = 'Brukernavn: ' + prob; errEl.classList.remove('hidden'); return; }
+    if(prob){ errEl.textContent = 'Username: ' + prob; errEl.classList.remove('hidden'); return; }
   }
   const submitBtn = document.getElementById('loginSubmitBtn');
   submitBtn.disabled = true;
-  busyStart(loginMode === 'register' ? 'Oppretter konto …' : 'Logger inn …');
+  busyStart(loginMode === 'register' ? 'Creating account…' : 'Logging in…');
   try{
   const r = await api('auth', loginMode === 'register'
     ? { action: 'register', username, password: code, phone, email, captchaToken, captchaAnswer: document.getElementById('captchaAnswer').value.trim(), website: document.getElementById('loginWebsite').value }
@@ -5835,7 +5862,13 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   await loadPremium();
   await saveLastLocation(); // in case a browsed country/city was set before login was required
   track('login', { mode: loginMode });
-  if(pendingLoginAction){
+  const regCountry = loginMode === 'register' ? COUNTRIES.find(c=> c.name === regCountryName) : null;
+  document.getElementById('loginCountry').value = '';
+  if(regCountry){
+    // New account: your chosen country is your country. Straight to its cities, in its language.
+    pendingLoginAction = null;
+    enterCountry(regCountry);
+  } else if(pendingLoginAction){
     const action = pendingLoginAction;
     pendingLoginAction = null;
     action();

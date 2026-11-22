@@ -7,14 +7,14 @@ function secret(){ return process.env.SESSION_SECRET || process.env.SUPABASE_SER
 function sign(body){ return crypto.createHmac('sha256', secret()).update(body).digest('hex').slice(0, 32); }
 
 // ---- captcha: "What is 7 + 5?" The answer is never sent to the browser; only a signed token that proves it. ----
-const WORDS = ['null','en','to','tre','fire','fem','seks','sju','åtte','ni'];
+const WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine'];
 function newCaptcha(){
   const a = 2 + crypto.randomInt(8), b = 2 + crypto.randomInt(8);
   const minus = crypto.randomInt(2) === 1 && a > b;
   const ans = minus ? a - b : a + b;
   const exp = Date.now() + 15 * 60 * 1000, nonce = crypto.randomBytes(6).toString('hex');
   const body = [ans, exp, nonce].join('.');
-  return { question: 'Hva er ' + WORDS[a] + (minus ? ' minus ' : ' pluss ') + WORDS[b] + '? (skriv tallet)', token: body + '.' + sign(body) };
+  return { question: 'What is ' + WORDS[a] + (minus ? ' minus ' : ' plus ') + WORDS[b] + '? (type the number)', token: body + '.' + sign(body) };
 }
 function checkCaptcha(token, answer){
   try{
