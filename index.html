@@ -1039,7 +1039,6 @@
     font-size:14px;
   }
 
-  #langToggle{ display:none !important; }
   /* ---------- Accessibility ---------- */
   :focus-visible{ outline:3px solid #0d9488; outline-offset:2px; border-radius:6px; }
   @media (prefers-reduced-motion: reduce){
@@ -3627,7 +3626,7 @@ function ic(name){ return ICONS[name] || ''; }
 /* ---------------- Country / city data ---------------- */
 /* ---------------- Language preference toggle ---------------- */
 let forceEnglish = false;
-function effLang(c){ return c.lang; } /* the site is Norwegian only */
+function effLang(c){ return forceEnglish ? 'en' : c.lang; }
 function withEffLang(c){ return { name: c.name, flag: c.flag, lang: effLang(c) }; }
 
 document.getElementById('langOptLocal').addEventListener('click', ()=>{
