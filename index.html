@@ -2860,7 +2860,7 @@
       <div class="wf-grid">
         <div class="wf-card">
           <div class="wf-big"><span id="wfCountries">70</span> countries</div>
-          <p>Find and offer local services in every city of these countries, from the biggest capitals to small towns.</p>
+          <p>Find local services in every city of these countries, from the biggest capitals to small towns. You can also list your own service in all <span id="wfCountries2">70</span> of them.</p>
         </div>
         <div class="wf-card">
           <div class="wf-big">Free speech first</div>
@@ -4198,7 +4198,7 @@ document.querySelector('.logowrap img').addEventListener('click', goToStart);
 
 /* Welcome page for visitors who are not signed in. Tapping the search bar goes straight to the country page. */
 document.getElementById('welcomeSearch').addEventListener('click', ()=> requireLogin(()=> show('home'))); // log in first, then straight to the country page
-try{ document.getElementById('wfCountries').textContent = COUNTRIES.length; }catch(e){}
+try{ document.getElementById('wfCountries').textContent = COUNTRIES.length; document.getElementById('wfCountries2').textContent = COUNTRIES.length; }catch(e){}
 document.getElementById('welcomeLoginBtn').addEventListener('click', ()=>{ show('login'); setLoginMode('login'); });
 document.getElementById('welcomeSignupBtn').addEventListener('click', ()=>{ show('login'); setLoginMode('register'); });
 (function(){
