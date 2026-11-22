@@ -2731,6 +2731,12 @@
   .welcome-auth .wa-signup{ background:linear-gradient(135deg,var(--teal),#2f9e8f); color:#fff; border:1.5px solid transparent; }
   .welcome-auth button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
   @media(min-width:900px){ .welcome-auth{ right:clamp(22px,5vw,80px); } }
+  .welcome-facts{ background:#fff; padding:36px max(22px,env(safe-area-inset-left)) 56px; box-sizing:border-box; }
+  .wf-grid{ max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr; gap:14px; }
+  .wf-card{ border:1.5px solid #e3e9ec; border-radius:18px; padding:20px 22px; background:#fff; }
+  .wf-card .wf-big{ font-size:22px; font-weight:800; color:#14213d; letter-spacing:-.01em; margin:0 0 6px; }
+  .wf-card p{ margin:0; font-size:15px; line-height:1.5; color:#4b5870; }
+  @media(min-width:900px){ .wf-grid{ grid-template-columns:repeat(3,1fr); gap:18px; } .welcome-facts{ padding-left:clamp(22px,5vw,80px); padding-right:clamp(22px,5vw,80px); } .wf-grid{ max-width:none; } }
   .welcome-search svg.mag{ flex:none; width:22px; height:22px; color:#14213d; }
   .welcome-search .ph{ flex:1; min-width:0; }
   .welcome-search .go{ flex:none; width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--teal),#2f9e8f); display:flex; align-items:center; justify-content:center; color:#fff; }
@@ -2850,6 +2856,22 @@
       </button>
       </div>
     </div>
+    <section class="welcome-facts" aria-label="About Fixvice">
+      <div class="wf-grid">
+        <div class="wf-card">
+          <div class="wf-big"><span id="wfCountries">70</span> countries</div>
+          <p>Find and offer local services in every city of these countries, from the biggest capitals to small towns.</p>
+        </div>
+        <div class="wf-card">
+          <div class="wf-big">Free speech first</div>
+          <p>We only open Fixvice in countries that score at or above the world average for freedom of expression in the RSF World Press Freedom Index 2026.</p>
+        </div>
+        <div class="wf-card">
+          <div class="wf-big">Your data is locked down</div>
+          <p>Our database uses row level security. Accounts, messages and passwords are private, and only the public listings can be read by anyone.</p>
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- ===================== HOME / COUNTRY SELECT (browsing) ===================== -->
@@ -4176,6 +4198,7 @@ document.querySelector('.logowrap img').addEventListener('click', goToStart);
 
 /* Welcome page for visitors who are not signed in. Tapping the search bar goes straight to the country page. */
 document.getElementById('welcomeSearch').addEventListener('click', ()=> requireLogin(()=> show('home'))); // log in first, then straight to the country page
+try{ document.getElementById('wfCountries').textContent = COUNTRIES.length; }catch(e){}
 document.getElementById('welcomeLoginBtn').addEventListener('click', ()=>{ show('login'); setLoginMode('login'); });
 document.getElementById('welcomeSignupBtn').addEventListener('click', ()=>{ show('login'); setLoginMode('register'); });
 (function(){
