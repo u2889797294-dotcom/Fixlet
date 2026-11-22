@@ -4272,10 +4272,24 @@ function show(name){
   logowrap.style.display = (name === 'services' || name === 'chat') ? 'none' : 'flex';
 }
 
-/* Clicking the Fixvice logo, anywhere it appears, always takes you back to the
-   very start of the site (the country picker). */
-function goToStart(){
-  show('home');
+/* Clicking the Fixvice logo, anywhere it appears, takes you to your service list
+   (the last country and city you chose). */
+async function goToStart(){
+  if(!currentUser){ show('welcome'); window.scrollTo(0,0); return; }
+  let c = browseCountry, city = browseCity;
+  if(!(c && city)){
+    // Not browsing yet in this visit: use the last country and city you chose.
+    const last = await loadLastLocation();
+    const def = last && COUNTRIES.find(x=> x.name === last.countryName);
+    if(def && CITIES[def.name] && CITIES[def.name].includes(last.city)){
+      c = browseCountry = withEffLang(def); city = browseCity = last.city;
+      document.getElementById('htmlRoot').setAttribute('lang', c.lang);
+    }
+  }
+  if(c && city){ renderSiteScreen(c, city); show('services'); }
+  else if(c) enterCountry(c);
+  else show('home');
+  window.scrollTo(0,0);
 }
 document.querySelector('.logowrap img').addEventListener('click', goToStart);
 
