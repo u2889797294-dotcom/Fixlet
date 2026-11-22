@@ -7,13 +7,18 @@ const EXISTING = ['Denmark', 'England', 'Finland', 'Iceland', 'Norway', 'Sweden'
 const SKIP_CCA2 = new Set(['GB', 'NO', 'SE', 'DK', 'FI', 'IS']);
 const L3 = { nld:'nl', deu:'de', fra:'fr', spa:'es', por:'pt', ita:'it', rus:'ru', ara:'ar', aze:'az', bel:'be', bul:'bg', ben:'bn', bos:'bs', cat:'ca', ces:'cs', ell:'el', est:'et', fas:'fa', heb:'he', hrv:'hr', hun:'hu', hye:'hy', ind:'id', jpn:'ja', kat:'ka', khm:'km', kor:'ko', lao:'lo', lit:'lt', lav:'lv', mkd:'mk', mon:'mn', msa:'ms', mya:'my', nep:'ne', pol:'pl', ron:'ro', slk:'sk', slv:'sl', sqi:'sq', srp:'sr', tha:'th', tur:'tr', ukr:'uk', urd:'ur', vie:'vi', zho:'zh', swe:'sv', dan:'da', fin:'fi', isl:'is', nor:'no', nob:'no', nno:'no' };
 
+// Bare land med pressefrihet-score på eller over gjennomsnittet (RSF 2026) tas med
+const RSF = require('./rsf-2026.json');
+const ALIAS = { England: 'United Kingdom', Czechia: 'Czech Republic', 'Republic of the Congo': 'Congo', 'Türkiye': 'Turkey', 'Cabo Verde': 'Cape Verde', 'East Timor': 'Timor-Leste' };
+const okFreedom = n => (RSF.scores[ALIAS[n] || n] ?? -1) >= RSF.mean;
+
 const byCountry = {};
 for (const c of cities) (byCountry[c.country] ||= []).push(c);
 const pop = {};
 for (const k in byCountry) pop[k] = byCountry[k].reduce((s, c) => s + (c.population || 0), 0);
 
 const pick = world.filter(w => w.independent && !SKIP_CCA2.has(w.cca2) && byCountry[w.cca2])
-  .sort((a, b) => pop[b.cca2] - pop[a.cca2]).slice(0, 144);
+  .sort((a, b) => pop[b.cca2] - pop[a.cca2]).slice(0, 144).filter(w => okFreedom(w.name.common));
 
 const countries = [], citiesOut = {}, coords = {};
 for (const w of pick) {
