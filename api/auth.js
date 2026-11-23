@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
       const spamProb = SP.accountProblem(accounts, username, phone, email); if(spamProb) return fail(res, 400, spamProb);
       if(await isBanned(key)) return fail(res, 403, 'banned');
       if(accounts[key]) return fail(res, 409, 'username_taken');
-      accounts[key] = { username, hash: await S.hashPassword(b.password), phone, email: email || null, displayName: null, bio: null, avatar: null, country: null, created: Date.now() };
+      accounts[key] = { username, hash: await S.hashPassword(b.password), phone, email: email || null, displayName: null, bio: null, avatar: null, country: (typeof b.country === 'string' && /^[\p{L} .'’()-]{2,40}$/u.test(b.country)) ? b.country : null, created: Date.now() };
       await S.sbPutRow('accounts', accounts);
       await S.rateRecord('register-ip:' + ip);
       return res.status(200).json({ ok: true, token: S.signToken(username), profile: await profileOf(accounts[key]) });

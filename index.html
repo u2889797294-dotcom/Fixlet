@@ -4286,6 +4286,11 @@ async function goToStart(){
       document.getElementById('htmlRoot').setAttribute('lang', c.lang);
     }
   }
+  if(!c && currentUser.country){
+    // Your country from sign-up (or the last time you changed it).
+    const def = COUNTRIES.find(x=> x.name === currentUser.country);
+    if(def) c = browseCountry = withEffLang(def);
+  }
   if(c && city){ renderSiteScreen(c, city); show('services'); }
   else if(c) enterCountry(c);
   else show('home');
@@ -5783,7 +5788,15 @@ async function clearUser(){
    page instead of the home screen. Only meaningful once sign-in itself is
    also remembered (see loadUser() being called from initUser below). */
 const LAST_LOCATION_STORAGE_KEY = 'jelp_lastLocation_v1';
-async function recordAccountCountry(countryName){ /* the server no longer keeps a per-account country list */ }
+/* Your country is saved on your account, so you never have to pick it again on login or on another device.
+   It only changes when you choose another country yourself. */
+async function recordAccountCountry(countryName){
+  try{
+    if(!currentUser || !currentUser.token || !countryName || currentUser.country === countryName) return;
+    const r = await api('auth', { action: 'updateProfile', country: countryName });
+    if(r.ok){ currentUser.country = countryName; try{ await saveUser(); }catch(e){} }
+  }catch(e){}
+}
 async function saveLastLocation(){
   if(!browseCountry || !browseCity) return;
   recordAccountCountry(browseCountry.name);
@@ -5924,7 +5937,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
   busyStart(loginMode === 'register' ? 'Creating account…' : 'Logging in…');
   try{
   const r = await api('auth', loginMode === 'register'
-    ? { action: 'register', username, password: code, phone, email, captchaToken, captchaAnswer: document.getElementById('captchaAnswer').value.trim(), website: document.getElementById('loginWebsite').value }
+    ? { action: 'register', country: regCountryName, username, password: code, phone, email, captchaToken, captchaAnswer: document.getElementById('captchaAnswer').value.trim(), website: document.getElementById('loginWebsite').value }
     : { action: 'login', username, password: code });
   submitBtn.disabled = false;
   if(!r.ok){
@@ -5955,7 +5968,7 @@ document.getElementById('loginSubmitBtn').addEventListener('click', async ()=>{
     pendingLoginAction = null;
     action();
   } else {
-    show('home');
+    await goToStart(); // back to your own country and last city, no need to choose again
   }
   } finally { busyEnd(); }
 });
@@ -6953,6 +6966,7 @@ window.__initUserP = (async function initUser(){
           show('services');
         }
       }
+      if(!browseCity && currentUser.country) await goToStart();
     }
   }
   startForceLogoutWatcher();
