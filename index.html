@@ -5648,11 +5648,13 @@ function busyTextFor(path, body){
   const a = body && body.action;
   if(a === 'register') return 'Creating account…';
   if(a === 'login') return 'Logging in…';
+  if(a === 'captcha' || (a === 'updateProfile' && body.country !== undefined && body.displayName === undefined && body.newPassword === undefined)) return null; // silent saves
   if(a === 'createService') return 'Publiserer tjenesten …';
   if(a === 'editService' || a === 'updateProfile') return 'Lagrer …';
   if(a === 'deleteService') return 'Sletter …';
   if(a === 'deleteAccount') return 'Sletter kontoen …';
-  if(a === 'sendMessage' || a === 'me' || a === 'view' || a === 'getViews') return null; // chat stays instant
+  if(a === 'sendMessage' || a === 'me' || a === 'view') return null; // chat stays instant
+  if(typeof a === 'string' && /^(get|list|load|check|poll|fetch)/i.test(a)) return null; // background reads (the 8-second refresh) never show a loading screen
   return 'Vent litt …';
 }
 async function api(path, body){
