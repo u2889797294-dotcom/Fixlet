@@ -43,10 +43,10 @@
 
 <div id="gate">
   <h2>Fixvice User Activity</h2>
-  <p>See what users do on Fixvice (only those who agreed to tracking). Enter the password to continue.</p>
-  <input type="password" id="gatePassword" placeholder="Password" autocomplete="off">
+  <p>See what users do on Fixvice (only those who agreed to tracking). Enter the admin key to continue.</p>
+  <input type="password" id="gatePassword" placeholder="Admin key" autocomplete="off">
   <button class="primary" id="gateSubmit">Log in</button>
-  <p id="gateError" style="color:var(--bad); display:none;">Wrong password.</p>
+  <p id="gateError" style="color:var(--bad); display:none;">Wrong admin key.</p>
 </div>
 
 <div id="app" style="display:none;">
@@ -81,7 +81,9 @@
 const SUPABASE_URL = "https://upqntfrjjkmlrguhwgut.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_4gbfqCFJaOqhUC-Bp_Hg3A_d0K-l4Kc";
 const SUPABASE_TABLE = "Jelp-services";
-const ADMIN_PASSWORD = "GaisRik908070"; // simple browser gate (this page is fully separate from admin.html)
+/* The page talks only to /api/admin. The admin key is typed in here, kept for this browser tab only (sessionStorage)
+   and checked on the server — it is not stored in this file. */
+let adminKey = '';
 
 let activityRows = [];
 let registeredCodes = [];
@@ -93,11 +95,11 @@ function escapeHtml(str){
 }
 const H = { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` };
 
-async function getUsers(){
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.users&select=data`, { headers: H });
-  if(!res.ok) throw new Error('HTTP ' + res.status);
-  const rows = await res.json();
-  return (rows && rows[0] && Array.isArray(rows[0].data)) ? rows[0].data : [];
+async function adminCall(action){
+  const res = await fetch('/api/admin', { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + adminKey }, body: JSON.stringify({ action }) });
+  const data = await res.json().catch(()=> ({}));
+  if(!res.ok){ const e = new Error(data.error === 'forbidden' ? 'Wrong admin key' : (data.error || ('HTTP ' + res.status))); e.status = res.status; throw e; }
+  return data;
 }
 function identityKey(a){
   const rec = typeof a === 'string' ? { code: a, username: null } : a;
@@ -150,17 +152,12 @@ async function loadActivity(){
   list.innerHTML = '<div class="empty">Loading…</div>';
   msg.textContent = '';
   try{
-    const [actRes, users] = await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=like.an_*&select=id,data`, { headers: H }),
-      getUsers().catch(()=> null)
-    ]);
-    if(!actRes.ok) throw new Error('HTTP ' + actRes.status);
-    const rows = await actRes.json();
-    activityRows = (rows || []).map(r => r.data).filter(d => d && Array.isArray(d.events) && d.events.length > 0);
-    if(users) registeredCodes = users;
-    else msg.textContent = '⚠️ Could not load the user list — only showing users with activity.';
+    const d = await adminCall('activity');
+    activityRows = (d.rows || []).filter(x => x && Array.isArray(x.events) && x.events.length > 0);
+    registeredCodes = d.users || [];
     render();
   }catch(e){
+    if(e.status === 403){ try{ sessionStorage.removeItem('fixviceActivityKey'); }catch(_){} adminKey = ''; document.getElementById('app').style.display = 'none'; document.getElementById('gate').style.display = ''; const g = document.getElementById('gateError'); g.textContent = 'Wrong admin key.'; g.style.display = 'block'; return; }
     list.innerHTML = '<div class="empty">Could not load activity: ' + escapeHtml(e.message) + '</div>';
   }
 }
@@ -261,18 +258,18 @@ function unlock(){
   loadActivity();
 }
 document.getElementById('gateSubmit').addEventListener('click', ()=>{
-  if(document.getElementById('gatePassword').value === ADMIN_PASSWORD){
-    try{ sessionStorage.setItem('fixviceActivityUnlocked', '1'); } catch(e){}
-    unlock();
-  } else {
-    document.getElementById('gateError').style.display = 'block';
-  }
+  adminKey = document.getElementById('gatePassword').value.trim();
+  if(!adminKey){ document.getElementById('gateError').style.display = 'block'; return; }
+  document.getElementById('gateError').style.display = 'none';
+  try{ sessionStorage.setItem('fixviceActivityKey', adminKey); } catch(e){}
+  unlock();
 });
 document.getElementById('gatePassword').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter') document.getElementById('gateSubmit').click();
 });
 try{
-  if(sessionStorage.getItem('fixviceActivityUnlocked') === '1') unlock();
+  const saved = sessionStorage.getItem('fixviceActivityKey');
+  if(saved){ adminKey = saved; unlock(); }
 } catch(e){}
 </script>
 </body>

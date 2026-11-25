@@ -61,6 +61,17 @@ module.exports = async (req, res) => {
     const b = req.body && typeof req.body === 'object' ? req.body : {};
     const accounts = (await S.sbGetRow('accounts')) || {};
 
+    if(b.action === 'activity'){
+      // Activity rows ("an_<username>") are private, so the activity page reads them here with the service key.
+      const base = process.env.SUPABASE_URL || 'https://upqntfrjjkmlrguhwgut.supabase.co';
+      const sk = S.serviceKey();
+      const r = await fetch(`${base}/rest/v1/Jelp-services?id=like.an_*&select=id,data`, { headers: { apikey: sk, Authorization: `Bearer ${sk}` } });
+      if(!r.ok) return fail(res, 502, 'db_error');
+      const rows = await r.json();
+      const users = Object.values(accounts).map(a => ({ username: a.username, created: a.created || null }));
+      return res.status(200).json({ ok: true, rows: (rows || []).map(x => x.data), users });
+    }
+
     if(b.action === 'overview'){
       const svcs = (await S.sbGetRow('svc2')) || [];
       const counts = {};
