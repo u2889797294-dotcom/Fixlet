@@ -6,9 +6,9 @@ const { sbGetRow, stripe, rateLimit, clientIp, readSession } = require('./_share
 // Each plan can use either a ready-made Stripe price (env STRIPE_PRICE_*) or a Stripe PRODUCT id
 // (prod_..., not secret) plus the amount below, in which case the price is created inline at checkout.
 const PLANS = {
-  boost50:  { price: () => process.env.STRIPE_PRICE_BOOST50,  product: process.env.STRIPE_PRODUCT_BOOST50  || 'prod_VTAQDDQ5ULsLaX', cents: 790, mode: 'payment',      needsService: true },
-  boost100: { price: () => process.env.STRIPE_PRICE_BOOST100, product: process.env.STRIPE_PRODUCT_BOOST100 || 'prod_VTAX12msnRgA0p',                    cents: 990, mode: 'payment',      needsService: true },
-  premium:  { price: () => process.env.STRIPE_PRICE_PREMIUM,  product: process.env.STRIPE_PRODUCT_PREMIUM  || 'prod_VTASUNsqX0YREE',                    cents: 900, mode: 'subscription', needsService: false }
+  boost50:  { price: () => process.env.STRIPE_PRICE_BOOST50,  product: process.env.STRIPE_PRODUCT_BOOST50  || 'prod_VTAQDDQ5ULsLaX', cents: 790, label: 'Fixvice Boost +50% (30 days)', mode: 'payment',      needsService: true },
+  boost100: { price: () => process.env.STRIPE_PRICE_BOOST100, product: process.env.STRIPE_PRODUCT_BOOST100 || 'prod_VTAX12msnRgA0p',                    cents: 990, label: 'Fixvice Boost +100% (30 days)', mode: 'payment',      needsService: true },
+  premium:  { price: () => process.env.STRIPE_PRICE_PREMIUM,  product: process.env.STRIPE_PRODUCT_PREMIUM  || 'prod_VTASUNsqX0YREE',                    cents: 900, label: 'Fixvice Premium (weekly)', mode: 'subscription', needsService: false }
 };
 
 module.exports = async (req, res) => {
@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
     const def = PLANS[plan];
     const lim = await rateLimit('checkout-ip:' + clientIp(req), 20, 3600 * 1000); // max 20 checkout sessions per hour per IP
     if(!lim.ok){ res.setHeader('Retry-After', String(lim.retryAfterSec)); return res.status(429).json({ error: 'Too many attempts. Try again later.' }); }
-    if(!def || !(def.price() || def.product)) return res.status(400).json({ error: 'Unknown plan.' });
+    if(!def) return res.status(400).json({ error: 'Unknown plan.' });
     if(!username || typeof username !== 'string' || username.length > 20) return res.status(400).json({ error: 'Missing username.' });
 
     if(def.needsService){
@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
     const form = {
       mode: def.mode,
       'line_items[0][quantity]': '1',
-      success_url: origin + '/?paid=1&plan=' + plan,
+      success_url: origin + '/?paid=1&plan=' + plan + '&sid={CHECKOUT_SESSION_ID}',
       cancel_url: origin + '/?paid=0',
       client_reference_id: meta.username,
       'metadata[plan]': meta.plan, 'metadata[username]': meta.username, 'metadata[serviceId]': meta.serviceId
@@ -53,7 +53,8 @@ module.exports = async (req, res) => {
       form['line_items[0][price]'] = def.price();
     } else {
       form['line_items[0][price_data][currency]'] = 'eur';
-      form['line_items[0][price_data][product]'] = def.product;
+      // The product is described inline, so checkout never fails because a Stripe product id is missing or wrong.
+      form['line_items[0][price_data][product_data][name]'] = def.label;
       form['line_items[0][price_data][unit_amount]'] = String(def.cents);
       if(def.mode === 'subscription'){
         form['line_items[0][price_data][recurring][interval]'] = 'week';

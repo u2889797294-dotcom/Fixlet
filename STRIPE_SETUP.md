@@ -30,3 +30,9 @@ Bytt til live-nøkler først når testen virker.
 ## Viktig før du går live
 Boosts lagres i Supabase-radene `boosts` og `premium`, og bare webhooken skal skrive dem. Fordi siden bruker den offentlige nøkkelen,
 bør du låse skrivetilgang for disse radene (Row Level Security) så ingen kan gi seg selv gratis boost.
+
+## Boost-garanti: slik er det bygget
+- Når kunden kommer tilbake fra Stripe (`/?paid=1&sid=...`), spør siden `/api/verify-payment` som sjekker betalingen direkte hos Stripe og slår på boosten med en gang.
+  Webhooken er en ekstra sikring, og begge bruker samme funksjon (`activateCheckout`), så en betaling aldri aktiveres to ganger eller går tapt.
+- Mislykkes sjekken (lukket fane, dårlig nett), prøver siden igjen neste gang kunden åpner Fixvice.
+- Produktene beskrives direkte i checkout (`product_data`), så kjøp feiler ikke fordi et Stripe produkt-ID mangler.

@@ -40,6 +40,28 @@ async function setPremium(username, until, extra){
   if(until) row[username] = Object.assign({}, row[username], { until }, extra || {}); else delete row[username];
   await sbPutRow('premium', row);
 }
+// Turns a PAID Stripe checkout session into an active Boost / Premium. Safe to call many times for the same session
+// (the Stripe webhook and the return-from-payment check both call it), so a payment can never be lost or applied twice.
+async function activateCheckout(obj){
+  const m = obj.metadata || {};
+  if(!(obj.payment_status === 'paid' || obj.payment_status === 'no_payment_required')) return { activated: false, reason: 'unpaid' };
+  if(m.plan === 'boost50' || m.plan === 'boost100'){
+    const boosts = (await sbGetRow('boosts')) || {};
+    const cur = boosts[m.serviceId];
+    if(!cur || cur.session !== obj.id){
+      boosts[m.serviceId] = { until: Date.now() + 30 * DAY, plan: m.plan, pct: m.plan === 'boost100' ? 100 : 50, session: obj.id };
+      await sbPutRow('boosts', boosts);
+    }
+    return { activated: true, plan: m.plan, serviceId: m.serviceId };
+  }
+  if(m.plan === 'premium'){
+    const prem = (await sbGetRow('premium')) || {};
+    const cur = prem[m.username];
+    if(!(cur && cur.sub === obj.subscription && cur.until > Date.now())) await setPremium(m.username, Date.now() + 8 * DAY, { sub: obj.subscription, cancelling: false });
+    return { activated: true, plan: 'premium' };
+  }
+  return { activated: false, reason: 'unknown_plan' };
+}
 // Ends a user's Premium subscription at the end of the week that is already paid for (no refund, no further charges).
 async function cancelPremiumFor(username){
   const row = (await sbGetRow('premium')) || {};
@@ -162,4 +184,4 @@ async function rateRecord(rawKey){
     await sbPutRow('ratelimit', row);
   }catch(e){}
 }
-module.exports = { sbGetRow, sbGetRows, sbPutRow, sbDeleteRow, stripe, serviceKey, setPremium, cancelPremiumFor, rateLimit, rateBlocked, rateRecord, clientIp, hashPassword, verifyPassword, signToken, readSession, DAY };
+module.exports = { activateCheckout, sbGetRow, sbGetRows, sbPutRow, sbDeleteRow, stripe, serviceKey, setPremium, cancelPremiumFor, rateLimit, rateBlocked, rateRecord, clientIp, hashPassword, verifyPassword, signToken, readSession, DAY };

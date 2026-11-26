@@ -4,7 +4,7 @@
 //   "premium" : { "<username>":  { until } }
 // They are separate rows on purpose so the website's own saves can never overwrite them.
 const crypto = require('crypto');
-const { sbGetRow, sbPutRow, stripe, setPremium, DAY } = require('./_shared');
+const { activateCheckout, stripe, setPremium, DAY } = require('./_shared');
 
 
 function readRaw(req){
@@ -32,17 +32,8 @@ module.exports = async (req, res) => {
   const event = JSON.parse(raw.toString('utf8'));
   try {
     const obj = event.data.object;
-    if(event.type === 'checkout.session.completed' && obj.payment_status !== 'unpaid'){
-      const m = obj.metadata || {};
-      if(m.plan === 'boost50' || m.plan === 'boost100'){
-        const boosts = (await sbGetRow('boosts')) || {};
-        if(!boosts[m.serviceId] || boosts[m.serviceId].session !== obj.id){ // idempotent on Stripe retries
-          boosts[m.serviceId] = { until: Date.now() + 30 * DAY, plan: m.plan, pct: m.plan === 'boost100' ? 100 : 50, session: obj.id };
-          await sbPutRow('boosts', boosts);
-        }
-      } else if(m.plan === 'premium'){
-        await setPremium(m.username, Date.now() + 8 * DAY, { sub: obj.subscription, cancelling: false }); // renewed by invoice.paid each week
-      }
+    if(event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded'){
+      await activateCheckout(obj);
     } else if(event.type === 'invoice.paid' && obj.subscription){
       const sub = await stripe('subscriptions/' + obj.subscription);
       const u = sub.metadata && sub.metadata.username;
